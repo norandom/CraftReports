@@ -1,0 +1,31 @@
+# Local environments, build outputs and verification artifacts.
+.venv/
+.venv-*/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+build/
+dist/
+artifacts/
+.coverage
+htmlcov/
+
+# Deployment-only secrets, private packs/data and runtime state.
+.env
+.env.*
+!.env.example
+private/
+private-packs/
+runtime/
+*.log
+
+# Preserve historical GridCraft prototype and generated files outside this kernel.
+/gridcraft-live-demo.cjs
+/Start-GridCraftLive.ps1
+/Stop-GridCraftLive.ps1
+/GridCraft-Live-Dashboard.xlsx
+/gridcraft-live-state.json
+/gridcraft-live.jsonl

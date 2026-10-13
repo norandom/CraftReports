@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling==1.32.4"]
+build-backend = "hatchling.build"
+
+[project]
+name = "craftreport"
+version = "0.1.0"
+description = "CraftReport operation kernel"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi==0.143.0",
+    "mcp==2.3.0",
+    "packaging==26.3",
+    "pydantic==2.14.1",
+    "uvicorn==0.54.0",
+]
+
+[dependency-groups]
+dev = [
+    "hatchling==1.32.4",
+    "httpx==0.28.1",
+    "pre-commit==4.7.0",
+    "pyright==1.1.414",
+    "pytest==9.1.1",
+    "radon==6.0.1",
+    "ruff==0.17.0",
+]
+
+[tool.uv]
+required-version = "==0.13.0"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/craftreport"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/craftreport", "pyproject.toml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-config --strict-markers"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "C901"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.pyright]
+include = ["src", "scripts", "tests"]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+venvPath = "."
+venv = ".venv"
