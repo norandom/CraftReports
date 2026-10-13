@@ -26,7 +26,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Boundary: Engineering quality gates_
   - _Requirements: 7.1, 7.2_
 
-- [ ] 1.3 Enforce breadth ownership and allowed imports
+- [x] 1.3 Enforce breadth ownership and allowed imports
   - Validate actual spec phases/counts, scoped approved ownership, most-specific owners, parked paths and overdue required retirements against the ledgers.
   - Enforce the inward dependency direction, including the prohibition on framework/app/storage imports in contracts/application and on adapter-interface cross-imports.
   - Done when disposable violation fixtures fail with exact ownership/import diagnostics and the current bootstrap passes; no future capability is activated to satisfy a gate.
@@ -247,3 +247,4 @@ Browser verification remains the next bounded spec: latest official GridCraft do
 
 - Task 1.1: approved pins resolve on CPython 3.12.10; independent review and fresh bootstrap, Ruff and Pyright checks pass. Fast/integration modes remain explicitly unavailable until tasks 1.4/8.1. On this host use uv.exe directly: the PowerShell uv wrapper can mis-forward arguments in multi-command calls.
 - Task 1.2: independent review and fresh standalone quality check pass; 21 tests/15 subtests. Parenthesized decorators use token positions; only approved test roots receive separate accounting. quality_policy.py and quality_measurement.py separate policy/extraction responsibilities. Full pipeline remains pending task 1.4.
+- Task 1.3: independent rereview passed after repairing generated-stage consistency and shared-namespace plugin ownership. Fresh breadth/import gates pass; independent suite36tests41subtests. Full suite currently roughly3minutes; direct real check(root) fixture calls proved much faster than subprocess-per-case. Task1.4 can optimize that measured overhead while retaining CLI smoke coverage.

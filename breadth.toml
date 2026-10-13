@@ -1,0 +1,446 @@
+# Draft breadth ledger for CraftReport, 2026-10-13.
+# Actual Kiro phases/approvals come from spec.json, not this ledger.
+# active = declared work line; only phase-authorized work may land.
+# done = acceptance work closed with evidence; retained code has an owner.
+# parked = no implementation lands; unused scaffolding is removed if present.
+# retiring = exact closes deletion/exit surfaces scheduled, with execution evidence.
+# review = disposition required; removed = verified closure, retained as a release tombstone.
+# open_fronts = active/review real specs + review/retiring capabilities with unexecuted required closure.
+# Counts below are a verified draft snapshot, not output from an implemented gate.
+
+[meta]
+schema_version = 1
+drafted = "2026-10-13"
+map_approved = false
+approved_spec_scopes = ["craftreport-operation-kernel"]
+approved_capability_owners = ["contracts", "application", "adapters", "interfaces", "composition", "development-gates", "documentation"]
+scope_approval_reference = ".kiro/specs/craftreport-operation-kernel/design-review.md"
+gate_implemented = false
+spec_count = 2
+generated_task_sets = 1
+actual_python_modules = 1
+actual_plugin_packages = 0
+planned_plugin_packages = 19
+plugin_root = "packages"
+planned_module_capabilities = 13
+open_fronts = 2
+open_front_ids = ["spec.craftreport-reporting-facade", "spec.craftreport-operation-kernel"]
+source_root = "src/craftreport"
+work_lines_source = ".kiro/steering/overview.md"
+retirement_limit_days = 14
+
+[spec.craftreport-reporting-facade]
+status = "active"
+line = "shared-reporting"
+phase_source = ".kiro/specs/craftreport-reporting-facade/spec.json"
+phase_at_draft = "requirements-generated"
+status_since = "2026-10-13"
+owner = [".kiro/specs/craftreport-reporting-facade"]
+path_state = "existing-documents"
+closes = "n/a (active; phase approvals still required)"
+closure_required = false
+close_targets = []
+
+# Kernel ownership is approved; bootstrap source exists. Future paths remain planned.
+# A more-specific extension entry overrides general parent ownership/lifecycle.
+
+[spec.craftreport-operation-kernel]
+status = "active"
+line = "shared-reporting"
+phase_source = ".kiro/specs/craftreport-operation-kernel/spec.json"
+phase_at_draft = "tasks-generated"
+status_since = "2026-10-13"
+owner = [".kiro/specs/craftreport-operation-kernel"]
+path_state = "existing-documents"
+closes = "n/a (active; requirements and Design approved; tasks generated for review)"
+closure_required = false
+close_targets = []
+
+[capability.contracts]
+kind = "module"
+status = "active"
+line = "shared-reporting"
+owner = ["src/craftreport/contracts"]
+path_state = "planned"
+feature_keys = ["reports.definitions", "reports.evidence", "apps.capabilities"]
+closes = "n/a (active)"
+closure_required = false
+close_targets = []
+
+[capability.domain]
+kind = "module"
+status = "parked"
+line = "shared-reporting"
+owner = ["src/craftreport/domain"]
+path_state = "planned"
+feature_keys = ["portfolio.metrics"]
+closes = "n/a (no scaffolding; local domain methods are outside the approved reporting foundation)"
+closure_required = false
+close_targets = []
+
+[capability.data]
+kind = "module"
+status = "active"
+line = "shared-reporting"
+owner = ["src/craftreport/data"]
+path_state = "planned"
+feature_keys = ["data.sources", "data.publish", "data.snapshots"]
+closes = "n/a (active)"
+closure_required = false
+close_targets = []
+
+[capability.compute]
+kind = "module"
+status = "parked"
+line = "shared-reporting"
+owner = ["src/craftreport/compute"]
+path_state = "planned"
+feature_keys = ["portfolio.metrics", "quality.accuracy"]
+closes = "n/a (no scaffolding; local financial calculation engine is outside the approved foundation)"
+closure_required = false
+close_targets = []
+
+[capability.reporting]
+kind = "module"
+status = "active"
+line = "shared-reporting"
+owner = ["src/craftreport/reporting"]
+path_state = "planned"
+feature_keys = ["reports.definitions", "reports.content", "reports.templates", "reports.template_sources"]
+closes = "n/a (active)"
+closure_required = false
+close_targets = []
+
+[capability.themes]
+kind = "module"
+status = "active"
+line = "template-packs"
+owner = ["src/craftreport/themes"]
+path_state = "planned"
+feature_keys = ["reports.themes", "quality.consistency"]
+closes = "n/a (active)"
+closure_required = false
+close_targets = []
+
+[capability.policies]
+kind = "module"
+status = "active"
+line = "quality-verification"
+owner = ["src/craftreport/policies"]
+path_state = "planned"
+feature_keys = ["quality.compliance", "reports.evidence"]
+closes = "n/a (active; policy applicability still needs requirements)"
+closure_required = false
+close_targets = []
+
+[capability.application]
+kind = "module"
+status = "active"
+line = "shared-reporting"
+owner = ["src/craftreport/application"]
+path_state = "planned"
+feature_keys = ["reports.definitions", "reports.outputs", "reports.live", "reports.evidence"]
+closes = "n/a (active)"
+closure_required = false
+close_targets = []
+
+[capability.runtime]
+kind = "module"
+status = "active"
+line = "craft-app-integration"
+owner = ["src/craftreport/runtime"]
+path_state = "planned"
+feature_keys = ["reports.live", "apps.capabilities", "reports.evidence"]
+closes = "n/a (active; mode-specific executors need capability evidence)"
+closure_required = false
+close_targets = []
+
+[capability.adapters]
+kind = "module"
+status = "active"
+line = "craft-app-integration"
+owner = ["src/craftreport/adapters"]
+path_state = "planned"
+feature_keys = ["data.sources", "apps.capabilities", "reports.outputs"]
+closes = "n/a (active; specific parked app entries cannot be bypassed)"
+closure_required = false
+close_targets = []
+
+[capability.transports]
+kind = "module"
+status = "parked"
+line = "craft-app-integration"
+owner = ["src/craftreport/transports"]
+path_state = "planned"
+feature_keys = ["apps.capabilities", "apps.native"]
+closes = "n/a (no scaffolding; mode-specific I/O belongs to app packages until shared transport reuse is justified)"
+closure_required = false
+close_targets = []
+
+[capability.interfaces]
+kind = "module"
+status = "active"
+line = "shared-reporting"
+owner = ["src/craftreport/interfaces"]
+path_state = "planned"
+feature_keys = ["data.publish", "reports.definitions", "reports.outputs", "reports.evidence", "interfaces.mcp"]
+closes = "n/a (active; Jupyter/client SDK remain external)"
+closure_required = false
+close_targets = []
+
+[capability.composition]
+kind = "module"
+status = "active"
+line = "shared-reporting"
+owner = ["src/craftreport/composition", "src/craftreport/bootstrap.py", "src/craftreport/__init__.py"]
+path_state = "planned"
+feature_keys = ["reports.definitions", "apps.capabilities"]
+closes = "n/a (active; assembly only, no business logic)"
+closure_required = false
+close_targets = []
+
+[capability.gridcraft]
+kind = "app-extension"
+status = "active"
+line = "craft-app-integration"
+owner = ["packages/craftreport-gridcraft", "gridcraft-live-demo.cjs", "Start-GridCraftLive.ps1", "Stop-GridCraftLive.ps1"]
+path_state = "mixed-planned-and-existing-prototype"
+feature_keys = ["reports.outputs", "reports.live", "apps.native"]
+closes = "n/a (active; prototype replacement/removal needs a future concrete decision)"
+closure_required = false
+close_targets = []
+
+[capability.development-gates]
+kind = "tooling"
+status = "active"
+line = "quality-verification"
+owner = ["scripts", ".pre-commit-config.yaml", "breadth.toml", "quality.toml", "pyproject.toml", "uv.lock", "tests", ".github/workflows", ".gitignore"]
+path_state = "mixed-existing-draft-and-planned-tooling"
+feature_keys = ["development.verification", "development.breadth", "engineering.gates"]
+closes = "n/a (active; hooks and gate scripts are not implemented yet)"
+closure_required = false
+close_targets = []
+
+# These extensions remain candidates. No scaffolding exists to delete.
+# This draft does not authorize deletion or implementation of them.
+
+[capability.wordcraft]
+kind = "app-extension"
+status = "parked"
+line = "craft-app-integration"
+owner = ["packages/craftreport-wordcraft"]
+path_state = "planned"
+closes = "n/a (no scaffolding; activate when first WordCraft scope is approved)"
+closure_required = false
+close_targets = []
+
+[capability.deckcraft]
+kind = "app-extension"
+status = "parked"
+line = "craft-app-integration"
+owner = ["packages/craftreport-deckcraft"]
+path_state = "planned"
+closes = "n/a (no scaffolding; presentation use case not activated)"
+closure_required = false
+close_targets = []
+
+[capability.pdfcraft]
+kind = "app-extension"
+status = "parked"
+line = "craft-app-integration"
+owner = ["packages/craftreport-pdfcraft"]
+path_state = "planned"
+closes = "n/a (no scaffolding; PDF assembly use case not activated)"
+closure_required = false
+close_targets = []
+
+[capability.designcraft]
+kind = "app-extension"
+status = "parked"
+line = "craft-app-integration"
+owner = ["packages/craftreport-designcraft"]
+path_state = "planned"
+closes = "n/a (no scaffolding; publication fidelity needs a feasibility decision)"
+closure_required = false
+close_targets = []
+
+[capability.vectorcraft]
+kind = "app-extension"
+status = "parked"
+line = "craft-app-integration"
+owner = ["packages/craftreport-vectorcraft"]
+path_state = "planned"
+closes = "n/a (no scaffolding; vector asset use case not activated)"
+closure_required = false
+close_targets = []
+
+[capability.photocraft]
+kind = "app-extension"
+status = "parked"
+line = "craft-app-integration"
+owner = ["packages/craftreport-photocraft"]
+path_state = "planned"
+closes = "n/a (no scaffolding; raster asset use case not activated)"
+closure_required = false
+close_targets = []
+
+[capability.lightcraft]
+kind = "app-extension"
+status = "parked"
+line = "craft-app-integration"
+owner = ["packages/craftreport-lightcraft"]
+path_state = "planned"
+closes = "n/a (no scaffolding; photo catalog use case not activated)"
+closure_required = false
+close_targets = []
+
+[capability.cadcraft]
+kind = "app-extension"
+status = "parked"
+line = "craft-app-integration"
+owner = ["packages/craftreport-cadcraft"]
+path_state = "planned"
+closes = "n/a (no scaffolding; drawing use case not activated)"
+closure_required = false
+close_targets = []
+
+[capability.filmcraft]
+kind = "app-extension"
+status = "parked"
+line = "craft-app-integration"
+owner = ["packages/craftreport-filmcraft"]
+path_state = "planned"
+closes = "n/a (no scaffolding; video use case not activated)"
+closure_required = false
+close_targets = []
+
+[capability.soundcraft]
+kind = "app-extension"
+status = "parked"
+line = "craft-app-integration"
+owner = ["packages/craftreport-soundcraft"]
+path_state = "planned"
+closes = "n/a (no scaffolding; audio use case not activated)"
+closure_required = false
+close_targets = []
+
+[capability.effectcraft]
+kind = "app-extension"
+status = "parked"
+line = "craft-app-integration"
+owner = ["packages/craftreport-effectcraft"]
+path_state = "planned"
+closes = "n/a (no scaffolding; motion-graphics use case not activated)"
+closure_required = false
+close_targets = []
+
+[capability.correspondence]
+kind = "domain-extension"
+status = "parked"
+line = "shared-reporting"
+owner = ["packages/craftreport-correspondence"]
+path_state = "planned"
+feature_keys = ["correspondence.letters"]
+closes = "n/a (no scaffolding; DIN-style letters are future orientation; standard/edition pending)"
+closure_required = false
+close_targets = []
+
+[capability.assessment]
+kind = "domain-extension"
+status = "parked"
+line = "shared-reporting"
+owner = ["packages/craftreport-assessment"]
+path_state = "planned"
+feature_keys = ["assessment.reports"]
+closes = "n/a (no scaffolding; assessment methodology and scope pending)"
+closure_required = false
+close_targets = []
+
+[capability.accounting]
+kind = "domain-extension"
+status = "parked"
+line = "shared-reporting"
+owner = ["packages/craftreport-accounting"]
+path_state = "planned"
+feature_keys = ["accounting.reports"]
+closes = "n/a (no scaffolding; accounting reporting scope and reconciliation rules pending)"
+closure_required = false
+close_targets = []
+
+[capability.forensic-accounting]
+kind = "domain-extension"
+status = "parked"
+line = "shared-reporting"
+owner = ["packages/craftreport-forensic-accounting"]
+path_state = "planned"
+feature_keys = ["forensic_accounting.reports"]
+closes = "n/a (no scaffolding; evidence, methodology and review scope pending)"
+closure_required = false
+close_targets = []
+
+[capability.invoicing]
+kind = "domain-extension"
+status = "parked"
+line = "shared-reporting"
+owner = ["packages/craftreport-invoicing"]
+path_state = "planned"
+feature_keys = ["invoicing.documents"]
+closes = "n/a (no scaffolding; invoice rendering/issuance lifecycle scope pending)"
+closure_required = false
+close_targets = []
+
+[capability.book-reports]
+kind = "domain-extension"
+status = "parked"
+line = "shared-reporting"
+owner = ["packages/craftreport-book-reports"]
+path_state = "planned"
+feature_keys = ["books.reports"]
+closes = "n/a (no scaffolding; accounting books versus publication reports unresolved)"
+closure_required = false
+close_targets = []
+
+[capability.tax]
+kind = "domain-extension"
+status = "parked"
+line = "shared-reporting"
+owner = ["packages/craftreport-tax"]
+path_state = "planned"
+feature_keys = ["tax.sheets"]
+closes = "n/a (no scaffolding; tax sheet jurisdiction/year and review scope pending)"
+closure_required = false
+close_targets = []
+
+
+[capability.deployment]
+kind = "configuration"
+status = "active"
+line = "craft-app-integration"
+owner = ["deploy"]
+path_state = "planned"
+feature_keys = ["development.verification", "apps.capabilities"]
+closes = "n/a (active; deployment configuration is not implemented)"
+closure_required = false
+close_targets = []
+
+[capability.public-packs]
+kind = "content"
+status = "active"
+line = "template-packs"
+owner = ["examples"]
+path_state = "planned"
+feature_keys = ["reports.templates", "reports.themes", "reports.template_sources"]
+closes = "n/a (active; public examples use synthetic or redistributable content)"
+closure_required = false
+close_targets = []
+
+[capability.documentation]
+kind = "content"
+status = "active"
+line = "shared-reporting"
+owner = ["docs", "README.md"]
+path_state = "planned"
+feature_keys = ["interfaces.mcp", "apps.capabilities", "reports.evidence"]
+closes = "n/a (active; public contracts/operator documentation is not implemented)"
+closure_required = false
+close_targets = []
