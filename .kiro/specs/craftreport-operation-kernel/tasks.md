@@ -18,7 +18,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Boundary: Engineering foundation_
   - _Requirements: 6.3, 7.1, 7.4_
 
-- [ ] 1.2 Enforce the approved size and branching budgets
+- [x] 1.2 Enforce the approved size and branching budgets
   - Implement whole-scope function/module/capability measurement and strict failure for invalid extraction, unknown ownership or expired/overbroad waivers.
   - Exercise decorators, async and nested functions, multiline expressions, separately reported tests and unique-file capability aggregation under the approved measurement policy.
   - Done when fixtures at and above the 50/300/1,500 LLOC and McCabe 10 boundaries produce the expected result and moving a file cannot evade its capability total.
@@ -246,3 +246,4 @@ Browser verification remains the next bounded spec: latest official GridCraft do
 ## Implementation Notes
 
 - Task 1.1: approved pins resolve on CPython 3.12.10; independent review and fresh bootstrap, Ruff and Pyright checks pass. Fast/integration modes remain explicitly unavailable until tasks 1.4/8.1. On this host use uv.exe directly: the PowerShell uv wrapper can mis-forward arguments in multi-command calls.
+- Task 1.2: independent review and fresh standalone quality check pass; 21 tests/15 subtests. Parenthesized decorators use token positions; only approved test roots receive separate accounting. quality_policy.py and quality_measurement.py separate policy/extraction responsibilities. Full pipeline remains pending task 1.4.
