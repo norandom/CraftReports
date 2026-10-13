@@ -44,7 +44,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Requirements: 7.1, 7.2, 7.4_
 
 - [ ] 2. Define the stable operation boundary
-- [ ] 2.1 Define immutable identities, operation descriptions and outcomes
+- [x] 2.1 Define immutable identities, operation descriptions and outcomes
   - Express principal scope, capability/version identity, invocation metadata, resource preconditions, command/query declarations, receipts and evidence values without framework handles.
   - Represent rejection separately from accepted work and preserve explicit partial/ambiguous and unavailable states.
   - Done when strict typing and focused contract fixtures distinguish all declared states and reject inconsistent value combinations without importing concrete providers.
@@ -249,3 +249,4 @@ Browser verification remains the next bounded spec: latest official GridCraft do
 - Task 1.2: independent review and fresh standalone quality check pass; 21 tests/15 subtests. Parenthesized decorators use token positions; only approved test roots receive separate accounting. quality_policy.py and quality_measurement.py separate policy/extraction responsibilities. Full pipeline remains pending task 1.4.
 - Task 1.3: independent rereview passed after repairing generated-stage consistency and shared-namespace plugin ownership. Fresh breadth/import gates pass; independent suite36tests41subtests. Full suite currently roughly3minutes; direct real check(root) fixture calls proved much faster than subprocess-per-case. Task1.4 can optimize that measured overhead while retaining CLI smoke coverage.
 - Task 1.4: independent review passed canonical fast and pre-commit all-files (40 tests/40 subtests), verified installed-hook and all six deliberate rejections plus clean-checkout evidence. Full fast command is now canonical; integration remains unavailable until8.1. Direct gate fixture calls and pinned Ruff executable reduce process overhead. CI configured, not remotely executed.
+- Task 2.1: independent review verified90tests40subtests, immutable value contracts and wheel py.typed/exports. Disposable engineering fixture now counts its own source tree, preserving deliberate stale-count checks. Contract results retain immutable Decimal/date/frozen data classes; wire conversion and outcome policy remain later tasks.

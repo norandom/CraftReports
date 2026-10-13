@@ -26,7 +26,17 @@ class BoundaryGateTests(unittest.TestCase):
         shutil.copytree(ROOT / ".kiro/specs", self.root / ".kiro/specs")
         self.write("src/craftreport/__init__.py", '"""Bootstrap."""\n')
         self.ledger = (self.root / "breadth.toml").read_text(encoding="utf-8")
-        self.ledger = self.ledger.replace("actual_python_modules = 0", "actual_python_modules = 1")
+        module_count = sum(
+            path.suffix in {".py", ".pyi"}
+            for path in (self.root / "src/craftreport").rglob("*")
+            if path.is_file()
+        )
+        self.ledger = "\n".join(
+            f"actual_python_modules = {module_count}"
+            if line.startswith("actual_python_modules =")
+            else line
+            for line in self.ledger.splitlines()
+        )
         self.write("breadth.toml", self.ledger)
 
     def write(self, path: str, content: str) -> None:
