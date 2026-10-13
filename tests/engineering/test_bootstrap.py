@@ -17,8 +17,8 @@ class BootstrapTests(unittest.TestCase):
         self.assertIsNotNone(package.__file__)
         self.assertEqual(importlib.metadata.version("craftreport"), "0.1.0")
 
-    def test_unimplemented_modes_report_unavailable(self) -> None:
-        for mode in ("--fast", "--integration"):
+    def test_integration_reports_unavailable(self) -> None:
+        for mode in ("--integration",):
             with self.subTest(mode=mode):
                 result = subprocess.run(
                     [sys.executable, str(CHECK), mode],

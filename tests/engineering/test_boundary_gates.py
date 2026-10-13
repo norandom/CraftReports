@@ -1,16 +1,17 @@
-"""Real subprocess checks over disposable boundary violations."""
+"""Real gate checks over disposable violations, with CLI smoke/error coverage."""
 
-import importlib
 import json
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
-from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import cast
+
+import check_breadth
+import check_imports
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -33,7 +34,11 @@ class BoundaryGateTests(unittest.TestCase):
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_text(content, encoding="utf-8")
 
-    def run_gate(self, gate: str, expected: int = 0) -> dict[str, object]:
+    def run_gate(self, gate: str, expected: int = 0, *, cli: bool = False) -> dict[str, object]:
+        if not cli:
+            report = self.direct_gate(gate)
+            self.assertEqual(int(bool(report["errors"])), expected, report)
+            return report
         result = subprocess.run(
             [sys.executable, str(ROOT / f"scripts/check_{gate}.py"), "--root", str(self.root)],
             capture_output=True,
@@ -44,13 +49,7 @@ class BoundaryGateTests(unittest.TestCase):
         return cast(dict[str, object], json.loads(result.stdout))
 
     def direct_gate(self, gate: str) -> dict[str, object]:
-        sys.path.insert(0, str(ROOT / "scripts"))
-        try:
-            module = importlib.import_module(f"check_{gate}")
-        finally:
-            sys.path.pop(0)
-        check = cast(Callable[[Path], dict[str, object]], module.check)
-        return check(self.root)
+        return {"breadth": check_breadth.check, "imports": check_imports.check}[gate](self.root)
 
     def test_generated_phase_requires_its_generated_artifact(self) -> None:
         path = ".kiro/specs/craftreport-reporting-facade/spec.json"
@@ -107,10 +106,10 @@ class BoundaryGateTests(unittest.TestCase):
         self.assertIn("ambiguous Python module ownership: shared_plugins.a", errors)
 
     def test_current_bootstrap_and_actual_phases(self) -> None:
-        report = self.run_gate("breadth")
+        report = self.run_gate("breadth", cli=True)
         self.assertIn("tasks-generated", str(report["phases"]))
         self.assertIn("actual_python_modules", str(report["counts"]))
-        self.run_gate("imports")
+        self.run_gate("imports", cli=True)
 
     def test_stale_counts(self) -> None:
         for key in (
@@ -153,7 +152,7 @@ class BoundaryGateTests(unittest.TestCase):
         self.write(path, json.dumps(data))
         self.assertIn("not implementation-approved", str(self.run_gate("breadth", 1)))
         self.write(path, "{broken")
-        self.assertIn("spec.json", str(self.run_gate("breadth", 1)))
+        self.assertIn("spec.json", str(self.run_gate("breadth", 1, cli=True)))
 
     def test_unknown_unapproved_and_most_specific_parked_owners(self) -> None:
         for path, diagnostic in (
@@ -297,7 +296,9 @@ class BoundaryGateTests(unittest.TestCase):
     def test_invalid_syntax_and_unresolved_relative_imports(self) -> None:
         for source in ("from ....adapters import bad\n", "def broken(:\n"):
             self.write("src/craftreport/contracts/value.py", source)
-            self.assertIn("src/craftreport/contracts/value.py", str(self.run_gate("imports", 1)))
+            self.assertIn(
+                "src/craftreport/contracts/value.py", str(self.run_gate("imports", 1, cli=True))
+            )
 
     def test_capability_packages_cannot_import_each_others_implementation(self) -> None:
         self.write(

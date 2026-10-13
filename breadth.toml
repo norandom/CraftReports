@@ -6,7 +6,7 @@
 # retiring = exact closes deletion/exit surfaces scheduled, with execution evidence.
 # review = disposition required; removed = verified closure, retained as a release tombstone.
 # open_fronts = active/review real specs + review/retiring capabilities with unexecuted required closure.
-# Counts below are a verified draft snapshot, not output from an implemented gate.
+# Counts below are checked against the actual tree by the implemented breadth gate.
 
 [meta]
 schema_version = 1
@@ -15,7 +15,7 @@ map_approved = false
 approved_spec_scopes = ["craftreport-operation-kernel"]
 approved_capability_owners = ["contracts", "application", "adapters", "interfaces", "composition", "development-gates", "documentation"]
 scope_approval_reference = ".kiro/specs/craftreport-operation-kernel/design-review.md"
-gate_implemented = false
+gate_implemented = true
 spec_count = 2
 generated_task_sets = 1
 actual_python_modules = 1
@@ -217,7 +217,7 @@ line = "quality-verification"
 owner = ["scripts", ".pre-commit-config.yaml", "breadth.toml", "quality.toml", "pyproject.toml", "uv.lock", "tests", ".github/workflows", ".gitignore"]
 path_state = "mixed-existing-draft-and-planned-tooling"
 feature_keys = ["development.verification", "development.breadth", "engineering.gates"]
-closes = "n/a (active; hooks and gate scripts are not implemented yet)"
+closes = "n/a (active; gate scripts and hook/CI integration implemented; hosted CI execution unverified)"
 closure_required = false
 close_targets = []
 

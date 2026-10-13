@@ -38,6 +38,8 @@ include = ["src/craftreport", "pyproject.toml"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--strict-config --strict-markers"
+pythonpath = ["scripts"]
+markers = ["integration: requires installed-wheel service and actual clients"]
 
 [tool.ruff]
 target-version = "py312"
@@ -51,6 +53,7 @@ max-complexity = 10
 
 [tool.pyright]
 include = ["src", "scripts", "tests"]
+extraPaths = ["scripts"]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
 venvPath = "."

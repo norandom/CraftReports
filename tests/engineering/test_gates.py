@@ -5,9 +5,12 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import cast
+
+from check_quality import check
 
 ROOT = Path(__file__).resolve().parents[2]
 GATE = ROOT / "scripts/check_quality.py"
@@ -32,7 +35,11 @@ class QualityGateTests(unittest.TestCase):
         destination.write_text(content, encoding="utf-8")
         return destination
 
-    def run_gate(self, expected: int = 0) -> dict[str, object]:
+    def run_gate(self, expected: int = 0, *, cli: bool = False) -> dict[str, object]:
+        if not cli:
+            report = check(self.root)
+            self.assertEqual(int(bool(report.errors or report.violations)), expected, report)
+            return cast(dict[str, object], asdict(report))
         result = subprocess.run(
             [sys.executable, str(GATE), "--root", str(self.root)],
             capture_output=True,
@@ -173,7 +180,11 @@ class QualityGateTests(unittest.TestCase):
 
     def test_invalid_syntax_fails(self) -> None:
         self.write("src/broken.py", "def broken(:\n")
-        self.assertIn("extraction", str(self.run_gate(1)["errors"]))
+        self.assertIn("extraction", str(self.run_gate(1, cli=True)["errors"]))
+
+    def test_cli_success(self) -> None:
+        self.write("src/smoke.py", "value = 1\n")
+        self.assertEqual(self.run_gate(cli=True)["errors"], [])
 
     def waiver(self, scope: str, expires: str) -> None:
         entry = (

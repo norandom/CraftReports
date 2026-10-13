@@ -8,7 +8,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
 
 ## Tasks
 
-- [ ] 1. Establish the executable engineering foundation
+- [x] 1. Establish the executable engineering foundation
 - [x] 1.1 Create the locked package and test environment
   - Initialize the local Git repository if still absent, without committing, configuring a remote or publishing; keep private/runtime artifacts ignored under the approved ownership rules.
   - Create the minimal kernel distribution, development dependency group and test collection using the approved runtime/tool versions; resolve and lock dependencies, and fail explicitly on incompatibility.
@@ -34,7 +34,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Boundary: Engineering boundary gates_
   - _Requirements: 1.4, 3.5, 7.2_
 
-- [ ] 1.4 Install and prove the complete fast-check pipeline
+- [x] 1.4 Install and prove the complete fast-check pipeline
   - Complete the common fast command with Ruff lint/format, Pyright strict across source/scripts/tests, budgets, breadth/import checks and focused tests.
   - Install pre-commit hooks and configure CI to run the same whole-scope checks plus scheduled retirement aging; define the separate integration stage without claiming it passes before its harness exists.
   - Done when the installed hook actually runs and both hook and direct fast command pass the bootstrap; a disposable lint/type/budget violation must cause rejection.
@@ -248,3 +248,4 @@ Browser verification remains the next bounded spec: latest official GridCraft do
 - Task 1.1: approved pins resolve on CPython 3.12.10; independent review and fresh bootstrap, Ruff and Pyright checks pass. Fast/integration modes remain explicitly unavailable until tasks 1.4/8.1. On this host use uv.exe directly: the PowerShell uv wrapper can mis-forward arguments in multi-command calls.
 - Task 1.2: independent review and fresh standalone quality check pass; 21 tests/15 subtests. Parenthesized decorators use token positions; only approved test roots receive separate accounting. quality_policy.py and quality_measurement.py separate policy/extraction responsibilities. Full pipeline remains pending task 1.4.
 - Task 1.3: independent rereview passed after repairing generated-stage consistency and shared-namespace plugin ownership. Fresh breadth/import gates pass; independent suite36tests41subtests. Full suite currently roughly3minutes; direct real check(root) fixture calls proved much faster than subprocess-per-case. Task1.4 can optimize that measured overhead while retaining CLI smoke coverage.
+- Task 1.4: independent review passed canonical fast and pre-commit all-files (40 tests/40 subtests), verified installed-hook and all six deliberate rejections plus clean-checkout evidence. Full fast command is now canonical; integration remains unavailable until8.1. Direct gate fixture calls and pinned Ruff executable reduce process overhead. CI configured, not remotely executed.

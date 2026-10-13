@@ -165,9 +165,7 @@ def branching(
     # Bound command length on Windows; every enumerated file is still checked exactly once.
     for start in range(0, len(files), 40):
         command = [
-            sys.executable,
-            "-m",
-            "ruff",
+            str(Path(sys.executable).with_name("ruff.exe" if sys.platform == "win32" else "ruff")),
             "check",
             "--isolated",
             "--select",
