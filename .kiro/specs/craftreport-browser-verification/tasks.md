@@ -5,7 +5,7 @@ approval. All acceptance work is mandatory. Design's File Structure Plan defines
 exact file ownership; every normal task stays within its named boundary, and
 tasks crossing those seams are explicitly integration work.
 
-Each executable task is planned as a bounded 1–3 hour unit. Task-local review,
+Each executable task is planned as a bounded 1â€“3 hour unit. Task-local review,
 fresh relevant checks and a commit follow each accepted task. Parallel markers
 authorize only non-overlapping implementation after declared prerequisites;
 heavy runtime verification and shared gate/configuration changes run serially.
@@ -13,7 +13,7 @@ The existing probe on 8871 is preserved.
 
 ## 1. Establish the approved tooling foundation
 
-- [ ] 1.1 Install and verify the isolated browser tooling environment
+- [x] 1.1 Install and verify the isolated browser tooling environment
   - Activate the Design-approved tooling owner and limits before new source lands;
     retain whole-scope Ruff, strict typing, ownership and pre-commit enforcement.
   - Resolve the exact development dependencies, install matching Chromium and
@@ -280,5 +280,10 @@ The existing probe on 8871 is preserved.
   - _Requirements: 5.1, 5.6, 7.4, 7.5, 8.5, 8.6_
 
 The generic task-generation rule excluding documentation is superseded by the
-owner-requested project documentation extension and approved criteria 8.3–8.4.
+owner-requested project documentation extension and approved criteria 8.3â€“8.4.
 Deployments here are disposable verification infrastructure, not product release.
+
+## Implementation Notes
+
+- 1.1 accepted: exact Playwright 1.64.0/Pillow 12.3.0 and Chromium 1248/156.0.8078.4; Windows headed blank-page liveness/owned cleanup verified. Evidence `artifacts/browser-verification/task-1.1`; canonical fast 607 passed/65 subtests; independent task review and actual staged installed hook passed. This is tooling proof, not GridCraft workbook proof.
+- Workers must leave installed hook execution to parent after selective staging: pre-commit stashes unstaged implementation while untracked regression tests can remain, causing a misleading baseline failure.

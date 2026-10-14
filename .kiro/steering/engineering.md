@@ -1,6 +1,6 @@
 # Typed Python and Engineering Gates
 
-Updated: 2026-10-13. Kernel tool selections and numeric budgets are approved; browser-verification tooling has its own Design-approved scope using the same 50/300/1,500/10 limits, with implementation pending Tasks approval. Tasks 1.1–1.2 installed the locked tools and verified the standalone size/branching gate; task 1.4 has passing fast-check, installed-hook and clean-checkout evidence. CI uses the same command but has not run remotely.
+Updated: 2026-10-13. Kernel tool selections and numeric budgets are approved; browser-verification tooling has its own Design-approved scope using the same 50/300/1,500/10 limits, with implementation now authorized by Tasks approval. Tasks 1.1â€“1.2 installed the locked tools and verified the standalone size/branching gate; task 1.4 has passing fast-check, installed-hook and clean-checkout evidence. CI uses the same command but has not run remotely.
 
 ## Typed Contracts and Boundaries
 

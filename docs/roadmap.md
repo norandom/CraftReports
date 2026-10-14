@@ -23,8 +23,8 @@ the approval authority.
 | 5 | GridCraft web reports | Owned report regions, controls, visible live refresh and actual XLSX export through the composed system, including reopen and content comparison |
 
 The operation kernel is complete within its synthetic scope. Browser verification
-has approved requirements and Design, with 18 implementation tasks generated for
-review. Tasks and implementation remain unapproved. The other three entries are not initialized and require their
+has approved requirements and Design, with all 18 implementation tasks approved.
+Implementation is in progress; browser acceptance remains pending. The other three entries are not initialized and require their
 own Requirements, Design and Tasks reviews before implementation. Integrated app
 reports depend on browser proof, snapshot runtime and report/packs contracts.
 The umbrella [foundation requirements](../.kiro/specs/craftreport-reporting-facade/requirements.md)

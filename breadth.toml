@@ -12,7 +12,7 @@
 schema_version = 1
 drafted = "2026-10-13"
 map_approved = false
-approved_spec_scopes = ["craftreport-operation-kernel"]
+approved_spec_scopes = ["craftreport-operation-kernel", "craftreport-browser-verification"]
 approved_capability_owners = ["contracts", "application", "adapters", "interfaces", "composition", "development-gates", "documentation", "browser-verification"]
 scope_approval_reference = ".kiro/specs/craftreport-operation-kernel/design-review.md"
 gate_implemented = true
@@ -66,7 +66,7 @@ phase_at_draft = "initialized"
 status_since = "2026-10-14"
 owner = [".kiro/specs/craftreport-browser-verification"]
 path_state = "existing-documents"
-closes = "n/a (active; requirements and Design approved; generated Tasks await approval before implementation)"
+closes = "n/a (active; all phases approved; browser implementation in progress)"
 closure_required = false
 close_targets = []
 

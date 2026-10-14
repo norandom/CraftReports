@@ -49,3 +49,8 @@ Tasks are generated for owner review. Browser tooling ownership/budget approval
 is recorded from Design; its paths remain planned. Browser verification is not
 listed among implementation-approved spec scopes, ready_for_implementation is
 false, and no browser implementation is authorized until Tasks approval.
+
+Subsequent owner decision: Tasks approved on 2026-10-14. All phase approval flags
+and readiness are now true, and implementation is authorized. Current progress
+is tracked by tasks.md/spec.json; this generation review establishes no runtime
+acceptance or completed task.

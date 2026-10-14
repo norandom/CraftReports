@@ -18,6 +18,14 @@ ALLOWED = {
     "composition": LAYERS,
 }
 STORAGE = {"sqlite3", "dbm", "shelve"}
+BROWSER_MODULES = {
+    "browser_verification",
+    "scripts.browser_verification",
+    "examples.verify_gridcraft_browser",
+    "scripts.examples.verify_gridcraft_browser",
+    "playwright",
+    "PIL",
+}
 
 
 def module_name(path: Path, root: Path) -> str:
@@ -53,6 +61,10 @@ def target_layer(target: str) -> str | None:
 
 
 def forbidden(owner: str, target: str, package_modules: Ownership) -> bool:
+    if owner != "browser-verification" and any(
+        target == prefix or target.startswith(f"{prefix}.") for prefix in BROWSER_MODULES
+    ):
+        return True
     layer = target_layer(target)
     external = target.split(".")[0]
     module_path = PurePosixPath(*target.split("."))
@@ -75,7 +87,7 @@ def forbidden(owner: str, target: str, package_modules: Ownership) -> bool:
 def file_errors(root: Path, path: Path, owners: Ownership, package_modules: Ownership) -> list[str]:
     relative = path.relative_to(root).as_posix()
     owner = owners.resolve(relative)
-    if owner not in LAYERS and not relative.startswith("packages/"):
+    if owner not in LAYERS | {"browser-verification"} and not relative.startswith("packages/"):
         raise ValueError(f"unapproved import layer: {owner}: {relative}")
     module = module_name(path, root)
     package = module if path.stem == "__init__" else module.rpartition(".")[0]
@@ -111,6 +123,11 @@ def source_paths(root: Path) -> list[Path]:
             if len(parts) > 3 and parts[0] == "packages" and parts[2] == "tests":
                 continue
             paths.append(path)
+    paths.extend(sorted((root / "scripts/browser_verification").rglob("*.py")))
+    paths.extend(sorted((root / "scripts/browser_verification").rglob("*.pyi")))
+    recipe = root / "scripts/examples/verify_gridcraft_browser.py"
+    if recipe.is_file():
+        paths.append(recipe)
     return paths
 
 
