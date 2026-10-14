@@ -79,6 +79,7 @@ Use a fresh context for each independent implementer or reviewer, passing the ta
 ## CraftReport Development Gates
 
 - For scope, ownership, verification, integration, or implementation work, read `.kiro/steering/overview.md`, `.kiro/steering/testing.md`, `.kiro/steering/engineering.md`, and `.kiro/steering/breadth.md` in addition to relevant core steering.
+- For user-facing feature requirements, design, tasks, implementation, review or documentation, also read `.kiro/steering/documentation.md`. Each delivered user-facing feature requires a verified `docs/quickstarts/Quickstart_How_to_<task>.md` guide; carry its path and validation through the Kiro phases.
 - Read `breadth.toml` for actual/planned capability ownership and lifecycle; read `quality.toml` for engineering requirements and proposed/approved limits. Draft status never implies a working gate or phase approval.
 - Every acceptance-critical action needs a typed interaction contract and evidence of its real external effect. Critical app paths include browser/native interaction, actual saved/exported artifacts, and reopen/read-back where promised.
 - Use project-isolated Craft app deployments and browser profiles/contexts. Match the tested page/window, document, engine and artifact identities; headless MCP success cannot establish browser/native UI behavior.

@@ -1,5 +1,8 @@
 # Quickstart: evaluate the current project
 
+For a focused task, choose a [feature quickstart](quickstarts/index.md): preview
+GridCraft, verify the kernel, invoke through REST/MCP or retrieve a retained result.
+
 Start with the [current readiness summary](index.md#current-readiness).
 This guide gives developers a reproducible kernel check and gives app evaluators
 a route to the downloaded GridCraft preview. These are separate evaluations;

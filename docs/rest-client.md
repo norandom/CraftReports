@@ -5,7 +5,8 @@ The REST router exposes `GET /health/ready`, `GET /v1/catalog`,
 [host assembly](kernel-host.md) supplies lifecycle and both interfaces.
 The [installed harness](development.md#run-the-installed-harness) checks REST
 discovery, invocation and retained retries across REST and MCP over loopback.
-Disconnect/concurrency journeys and final conformance evidence remain tasks 8.3–8.4.
+Installed disconnect/concurrency journeys and final synthetic conformance evidence
+are implemented and accepted; see the [kernel validation assessment](../.kiro/specs/craftreport-operation-kernel/implementation-validation.md).
 Readiness reports activation readiness and deployment epoch only.
 
 Send a deployment-issued bearer credential. Identity, scope and authorization

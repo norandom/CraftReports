@@ -30,6 +30,9 @@ gates; a passing synthetic service check does not close the reporting foundation
 
 ## Choose your starting point
 
+Use the [task quickstarts](quickstarts/index.md) for a short guide to each current
+evaluation or integration job, with prerequisites and observable verification.
+
 | Your role and immediate task | Read next |
 | --- | --- |
 | Report owner: understand the intended workflow and decide what to evaluate | [Product strategy](product-strategy.md), then [roadmap](roadmap.md) |

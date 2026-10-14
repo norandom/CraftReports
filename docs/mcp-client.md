@@ -8,7 +8,9 @@ The example below runs in the adapter tests against real guarded execution and a
 readable synthetic target. The [shared host assembly](kernel-host.md) also exercises
 MCP and REST together. The [installed harness](development.md#run-the-installed-harness)
 checks official MCP discovery, invocation and retained retries over loopback.
-Disconnect/concurrency journeys and final evidence remain tasks 8.3–8.4. Deployments supply the endpoint and bearer credential.
+Installed disconnect/concurrency journeys and final synthetic conformance evidence
+are implemented and accepted; see the [kernel validation assessment](../.kiro/specs/craftreport-operation-kernel/implementation-validation.md).
+Deployments supply the endpoint and bearer credential.
 
 ## Discover, write and inspect
 
