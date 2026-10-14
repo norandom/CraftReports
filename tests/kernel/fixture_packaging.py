@@ -142,6 +142,30 @@ class InstalledFixture:
         (self.directory / "inventory.json").write_text(json.dumps(identity, indent=2))
 
 
+def install_locked_dependencies(uv: str, python: Path, directory: Path) -> Path:
+    """Reuse frozen artifact URLs without requiring cached registry metadata."""
+    constraints = directory / "locked-requirements.txt"
+    pylock = directory / "pylock.toml"
+    for target in (constraints, pylock):
+        run(
+            [
+                uv,
+                "export",
+                "--frozen",
+                "--offline",
+                "--no-dev",
+                "--no-emit-project",
+                "--project",
+                str(ROOT),
+                "--output-file",
+                str(target),
+            ],
+            directory,
+        )
+    run([uv, "pip", "sync", "--offline", "--python", str(python), str(pylock)], directory)
+    return constraints
+
+
 def build_fixture(directory: Path, extra_variants: tuple[str, ...] = ()) -> InstalledFixture:
     uv = shutil.which("uv")
     assert uv is not None
@@ -171,21 +195,7 @@ def build_fixture(directory: Path, extra_variants: tuple[str, ...] = ()) -> Inst
     run([uv, "venv", "--python", sys.executable, str(env)], directory)
     python = env / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
     built = tuple(sorted(wheels.glob("*.whl")))
-    constraints = directory / "locked-requirements.txt"
-    run(
-        [
-            uv,
-            "export",
-            "--frozen",
-            "--no-dev",
-            "--no-emit-project",
-            "--project",
-            str(ROOT),
-            "--output-file",
-            str(constraints),
-        ],
-        directory,
-    )
+    constraints = install_locked_dependencies(uv, python, directory)
     run(
         [
             uv,
@@ -200,6 +210,7 @@ def build_fixture(directory: Path, extra_variants: tuple[str, ...] = ()) -> Inst
         ],
         directory,
     )
+    run([uv, "pip", "check", "--python", str(python)], directory)
     installed = InstalledFixture(python, directory, built)
     installed.record_identity()
     return installed
