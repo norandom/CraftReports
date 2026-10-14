@@ -65,7 +65,7 @@ The existing probe on 8871 is preserved.
 
 ## 2. Establish owned runtime access and minimum recording
 
-- [ ] 2.1 Acquire and identify the latest official prebuilt application
+- [x] 2.1 Acquire and identify the latest official prebuilt application
   - Resolve official stable latest metadata, enforce minimum version and a unique
     web asset; verify trusted expected digest on download and cache reuse.
   - Extract safely under bounded paths/sizes and retain HTML/JS/WASM hashes;
@@ -290,3 +290,6 @@ Deployments here are disposable verification infrastructure, not product release
 - Component records remain with their actual owners: release/bundle identities in 2.1, fixture expectations in 1.3/1.4, interaction observations/edits in 3.1 and visual profiles in 3.2. No placeholder runtime runner was introduced. Use `scripts.browser_verification` imports; the owned test-package marker prevents duplicate test-module names.
 - 1.3 accepted: independently audited/reproduced static fixture, 7,559 bytes SHA256 `7a0583c2418c988c4ec1d261e503b30c45aae3f77bc0fc548886fee4cc591ca8`; all 11 typed cells/chart references/styles checked. Before/after expectations differ only at B3 20 to 25. Evidence `artifacts/browser-verification/task-1.3`; no app-rendering or save/reopen claim.
 - 1.4 accepted after chart-reference normalization repair: real-ZIP focused tests 42 passed, canonical fast 681 passed/65 subtests, independent alias/binding/read-only checks passed. Saved-artifact inspection verifies size/hash against the same retained bounded bytes. Source 723/1,500 LLOC. Evidence `artifacts/browser-verification/task-1.4`; no actual browser persistence claim.
+
+- 2.1 accepted after malformed-deflate rejection repair: official latest v0.7.0 asset/checksum and cache reuse independently verified; focused 37 passed, canonical fast 718 passed/65 subtests; source 943/1,500 LLOC. Evidence `artifacts/browser-verification/task-2.1`. No deployment/browser acceptance follows.
+- Owner authorized replacing the existing 8871 probe on 2026-10-14: it now serves verified v0.7.0 assets with a successful rendering smoke, screenshot and finalized video under `artifacts/gridcraft-deployment-probe/browser-0.7.0`. Disposable harness runs still preserve that operator-owned service.
