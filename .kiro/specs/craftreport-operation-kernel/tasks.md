@@ -43,7 +43,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 1.1, 1.2, 1.3_
   - _Requirements: 7.1, 7.2, 7.4_
 
-- [ ] 2. Define the stable operation boundary
+- [x] 2. Define the stable operation boundary
 - [x] 2.1 Define immutable identities, operation descriptions and outcomes
   - Express principal scope, capability/version identity, invocation metadata, resource preconditions, command/query declarations, receipts and evidence values without framework handles.
   - Represent rejection separately from accepted work and preserve explicit partial/ambiguous and unavailable states.
@@ -61,7 +61,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Boundary: ServicePorts_
   - _Requirements: 3.2, 3.3, 3.4, 3.6, 4.3, 4.4, 5.3, 5.5_
 
-- [ ] 2.3 Register typed operations in an immutable catalog
+- [x] 2.3 Register typed operations in an immutable catalog
   - Pair request/result conversion with the correct command or query behavior while retaining type safety behind common dispatch.
   - Resolve exact operation/version identities, expose schema/limit descriptors and reject invalid classifications, duplicate keys or incompatible binding descriptions.
   - Done when distinct typed fixture registrations can be discovered and invoked through their prepared boundary without unchecked heterogeneous-handler casts.
@@ -251,3 +251,5 @@ Browser verification remains the next bounded spec: latest official GridCraft do
 - Task 1.4: independent review passed canonical fast and pre-commit all-files (40 tests/40 subtests), verified installed-hook and all six deliberate rejections plus clean-checkout evidence. Full fast command is now canonical; integration remains unavailable until8.1. Direct gate fixture calls and pinned Ruff executable reduce process overhead. CI configured, not remotely executed.
 - Task 2.1: independent review verified90tests40subtests, immutable value contracts and wheel py.typed/exports. Disposable engineering fixture now counts its own source tree, preserving deliberate stale-count checks. Contract results retain immutable Decimal/date/frozen data classes; wire conversion and outcome policy remain later tasks.
 - Task 2.2: resumed 2026-10-14 with fresh independent approval and canonical98tests40subtests. Public success signatures preserve Design; structured exceptions distinguish unavailable/guard/catalog failures, and admission retains its explicit result union. Read/command contexts are disjoint; provider atomicity remains later verification.
+
+- Task 2.3: independent review and fresh canonical110tests40subtests passed. Typed closures preserve request/result pairing and command observations across encoding failure; immutable catalog resolves exact keys and checks advertised descriptors. Wire validation and outcome policy remain downstream.
