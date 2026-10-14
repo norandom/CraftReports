@@ -1,6 +1,6 @@
 # Product Overview
 
-Updated: 2026-10-14. Consolidated from confirmed project decisions and approved foundation requirements. Capabilities described here are intended product behavior. Kernel implementation is in progress; the repository does not yet provide a production reporting service.
+Updated: 2026-10-14. Consolidated from confirmed project decisions and approved foundation requirements. Capabilities described here are intended product behavior. Kernel implementation and independent final validation are accepted within the synthetic operation scope; the repository does not yet provide a production reporting service.
 
 CraftReport is a public reporting facade for external data producers and Craft applications. Report owners describe reusable reporting intent; software callers invoke the same validated operations. The product aims for professional layout, templates, consistency, compliance evidence and accuracy with separately scoped checks.
 

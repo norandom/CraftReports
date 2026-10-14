@@ -1,6 +1,6 @@
 # CraftReport Work Lines
 
-Updated: 2026-10-13. This overview records current scope direction, not phase approval or implemented capabilities.
+Updated: 2026-10-14. This overview distinguishes current implementation from scope direction; phase approvals remain in the specifications.
 
 ## Four Work Lines
 
@@ -17,9 +17,9 @@ Financial/forensic accounting, invoices, book reports, tax sheets, and WordCraft
 
 ## Current Reality
 
-- Two specifications exist: the umbrella has approved foundation requirements; the operation kernel has approved requirements, Design and Tasks, with implementation authorized on 2026-10-13. The owner approved the five-part split, and the remaining four bounded specs are not initialized. Kernel implementation is in progress; its task checklist records accepted work.
+- Two specifications exist: the umbrella has approved foundation requirements; the operation kernel has approved requirements, Design and Tasks, with implementation authorized on 2026-10-13. The owner approved the five-part split, and the remaining four bounded specs are not initialized. Kernel implementation and final synthetic-scope validation are accepted; its task checklist records all 26 completed tasks.
 - Existing GridCraft prototype files demonstrate a narrow historical live-update workflow. They are not the Python core or a financial validation engine.
-- Task 1.1 established and verified the minimal Python package and lock. Tasks 1.2-1.3 verified standalone size/branching, breadth and import gates. Task 1.4 has passing local fast-command, installed-hook and clean-checkout evidence; CI is configured but has not run remotely. On 2026-10-14 a separate Compose probe served the official GridCraft web release; Playwright captured the rendered sample dashboard and video. Reporting operations and the reusable browser/artifact acceptance harness remain pending.
+- The kernel now has 36 Python source modules across contracts, application, adapters, interfaces and composition. Tasks 1–9 have accepted engineering, activation, guarded execution, public result readback, installed REST/MCP conformance and independent final synthetic-scope validation. Local fast-command and installed-hook evidence exists; CI is configured but has not run remotely. The installed harness uses synthetic effects and temporary state, without production persistence. On 2026-10-14 a separate Compose probe served the official GridCraft web release; Playwright captured the rendered sample dashboard and video. Reporting operations and the reusable browser/artifact acceptance harness remain pending.
 - `breadth.toml` is the draft lifecycle ledger. Its actual and planned paths are deliberately separate.
 - `quality.toml` records approved kernel tool/limit decisions with explicit scope. Locked tools and the standalone size/branching gate are verified; local hook enforcement is verified and CI uses the same configured command; hosted CI execution is unverified. Future capability budgets remain subject to review.
 

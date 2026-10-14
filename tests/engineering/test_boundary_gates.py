@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tomllib
 import unittest
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -38,6 +39,9 @@ class BoundaryGateTests(unittest.TestCase):
             for line in self.ledger.splitlines()
         )
         self.write("breadth.toml", self.ledger)
+        meta = cast(dict[str, object], tomllib.loads(self.ledger)["meta"])
+        self.baseline_front_ids = cast(list[str], meta["open_front_ids"])
+        self.baseline_front_count = cast(int, meta["open_fronts"])
 
     def write(self, path: str, content: str) -> None:
         destination = self.root / path
@@ -116,8 +120,14 @@ class BoundaryGateTests(unittest.TestCase):
         self.assertIn("ambiguous Python module ownership: shared_plugins.a", errors)
 
     def test_current_bootstrap_and_actual_phases(self) -> None:
+        phases = {
+            path.parent.name: cast(dict[str, object], json.loads(path.read_text(encoding="utf-8")))[
+                "phase"
+            ]
+            for path in (self.root / ".kiro/specs").glob("*/spec.json")
+        }
         report = self.run_gate("breadth", cli=True)
-        self.assertIn("tasks-generated", str(report["phases"]))
+        self.assertEqual(report["phases"], phases)
         self.assertIn("actual_python_modules", str(report["counts"]))
         self.run_gate("imports", cli=True)
 
@@ -198,6 +208,16 @@ class BoundaryGateTests(unittest.TestCase):
                 self.write("breadth.toml", self.ledger.replace(old, new, 1))
                 self.assertIn(diagnostic, str(self.run_gate("breadth", 1)))
 
+    def declare_fronts(self, ledger: str, identities: list[str], count: int) -> str:
+        return "\n".join(
+            f"open_fronts = {count}"
+            if line.startswith("open_fronts =")
+            else f"open_front_ids = {json.dumps(identities)}"
+            if line.startswith("open_front_ids =")
+            else line
+            for line in ledger.splitlines()
+        )
+
     def retirement(self, since: str, extra: str = "") -> None:
         entry = (
             '\n[capability.old]\nkind = "tooling"\nstatus = "retiring"\n'
@@ -205,9 +225,10 @@ class BoundaryGateTests(unittest.TestCase):
             'closure_required = true\nclose_targets = ["old/code.py"]\n'
             f'status_since = "{since}"\naccountable_owner = "maintainer"\n' + extra
         )
-        ledger = self.ledger.replace("open_fronts = 2", "open_fronts = 3").replace(
-            '"spec.craftreport-operation-kernel"]',
-            '"spec.craftreport-operation-kernel", "capability.old"]',
+        ledger = self.declare_fronts(
+            self.ledger,
+            [*self.baseline_front_ids, "capability.old"],
+            self.baseline_front_count + 1,
         )
         self.write("breadth.toml", ledger + entry)
 
@@ -242,9 +263,7 @@ class BoundaryGateTests(unittest.TestCase):
         ledger = (self.root / "breadth.toml").read_text(encoding="utf-8")
         self.write(
             "breadth.toml",
-            ledger.replace("open_fronts = 3", "open_fronts = 2").replace(
-                ', "capability.old"]', "]"
-            ),
+            self.declare_fronts(ledger, self.baseline_front_ids, self.baseline_front_count),
         )
         self.run_gate("breadth")
         self.write("old/code.py", "x = 1\n")

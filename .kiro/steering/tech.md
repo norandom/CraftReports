@@ -1,6 +1,6 @@
 # Technology Stack
 
-Updated: 2026-10-13. This file records confirmed direction and distinguishes design proposals from installed/implemented infrastructure.
+Updated: 2026-10-14. This file records confirmed direction and distinguishes design proposals from installed/implemented infrastructure.
 
 ## Architecture
 
@@ -19,7 +19,7 @@ Transport, processing and persistence are separate responsibilities. A JSON push
 
 ## Key Library Decisions
 
-The approved kernel uses framework-independent values, Pydantic boundary codecs, thin FastAPI and official MCP interfaces, standard installed-package discovery and Pyright strict. Exact selected versions are in its Design and uv.lock. Task 1.1 resolved and installed them, built the minimal wheel and verified its import; full runtime compatibility acceptance remains pending. Database/ORM selection remains downstream. Avoid handwritten SQL in reporting/domain code; isolate unavoidable backend-specific operations behind the persistence/source boundary.
+The approved kernel uses framework-independent values, Pydantic boundary codecs, thin FastAPI and official MCP interfaces, standard installed-package discovery and Pyright strict. Exact selected versions are in its Design and uv.lock. Task 1.1 resolved and installed them, built the minimal wheel and verified its import; installed runtime compatibility passed final synthetic kernel validation on CPython 3.12.10. Database/ORM selection remains downstream. Avoid handwritten SQL in reporting/domain code; isolate unavoidable backend-specific operations behind the persistence/source boundary.
 
 Use upstream protocols and SDKs rather than create a custom general-purpose reporting language, database engine, queue broker or identity provider. dbt, full CQRS infrastructure, independent workers and analytical databases need a concrete workload/use case.
 
@@ -33,13 +33,13 @@ Real adapter/session behavior, actual saved bytes and reopen checks are mandator
 
 ## Development Environment
 
-The repository has a Python kernel package and resolved dependency lock. Task 1.4 verified the complete local fast pipeline and installed project hook, including an isolated candidate checkout. CI is configured with the same command; hosted CI is unverified. The kernel's installed-service acceptance harness remains pending task 8.1. The Windows `python` command resolves to the Store alias on this workstation; use the discovered CPython executable or the project environment.
+The repository has a Python kernel package and resolved dependency lock. Task 1.4 verified the complete local fast pipeline and installed project hook, including an isolated candidate checkout. CI is configured with the same command; hosted CI is unverified. Tasks 8.1–8.4 implemented and individually verified isolated installed-wheel REST/MCP clients, synthetic target readback, failure/concurrency journeys and scoped conformance packets. Task 9 passed independent final feature validation within the synthetic kernel scope; see the implementation-validation assessment and task checklist. These temporary test providers establish no production durability or reporting acceptance. The Windows `python` command resolves to the Store alias on this workstation; use `uv.exe` and the project environment.
 
 Observed on 2026-10-13: Windows `docker` is a PowerShell function invoking WSL; Debian WSL's daemon returned Docker 29.7.2 on Debian GNU/Linux 13 and Compose 5.4.0. Use explicit Debian WSL commands/paths and published browser origins, or operator-provided remote instances. This probe establishes Docker availability, not a tested Craft deployment.
 
 Observed on 2026-10-14: the official GridCraft v0.6.1 web archive includes its compiled Rust WASM engine and renders through a static nginx Compose service without a local Rust build. The project-owned `craftreport-gridcraft-probe` in Debian WSL publishes `0.0.0.0:8871`; the owner confirmed Windows `http://localhost:8871` works. An isolated Playwright context loaded the sample dashboard, with screenshots, flushed video and console/network diagnostics retained under ignored `artifacts/gridcraft-deployment-probe/browser`. WASM returned HTTP 200 with `application/wasm`; software WebGL2 fallback warnings were retained. This is hosting/rendering evidence only. The released browser build has no native TCP control channel; live browser MCP mutation, export/read-back and LAN access are not established by this smoke test. The reusable setup recipe belongs in developer documentation; this probe does not close the reporting acceptance work.
 
-Canonical dev/build/test commands must be supplied and exercised by the foundation tasks. Do not invent passing commands while configuration/scripts are absent.
+Canonical checks are `uv.exe run --frozen python scripts/check.py --fast` and `uv.exe run --frozen python scripts/check.py --integration` on this workstation. Integration runs the complete kernel suite, then starts fresh installed hosts to verify the resulting conformance packet through REST/MCP catalogs. Record each invocation's exit code and evidence directory; an earlier task pass does not close a later feature gate.
 
 ## Key Technical Decisions
 

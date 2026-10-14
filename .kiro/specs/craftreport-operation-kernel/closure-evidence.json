@@ -1,0 +1,27 @@
+{
+  "entry_id": "spec.craftreport-operation-kernel",
+  "executed": true,
+  "close_targets": [],
+  "accepted_on": "2026-10-14",
+  "review_verdict": "APPROVED",
+  "validation_decision": "GO",
+  "completion_verification": "VERIFIED",
+  "scope": "Approved synthetic operation kernel with temporary test providers; no production durability, browser/live reporting, XLSX fidelity or financial accuracy claim.",
+  "assessment": "implementation-validation.md",
+  "candidate_commits": [
+    "021dbb9",
+    "714ab77"
+  ],
+  "packet": "artifacts/kernel-20261014T135303-ff6e52b4/kernel-manifest.json",
+  "packet_sha256": "62e039890d9c6a75af4132f0ff30561f038e8db7b9484df4aaff0a639af3cd4f",
+  "fast_log": "artifacts/task9-final-fast.log",
+  "integration_log": "artifacts/task9-final-integration.log",
+  "audit_log": "artifacts/task9-final-audit-corrected.log",
+  "criteria": 36,
+  "required_cases": 588,
+  "integration_tests": 611,
+  "catalog_proofs": 10,
+  "owned_hosts": 76,
+  "remaining_open_spec": "craftreport-reporting-facade",
+  "acceptance_sequence": "Independent runtime checks and review preceded metadata closure. Actual installed commit hook must validate closure state; artifacts are local ignored evidence."
+}

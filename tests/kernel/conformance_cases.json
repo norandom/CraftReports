@@ -376,8 +376,7 @@
     "5.3",
     "6.1",
     "6.2",
-    "6.3",
-    "6.4"
+    "6.3"
   ],
   "tests/kernel/test_installed_journeys.py::test_installed_cross_transport_retry[rest-mcp]": [
     "3.1",
@@ -386,56 +385,39 @@
     "5.3",
     "6.1",
     "6.2",
-    "6.3",
-    "6.4"
+    "6.3"
   ],
   "tests/kernel/test_installed_limit_fixture.py::test_installed_probe_contract": [],
   "tests/kernel/test_installed_limits.py::test_installed_advertised_boundaries[False-depth-mcp]": [
-    "2.3",
-    "2.4"
+    "2.3"
   ],
   "tests/kernel/test_installed_limits.py::test_installed_advertised_boundaries[False-depth-rest]": [
-    "2.3",
-    "2.4"
+    "2.3"
   ],
   "tests/kernel/test_installed_limits.py::test_installed_advertised_boundaries[False-input-mcp]": [
-    "2.3",
-    "2.4"
+    "2.3"
   ],
   "tests/kernel/test_installed_limits.py::test_installed_advertised_boundaries[False-input-rest]": [
-    "2.3",
-    "2.4"
+    "2.3"
   ],
-  "tests/kernel/test_installed_limits.py::test_installed_advertised_boundaries[False-output-mcp]": [
-    "2.3",
-    "2.4"
-  ],
-  "tests/kernel/test_installed_limits.py::test_installed_advertised_boundaries[False-output-rest]": [
-    "2.3",
-    "2.4"
-  ],
+  "tests/kernel/test_installed_limits.py::test_installed_advertised_boundaries[False-output-mcp]": [],
+  "tests/kernel/test_installed_limits.py::test_installed_advertised_boundaries[False-output-rest]": [],
   "tests/kernel/test_installed_limits.py::test_installed_advertised_boundaries[True-depth-mcp]": [
-    "2.3",
-    "2.4"
+    "2.3"
   ],
   "tests/kernel/test_installed_limits.py::test_installed_advertised_boundaries[True-depth-rest]": [
-    "2.3",
-    "2.4"
+    "2.3"
   ],
   "tests/kernel/test_installed_limits.py::test_installed_advertised_boundaries[True-input-mcp]": [
-    "2.3",
-    "2.4"
+    "2.3"
   ],
   "tests/kernel/test_installed_limits.py::test_installed_advertised_boundaries[True-input-rest]": [
-    "2.3",
-    "2.4"
+    "2.3"
   ],
   "tests/kernel/test_installed_limits.py::test_installed_advertised_boundaries[True-output-mcp]": [
-    "2.3",
     "2.4"
   ],
   "tests/kernel/test_installed_limits.py::test_installed_advertised_boundaries[True-output-rest]": [
-    "2.3",
     "2.4"
   ],
   "tests/kernel/test_installed_ownership.py::test_bounded_shutdown_records_interrupted_operation[after_effect-1]": [],
@@ -457,35 +439,26 @@
     "5.6"
   ],
   "tests/kernel/test_installed_permissions.py::test_installed_private_discovery_and_identity": [
-    "3.2"
+    "3.2",
+    "6.4"
   ],
   "tests/kernel/test_installed_sensitivity.py::test_installed_disproof_and_restoration[disconnected-effect-actual_effect_missing-mcp]": [
-    "2.5",
-    "3.6",
     "7.1",
-    "7.2",
-    "7.3"
+    "7.2"
   ],
   "tests/kernel/test_installed_sensitivity.py::test_installed_disproof_and_restoration[disconnected-effect-actual_effect_missing-rest]": [
-    "2.5",
-    "3.6",
     "7.1",
-    "7.2",
-    "7.3"
+    "7.2"
   ],
   "tests/kernel/test_installed_sensitivity.py::test_installed_disproof_and_restoration[mutating-query-query-query_changed_canonical_state-mcp]": [
-    "2.5",
     "3.6",
     "7.1",
-    "7.2",
-    "7.3"
+    "7.2"
   ],
   "tests/kernel/test_installed_sensitivity.py::test_installed_disproof_and_restoration[mutating-query-query-query_changed_canonical_state-rest]": [
-    "2.5",
     "3.6",
     "7.1",
-    "7.2",
-    "7.3"
+    "7.2"
   ],
   "tests/kernel/test_kernel_fault_controls.py::test_control_installs_and_releases_real_target_checkpoint": [],
   "tests/kernel/test_kernel_fault_controls.py::test_initial_lookup_race_collects_twenty[asyncio]": [],

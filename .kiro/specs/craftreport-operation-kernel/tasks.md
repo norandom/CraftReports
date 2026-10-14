@@ -237,7 +237,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 4.3, 8.1, 8.2, 8.3_
   - _Requirements: 1.5, 2.4, 2.5, 3.5, 5.4, 5.6, 7.1, 7.2, 7.3, 7.4_
 
-- [ ] 9. Verify complete kernel integration and boundary closure
+- [x] 9. Verify complete kernel integration and boundary closure
   - Run the full kernel validation against fresh code, locked dependencies, usable installed-wheel boot, actual client journeys and all 36 criteria; resolve findings at their owning boundary.
   - Reconcile actual source/spec counts and installed/enforced states with recorded evidence; preserve the umbrella's open reporting acceptance and downstream module boundaries.
   - Done when engineering checks, contract tests, actual-client integration and owned cleanup pass with no blocked kernel work, and the completion assessment names its synthetic scope.
@@ -253,6 +253,8 @@ The approved Design owns concrete file paths and signatures. Each implementer re
 Browser verification remains the next bounded spec: latest official GridCraft download, no local build, owned browser/Compose environment, screenshots/videos and actual XLSX save/reopen evidence. Passing this kernel plan cannot close that work.
 
 ## Implementation Notes
+
+- Task 9: independent review APPROVED, feature validation GO and completion VERIFIED for the approved synthetic kernel boundary. Fresh fast passed 590 tests and 39 subtests; full integration passed 611 tests plus ten catalog proofs. All 36 criteria, 588 required cases, 660 artifact hashes and 69 helper hashes verified. Cleanup covered 76 actual hosts and 146 distinct process IDs with no survivors, only intentional lifecycle failures. See implementation-validation.md and closure-evidence.json for candidate identity and scope. Final closure metadata is subject to the actual installed commit hook; production providers, browser mutation, live reporting, XLSX fidelity, financial accuracy and hosted CI remain downstream.
 
 - Task 8.4: independent final review approved canonical fast (590 tests, 39 subtests) and two-phase integration (611 tests plus 10 fresh-host catalog proofs). Fixed required cases, all 36 criteria, exact artifact/build identities, actual helper trees, profile and cleanup determine scoped evidence; stale helper/core/profile or altered evidence cannot reuse passing status. Installed disconnected-handler and mutating-query variants fail actual oracles; restored variants pass. Review validated 660 artifact hashes and 76 actual host cleanup records, with only two intentional lifecycle failures and no forced/unclosed/surviving processes. CI integration is enabled; hosted execution remains unverified. A recurring execution test failure was deterministically traced to leaking its injected 20 ms budget into a separate retained retry; restoring the normal test budget preserves initial timeout/no-effect assertions and guard-removal sensitivity. No production timeout changed. Earlier failed packets remain retained.
 
