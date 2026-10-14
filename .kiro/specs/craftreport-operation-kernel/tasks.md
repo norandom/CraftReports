@@ -125,7 +125,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 4.2_
   - _Requirements: 1.5, 7.1, 7.3, 7.4_
 
-- [ ] 5. Execute through fixed guards and truthful receipts
+- [x] 5. Execute through fixed guards and truthful receipts
 - [x] 5.1 Guard invocation and inspection consistently
   - Apply coarse operation authorization before private validation diagnostics, followed by typed resource authorization, service/capability availability and query-context restrictions.
   - Protect catalog/receipt visibility and keep built-in inspection from recursively creating business work.
@@ -144,7 +144,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 3.1, 3.3, 5.1_
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 5.1_
 
-- [ ] 5.3 Own execution independently of clients and finalize receipts
+- [x] 5.3 Own execution independently of clients and finalize receipts
   - Retain admitted execution under application lifetime, enforce response deadlines/capacity and bounded shutdown, and require a recorded owner for any pending handoff.
   - Feed typed results/effect observations through outcome rules and conditional receipt updates; do not replay unknown effects or synthesize success after journal/evidence failure.
   - Done when local disconnect/cancellation and post-effect failure cases retain inspectable non-complete or completed evidence as observed; capacity rejection reserves no retry identity and still permits inspection/retries.
@@ -244,6 +244,8 @@ The approved Design owns concrete file paths and signatures. Each implementer re
 Browser verification remains the next bounded spec: latest official GridCraft download, no local build, owned browser/Compose environment, screenshots/videos and actual XLSX save/reopen evidence. Passing this kernel plan cannot close that work.
 
 ## Implementation Notes
+
+- Task 5.3: independent review passed the canonical fast pipeline with 375 tests and 40 subtests. Execution owns shielded tasks, admission leases, capacity, bounded shutdown and result/evidence/CAS readback. Recorded handoff metadata requires exact scoped readback; it proves no production durability or distributed fencing. A regression prevents cancellation-resistant admission from starting an effect after shutdown. Cancellation-resistant effects remain owned and shutdown reports false until they exit. Application size is 1,401/1,500 LLOC. Transport assembly must use Execution as Facade and treat unsuccessful shutdown as failed cleanup; real socket verification remains downstream.
 
 - Task 6.1: independent review approved trusted principal adaptation; fresh focused22tests, strict typing and boundary checks passed. Whole-workspace checkpoint363tests40subtests includes unaccepted5.3 work; the task commit's installed hook validates its isolated accepted scope. Authentication derives identity from a supplied verifier and deployment configuration; generated conformance credentials require exact127.0.0.1. Server startup must call validate_bind and wire access_policy in task7. Owner explicitly requested independent parallel implementation on2026-10-14; reviews and task commits remain separate.
 

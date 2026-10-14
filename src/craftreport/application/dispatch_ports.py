@@ -3,14 +3,16 @@
 from dataclasses import dataclass
 from typing import Protocol
 
-from craftreport.application.service_values import ServiceUnavailable
+from craftreport.application.service_values import Missing, ServiceUnavailable
 from craftreport.contracts import (
     Availability,
+    ExpectedVersion,
     InvocationEnvelope,
     JsonObject,
     OperationLimits,
     Principal,
 )
+from craftreport.contracts.identity import check_preconditions
 from craftreport.contracts.values import freeze_object, require_enum, require_text
 
 
@@ -70,3 +72,34 @@ class ResultStore(Protocol):
     async def read(
         self, principal: Principal, operation_id: str, reference: str
     ) -> RetainedResult: ...
+
+
+@dataclass(frozen=True, slots=True)
+class RecordedHandoff:
+    principal: Principal
+    operation_id: str
+    reference: str
+    owner: str
+    versions: tuple[ExpectedVersion, ...]
+
+    def __post_init__(self) -> None:
+        for value in (self.operation_id, self.reference, self.owner):
+            require_text(value, "handoff identity")
+        object.__setattr__(self, "versions", tuple(self.versions))
+        check_preconditions(self.versions)
+
+
+class HandoffReader(Protocol):
+    """Read an installed owner's recorded, fenced acceptance of execution.
+
+    The owner must retain the operation and assume its resource fencing before
+    the local lease is released. Mere scheduling or handler strings are invalid.
+    """
+
+    async def inspect(
+        self, principal: Principal, operation_id: str, reference: str
+    ) -> RecordedHandoff | Missing | ServiceUnavailable: ...
+
+
+class HandoffStore(HandoffReader, Protocol):
+    async def record(self, handoff: RecordedHandoff) -> None: ...

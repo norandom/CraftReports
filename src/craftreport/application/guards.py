@@ -29,7 +29,7 @@ def rejection(
 ) -> Rejection:
     recovery = (
         RecoveryDisposition.RETRY
-        if code == "service_unavailable"
+        if code in ("service_unavailable", "capacity")
         else RecoveryDisposition.CORRECT_REQUEST
     )
     return Rejection(correlation, Diagnostic(key, stage, code, recovery, location))

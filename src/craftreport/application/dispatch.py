@@ -1,5 +1,6 @@
 """Guarded inspection and query execution, composed with command dispatch later."""
 
+from collections.abc import Callable
 from dataclasses import dataclass, replace
 from uuid import uuid4
 
@@ -16,6 +17,7 @@ from craftreport.contracts import (
     EvidenceRef,
     InvocationEnvelope,
     InvocationResult,
+    JsonObject,
     OperationDescriptor,
     OperationKey,
     OperationLimits,
@@ -214,8 +216,19 @@ class QueryDispatcher:
             observed = await prepared.invoke(ports.ReadContext(operation_id, principal, self.reads))
         except Exception:
             return OutcomeFacts(ResultValidation.MISSING, None, Availability.MISSING, ())
+        return await self.retain_result(principal, operation_id, observed.encode_result, limits)
+
+    async def retain_result(
+        self,
+        principal: Principal,
+        operation_id: str,
+        encode: Callable[[], JsonObject | None],
+        limits: OperationLimits,
+    ) -> OutcomeFacts:
         try:
-            value = observed.encode_result()
+            value = encode()
+            if value is None:
+                return OutcomeFacts(ResultValidation.MISSING, None, Availability.MISSING, ())
             self.guards.limits.check_result(value, limits)
         except Exception:
             return OutcomeFacts(ResultValidation.INVALID, None, Availability.MISSING, ())

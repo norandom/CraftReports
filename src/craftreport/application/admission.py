@@ -1,6 +1,6 @@
 """Scoped retry admission; execution lifetime belongs to the caller of open()."""
 
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Callable
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass, field, replace
 from typing import Protocol
@@ -75,11 +75,14 @@ class CommandAdmission:
 
     @asynccontextmanager
     async def open(
-        self, principal: Principal, request: InvocationEnvelope
+        self,
+        principal: Principal,
+        request: InvocationEnvelope,
+        reserve: Callable[[], bool] = lambda: True,
     ) -> AsyncGenerator[AdmittedCommand | Receipt | Rejection]:
         async with AsyncExitStack() as stack:
             try:
-                result = await self._prepare(principal, request, stack)
+                result = await self._prepare(principal, request, stack, reserve)
             except Exception:
                 result = rejection(
                     request.operation, request.correlation_id, "admission", "service_unavailable"
@@ -93,7 +96,11 @@ class CommandAdmission:
                     result.close()
 
     async def _prepare(
-        self, principal: Principal, request: InvocationEnvelope, stack: AsyncExitStack
+        self,
+        principal: Principal,
+        request: InvocationEnvelope,
+        stack: AsyncExitStack,
+        reserve: Callable[[], bool],
     ) -> AdmittedCommand | Receipt | Rejection:
         guarded = await self.guards.prepare(principal, request)
         if isinstance(guarded, Rejection):
@@ -104,6 +111,8 @@ class CommandAdmission:
         retained = await self._find(principal, intent)
         if retained is not None:
             return retained
+        if not reserve():
+            return rejection(request.operation, request.correlation_id, "execution", "capacity")
         if guarded.descriptor.changes_business_state and set(
             pin.resource for pin in request.expected_versions
         ) != set(guarded.prepared.resources):

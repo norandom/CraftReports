@@ -46,6 +46,7 @@ class OutcomeFacts:
     evidence: tuple[EvidenceStatus, ...] = ()
     recorded_handoff: str | None = None
     reconciliation: tuple[EvidenceRef, ...] = ()
+    prior_handoff: str | None = None
 
     def __post_init__(self) -> None:
         require_enum(self.result_validation, ResultValidation)
@@ -53,7 +54,7 @@ class OutcomeFacts:
         for name in ("completion_versions", "evidence", "reconciliation"):
             object.__setattr__(self, name, tuple(getattr(self, name)))
         check_preconditions(self.completion_versions)
-        for reference in (self.result_ref, self.recorded_handoff):
+        for reference in (self.result_ref, self.recorded_handoff, self.prior_handoff):
             if reference is not None:
                 require_text(reference, "observation reference")
         if self.result_availability is Availability.AVAILABLE and self.result_ref is None:
@@ -230,7 +231,8 @@ def _validate_transition(
     if current.state in (ReceiptState.COMPLETE, ReceiptState.PARTIAL, ReceiptState.FAILED):
         raise ValueError("Terminal receipt transition is forbidden")
     if current.state is ReceiptState.PENDING and state is ReceiptState.PENDING:
-        raise ValueError("Pending receipt transition requires a terminal observation")
+        if facts.prior_handoff is None or facts.recorded_handoff == facts.prior_handoff:
+            raise ValueError("Pending receipt transition requires a new verified owner")
     if current.state is not ReceiptState.AMBIGUOUS:
         return
     if state in (ReceiptState.ACCEPTED, ReceiptState.PENDING, ReceiptState.AMBIGUOUS):

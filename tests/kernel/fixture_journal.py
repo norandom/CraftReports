@@ -23,6 +23,7 @@ class FixtureJournal:
         self._identities: dict[RetryKey, str] = {}
         self._receipts: dict[str, Receipt] = {}
         self.owners: dict[str, tuple[str, str]] = {}
+        self.handoffs: dict[str, str] = {}
 
     def _require_available(self) -> None:
         if not self.available:
@@ -98,9 +99,11 @@ class FixtureJournal:
                 raise ports.ReceiptMissingError(operation_id)
             if current.revision != expected_revision:
                 return ports.RevisionConflict(current.revision)
-            _check_transition(current, update)
+            _check_transition(current, update, self.handoffs.get(operation_id))
             updated = _append(current, update)
             self._receipts[operation_id] = updated
+            if update.handoff_ref is not None:
+                self.handoffs[operation_id] = update.handoff_ref
             if self.lose_record_ack:
                 self.lose_record_ack = False
                 raise ports.ServiceUnavailableError(ports.ServiceUnavailable("journal"))
@@ -148,14 +151,17 @@ def _append(current: Receipt, update: ports.ReceiptUpdate) -> Receipt:
     )
 
 
-def _check_transition(current: Receipt, update: ports.ReceiptUpdate) -> None:
+def _check_transition(
+    current: Receipt, update: ports.ReceiptUpdate, prior_handoff: str | None = None
+) -> None:
     """Storage invariants only; dispatcher remains owner of outcome/evidence policy."""
     if current.state in (ReceiptState.COMPLETE, ReceiptState.PARTIAL, ReceiptState.FAILED):
         raise ValueError("Terminal receipt is immutable")
     if update.state is ReceiptState.ACCEPTED:
         raise ValueError("Cannot regress to accepted")
     if current.state is ReceiptState.PENDING and update.state is ReceiptState.PENDING:
-        raise ValueError("Pending requires a terminal observation")
+        if prior_handoff is None or update.handoff_ref in (None, prior_handoff):
+            raise ValueError("Pending requires a new execution owner")
     if current.state is ReceiptState.AMBIGUOUS:
         previous = {ref.identity for ref in current.evidence}
         previous.update(ref.identity for stage in current.stages for ref in stage.evidence)
