@@ -172,6 +172,21 @@ class _Rest:
         except Exception:
             return _reject(self.wire, "unavailable", correlation)
 
+    async def read_result(self, request: Request) -> Response:
+        correlation = str(uuid4())
+        try:
+            principal = await self.principal.resolve(request)
+            value = await self.facade.read_result(principal, request.path_params["operation_id"])
+            return _response(
+                self.wire,
+                self.wire.encode_result_readback(value),
+                self.wire.canonical_status(value),
+            )
+        except AuthenticationRejected:
+            return _reject(self.wire, "unauthenticated", correlation)
+        except Exception:
+            return _reject(self.wire, "unavailable", correlation)
+
     async def inspect(self, request: Request) -> Response:
         correlation = str(uuid4())
         try:
@@ -206,6 +221,23 @@ def rest_router(
     router.add_api_route("/health/ready", adapter.ready, methods=["GET"])
     router.add_api_route("/v1/catalog", adapter.catalog, methods=["GET"])
     router.add_api_route("/v1/operations/{operation_id}", adapter.inspect, methods=["GET"])
+    router.add_api_route(
+        "/v1/operations/{operation_id}/result",
+        adapter.read_result,
+        methods=["GET"],
+        openapi_extra={
+            "responses": {
+                "200": {
+                    "description": "Authorized retained result and current receipt",
+                    "content": {
+                        "application/json": {
+                            "schema": _inline_schema(wire.result_readback_schema())
+                        }
+                    },
+                }
+            }
+        },
+    )
     router.add_api_route(
         "/v1/invoke",
         adapter.invoke,

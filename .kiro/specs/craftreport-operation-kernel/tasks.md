@@ -181,6 +181,15 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 3.1, 5.3, 6.1, 6.2_
   - _Requirements: 2.1, 2.2, 3.1, 3.2, 5.2, 5.6, 6.1, 6.2, 6.3, 6.4_
 
+- [x] 6.4 Expose authorized retained-result readback
+  - Implement the owner-approved result-readback-amendment.md through typed facade/inspection values, shared serialization, REST GET /v1/operations/{operation_id}/result and MCP craftreport.result.v1.
+  - Authorize the receipt before resolving its retained reference; preserve scoped availability distinctions, exact content/reference identity and the current receipt state without new admission, mutation or re-execution.
+  - Verify denial, missing/unavailable content, reference mismatch, non-mutation and non-complete receipt states. Supply executable ordinary-client examples.
+  - Done when focused real-facade adapter tests, canonical fast checks and independent review pass; task 8.2 establishes installed socket parity. Commit separately with the installed hook.
+  - _Boundary: Dispatcher inspection, ValueContracts, shared wire, REST and MCP_
+  - _Depends: 7_
+  - _Requirements: 3.2, 3.6, 5.2, 5.3, 5.5, 5.6, 6.1, 6.2, 6.4_
+
 - [x] 7. Integrate capability activation, facade and application lifecycle
   - Compose the registry, supplied services, fixed pipeline and both interfaces without embedding request policy in assembly.
   - Manage MCP sessions and admitted execution from the host lifespan, preserve the intended route paths and enforce Host/Origin and loopback-profile settings.
@@ -201,12 +210,12 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Requirements: 6.1, 6.3, 7.1, 7.4_
 
 - [ ] 8.2 Verify cross-transport behavior and permission boundaries
-  - Exercise discovery, command invocation, query readback and an equivalent retry through the other transport, using the real installed composition with AI disabled.
+  - Retrieve query content through public REST/MCP result readback and compare it with the private independent target oracle. Exercise discovery, command invocation, query readback and an equivalent retry through the other transport, using the real installed composition with AI disabled.
   - Compare normalized values, accepted identity, result/error meanings and evidence; exercise hidden schemas, denied resources, wrong versions, malformed input and both principals. Verify advertised input size, nesting depth and serialized-output caps at and beyond each boundary through both transports, including the recorded effect status after an oversized result.
   - Done when independent target inspection confirms one intended effect and the same retained retry identity, while negative cases produce no effect or private disclosure.
   - Run the integration command and relevant fast regressions; keep executable examples and supported-contract descriptions consistent with observed responses.
   - _Boundary: Integration verification — REST, MCP, Dispatcher_
-  - _Depends: 8.1_
+  - _Depends: 8.1, 6.4_
   - _Requirements: 2.1, 2.2, 2.3, 3.1, 3.2, 3.6, 4.1, 4.2, 5.2, 5.3, 5.6, 6.1, 6.2, 6.3, 6.4, 7.2_
 
 - [ ] 8.3 Verify disconnect, ambiguity and concurrent admission over sockets
@@ -244,6 +253,8 @@ The approved Design owns concrete file paths and signatures. Each implementer re
 Browser verification remains the next bounded spec: latest official GridCraft download, no local build, owned browser/Compose environment, screenshots/videos and actual XLSX save/reopen evidence. Passing this kernel plan cannot close that work.
 
 ## Implementation Notes
+
+- Task 6.4: owner-approved result-readback amendment implemented and independently approved. Fresh canonical fast passed 559 tests and 39 subtests; 27 focused checks exercise real facade, REST and official MCP over ASGI, public schemas and executable examples. Retrieval authorizes the receipt before scoped content lookup, preserves exact reference/value and existing state, and creates no business work. Existing invoke/inspect status semantics remain unchanged. Application 1,449/1,500 LLOC; installed socket parity remains task 8.2.
 
 - Task 8.1: independent review passed fresh canonical fast (532 tests, 39 subtests) and integration (3 tests). Installed kernel/plugin origins, real REST and official MCP discovery, negotiated protocol, wheel/lock identities and graceful owned cleanup were verified; no recorded processes remained. Generated credentials are excluded from persisted evidence. Windows launcher/runtime PIDs differ and require verified parentage. Injected startup/cleanup failures retain failed records without forced termination. Full conformance remains 8.2–8.4. When extending failure cases, assert their specific injected diagnostics; task 8.4 must update stale CI wording while enabling integration.
 

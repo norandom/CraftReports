@@ -35,6 +35,7 @@ from craftreport.contracts import (
     RecoveryDisposition,
     Rejection,
     ResourceRef,
+    ResultReadback,
     RetryKey,
     StageState,
 )
@@ -200,6 +201,13 @@ class FacadeDouble:
 
     async def inspect(self, principal: Principal, operation_id: str) -> Receipt | Rejection:
         return receipt()
+
+    async def read_result(
+        self, principal: Principal, operation_id: str
+    ) -> ResultReadback | Rejection:
+        return Rejection(
+            "readback", Diagnostic(KEY, "result", "result_missing", RecoveryDisposition.INSPECT)
+        )
 
 
 def test_admission_is_discriminated_and_retains_identity() -> None:

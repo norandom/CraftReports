@@ -23,11 +23,13 @@ from craftreport.contracts import (
     Principal,
     RecoveryDisposition,
     Rejection,
+    ResultReadback,
 )
 from craftreport.interfaces.principal import AuthenticationRejected, PrincipalBoundary
 
 _CATALOG = "craftreport.catalog.v1"
 _INSPECT = "craftreport.inspect.v1"
+_RESULT = "craftreport.result.v1"
 
 
 def _reject(code: str, correlation: str, location: tuple[str | int, ...] = ()) -> Rejection:
@@ -81,17 +83,25 @@ class _Mcp:
             is_error=error,
         )
 
-    def result(self, value: InvocationResult) -> types.CallToolResult:
+    def result(self, value: InvocationResult | ResultReadback) -> types.CallToolResult:
         try:
             return self.content(
-                self.wire.encode_invocation_result(value), self.wire.result_is_error(value)
+                self.wire.encode_result_readback(value)
+                if isinstance(value, ResultReadback)
+                else self.wire.encode_invocation_result(value),
+                self.wire.result_is_error(value),
             )
         except Exception:
-            unavailable = _reject("unavailable", value.correlation_id)
+            unavailable = _reject(
+                "unavailable",
+                value.receipt.correlation_id
+                if isinstance(value, ResultReadback)
+                else value.correlation_id,
+            )
             return self.content(self.wire.encode_invocation_result(unavailable), True)
 
     async def execute(
-        self, invocation: Awaitable[InvocationResult], correlation: str
+        self, invocation: Awaitable[InvocationResult | ResultReadback], correlation: str
     ) -> types.CallToolResult:
         try:
             return self.result(await invocation)
@@ -115,17 +125,31 @@ class _Mcp:
                 input_schema={"type": "object", "properties": {}, "additionalProperties": False},
                 output_schema={"type": "object"},
             ),
-            types.Tool(
-                name=_INSPECT,
-                description="Inspect an authorized retained receipt.",
-                input_schema={
-                    "type": "object",
-                    "properties": {"operation_id": {"type": "string", "minLength": 1}},
-                    "required": ["operation_id"],
-                    "additionalProperties": False,
-                },
-                output_schema=_plain(self.wire, self.wire.invocation_result_schema()),
-            ),
+            *[
+                types.Tool(
+                    name=name,
+                    description=description,
+                    input_schema={
+                        "type": "object",
+                        "properties": {"operation_id": {"type": "string", "minLength": 1}},
+                        "required": ["operation_id"],
+                        "additionalProperties": False,
+                    },
+                    output_schema=_plain(self.wire, schema),
+                )
+                for name, description, schema in (
+                    (
+                        _INSPECT,
+                        "Inspect an authorized retained receipt.",
+                        self.wire.invocation_result_schema(),
+                    ),
+                    (
+                        _RESULT,
+                        "Read an authorized retained result and current receipt.",
+                        self.wire.result_readback_schema(),
+                    ),
+                )
+            ],
         ]
 
     async def list_tools(
@@ -150,7 +174,7 @@ class _Mcp:
     async def invoke(
         self, principal: Principal, name: str, arguments: JsonObject
     ) -> types.CallToolResult:
-        if name == _INSPECT:
+        if name in (_INSPECT, _RESULT):
             identity = arguments.get("operation_id")
             if (
                 set(arguments) != {"operation_id"}
@@ -159,7 +183,10 @@ class _Mcp:
             ):
                 raise WireFailure("invalid_input", location=("operation_id",))
             return await self.execute(
-                self.facade.inspect(principal, identity), _correlation(arguments)
+                self.facade.read_result(principal, identity)
+                if name == _RESULT
+                else self.facade.inspect(principal, identity),
+                _correlation(arguments),
             )
         catalog = await self.facade.catalog(principal)
         if name == _CATALOG:

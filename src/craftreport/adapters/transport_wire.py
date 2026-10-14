@@ -1,8 +1,8 @@
 """Explicit canonical serializers and shared REST/MCP outcome semantics."""
 
-from craftreport.adapters.canonical import canonical_bytes
+from craftreport.adapters.canonical import canonical_bytes, wire_value
 from craftreport.adapters.schema_embedding import embed_payload_schema
-from craftreport.adapters.transport_models import EnvelopeWire, InvocationWire
+from craftreport.adapters.transport_models import EnvelopeWire, InvocationWire, ResultReadWire
 from craftreport.adapters.validation import decode_envelope
 from craftreport.contracts import (
     CapabilityManifest,
@@ -21,6 +21,7 @@ from craftreport.contracts import (
     ReceiptState,
     Rejection,
     ResourceRef,
+    ResultReadback,
     StageResult,
     VerificationRecord,
 )
@@ -103,6 +104,21 @@ def encode_invocation_result(result: InvocationResult) -> JsonObject:
     InvocationWire.model_validate(value, strict=True)
     canonical_bytes(value, max_depth=None)
     return freeze_object(value)
+
+
+def encode_result_readback(result: ResultReadback | Rejection) -> JsonObject:
+    value = (
+        encode_invocation_result(result)
+        if isinstance(result, Rejection)
+        else {"receipt": _receipt(result.receipt), "value": result.value}
+    )
+    ResultReadWire.model_validate(wire_value(value, max_depth=None), strict=True)
+    canonical_bytes(value, max_depth=None)
+    return freeze_object(value)
+
+
+def result_readback_schema() -> JsonObject:
+    return freeze_object({**ResultReadWire.model_json_schema(), "type": "object"})
 
 
 def envelope_schema(
@@ -230,13 +246,17 @@ _STATUS = {
 }
 
 
-def canonical_status(result: InvocationResult) -> int:
+def canonical_status(result: InvocationResult | ResultReadback) -> int:
+    if isinstance(result, ResultReadback):
+        result = result.receipt
     if isinstance(result, Rejection):
         return _STATUS.get(result.diagnostic.code, 503)
     return 202 if result.state in (ReceiptState.ACCEPTED, ReceiptState.PENDING) else 200
 
 
-def result_is_error(result: InvocationResult) -> bool:
+def result_is_error(result: InvocationResult | ResultReadback) -> bool:
+    if isinstance(result, ResultReadback):
+        result = result.receipt
     return isinstance(result, Rejection) or result.state in (
         ReceiptState.FAILED,
         ReceiptState.PARTIAL,
@@ -256,6 +276,12 @@ class TransportWireAdapter:
     def encode_invocation_result(self, result: InvocationResult) -> JsonObject:
         return encode_invocation_result(result)
 
+    def encode_result_readback(self, result: ResultReadback | Rejection) -> JsonObject:
+        return encode_result_readback(result)
+
+    def result_readback_schema(self) -> JsonObject:
+        return result_readback_schema()
+
     def encode_catalog(self, catalog: Catalog) -> JsonObject:
         return encode_catalog(catalog)
 
@@ -267,8 +293,8 @@ class TransportWireAdapter:
     def invocation_result_schema(self) -> JsonObject:
         return invocation_result_schema()
 
-    def canonical_status(self, result: InvocationResult) -> int:
+    def canonical_status(self, result: InvocationResult | ResultReadback) -> int:
         return canonical_status(result)
 
-    def result_is_error(self, result: InvocationResult) -> bool:
+    def result_is_error(self, result: InvocationResult | ResultReadback) -> bool:
         return result_is_error(result)

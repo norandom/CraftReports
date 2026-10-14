@@ -113,6 +113,7 @@ from craftreport.contracts import (
     Receipt,
     Rejection,
     ResourceRef,
+    ResultReadback,
     RetryKey,
 )
 from craftreport.contracts.values import require_text
@@ -168,6 +169,10 @@ class Facade(Protocol):
     async def catalog(self, principal: Principal) -> Catalog: ...
 
     async def inspect(self, principal: Principal, operation_id: str) -> Receipt | Rejection: ...
+
+    async def read_result(
+        self, principal: Principal, operation_id: str
+    ) -> ResultReadback | Rejection: ...
 
 
 class AccessPolicy(Protocol):

@@ -35,6 +35,7 @@ from craftreport.contracts.outcomes import (
     ReceiptState,
     RecoveryDisposition,
     Rejection,
+    ResultReadback,
     StageResult,
     StageState,
 )
@@ -69,6 +70,7 @@ __all__ = [
     "ReceiptState",
     "RecoveryDisposition",
     "Rejection",
+    "ResultReadback",
     "ResourceRef",
     "RetryKey",
     "StageResult",

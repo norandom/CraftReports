@@ -5,7 +5,7 @@ from dataclasses import dataclass, replace
 from uuid import uuid4
 
 from craftreport.application import ports
-from craftreport.application.dispatch_ports import ResultStore
+from craftreport.application.dispatch_ports import ResultStore, RetainedResult
 from craftreport.application.guards import GuardedCall, InvocationGuards, authorize, rejection
 from craftreport.application.outcomes import OutcomeFacts, ResultValidation, outcome_update
 from craftreport.application.registry import ObservedCommand, PreparedQuery
@@ -25,6 +25,7 @@ from craftreport.contracts import (
     Receipt,
     ReceiptState,
     Rejection,
+    ResultReadback,
 )
 
 
@@ -106,13 +107,37 @@ class Inspection:
         except Exception:
             return rejection(key, correlation, "inspect", "service_unavailable")
 
+    async def read_result(
+        self, principal: Principal, operation_id: str
+    ) -> ResultReadback | Rejection:
+        receipt = await self.inspect(principal, operation_id)
+        if isinstance(receipt, Rejection):
+            return receipt
+        key, correlation = OperationKey("kernel.result", "1"), str(uuid4())
+        try:
+            result = await self._result(principal, receipt)
+            if isinstance(result, str):
+                return rejection(key, correlation, "result", result)
+            assert result.value is not None
+            return ResultReadback(receipt, result.value)
+        except Exception:
+            return rejection(key, correlation, "result", "service_unavailable")
+
+    async def _result(self, principal: Principal, receipt: Receipt) -> RetainedResult | str:
+        if receipt.result_ref is None:
+            return "result_missing"
+        result = await self.results.read(principal, receipt.operation_id, receipt.result_ref)
+        if result.reference != receipt.result_ref:
+            return "result_unavailable"
+        if result.availability is not Availability.AVAILABLE:
+            return f"result_{result.availability.value}"
+        return result
+
     async def _retained_content(self, principal: Principal, receipt: Receipt) -> str | None:
         if receipt.result_ref is not None:
-            result = await self.results.read(principal, receipt.operation_id, receipt.result_ref)
-            if result.reference != receipt.result_ref:
-                return "result_unavailable"
-            if result.availability is not Availability.AVAILABLE:
-                return f"result_{result.availability.value}"
+            result = await self._result(principal, receipt)
+            if isinstance(result, str):
+                return result
         refs = tuple(
             dict.fromkeys(
                 (*receipt.evidence, *(ref for stage in receipt.stages for ref in stage.evidence))

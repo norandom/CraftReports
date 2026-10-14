@@ -12,6 +12,8 @@ from craftreport.contracts.identity import (
     check_preconditions,
 )
 from craftreport.contracts.values import (
+    JsonObject,
+    freeze_object,
     require_enum,
     require_immutable,
     require_positive,
@@ -207,6 +209,19 @@ class Receipt:
         object.__setattr__(self, "diagnostics", tuple(self.diagnostics))
         object.__setattr__(self, "evidence", tuple(self.evidence))
         check_preconditions(self.expected_versions)
+
+
+@dataclass(frozen=True, slots=True)
+class ResultReadback:
+    """Exact retained object paired with its authorized current receipt."""
+
+    receipt: Receipt
+    value: JsonObject
+
+    def __post_init__(self) -> None:
+        if self.receipt.result_ref is None:
+            raise ValueError("Readback requires a retained result reference")
+        object.__setattr__(self, "value", freeze_object(self.value))
 
 
 type InvocationResult = Receipt | Rejection

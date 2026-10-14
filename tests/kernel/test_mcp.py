@@ -61,6 +61,7 @@ async def test_discovery_call_inspection_and_independent_effect() -> None:
         assert [tool.name for tool in tools] == [
             "craftreport.catalog.v1",
             "craftreport.inspect.v1",
+            "craftreport.result.v1",
             "fixture.write.v1",
         ]
         result = await client.call_tool("fixture.write.v1", envelope())
@@ -73,7 +74,8 @@ async def test_discovery_call_inspection_and_independent_effect() -> None:
             == TransportWireAdapter().canonical_bytes(result.structured_content).decode()
         )
         inspected = await client.call_tool(
-            "craftreport.inspect.v1", {"operation_id": result.structured_content["operation_id"]}
+            "craftreport.inspect.v1",
+            {"operation_id": result.structured_content["operation_id"]},
         )
         assert inspected.structured_content == result.structured_content
         snapshot = await fixture.target.read(RESOURCE)

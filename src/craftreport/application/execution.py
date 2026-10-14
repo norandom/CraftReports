@@ -28,6 +28,7 @@ from craftreport.contracts import (
     Receipt,
     ReceiptState,
     Rejection,
+    ResultReadback,
 )
 
 
@@ -67,6 +68,11 @@ class Execution:
 
     async def inspect(self, principal: Principal, operation_id: str) -> Receipt | Rejection:
         return await self.inspection.inspect(principal, operation_id)
+
+    async def read_result(
+        self, principal: Principal, operation_id: str
+    ) -> ResultReadback | Rejection:
+        return await self.inspection.read_result(principal, operation_id)
 
     async def invoke(self, principal: Principal, request: InvocationEnvelope) -> InvocationResult:
         bound = self.admission.guards.registry.resolve(

@@ -92,3 +92,12 @@ class RejectionWire(StrictWireModel):
 
 class InvocationWire(RootModel[ReceiptWire | RejectionWire]):
     pass
+
+
+class ResultReadbackWire(StrictWireModel):
+    receipt: ReceiptWire
+    value: dict[str, object]
+
+
+class ResultReadWire(RootModel[ResultReadbackWire | RejectionWire]):
+    pass

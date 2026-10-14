@@ -271,6 +271,9 @@ class Facade(Protocol):
     async def inspect(
         self, principal: Principal, operation_id: str
     ) -> Receipt | Rejection: ...
+    async def read_result(
+        self, principal: Principal, operation_id: str
+    ) -> ResultReadback | Rejection: ...
 
 class AccessPolicy(Protocol):
     async def authorize(
@@ -338,6 +341,7 @@ Diagnostics use allowlisted fields and sanitized locations; do not echo input va
 | GET /v1/catalog | authenticated request | permitted capabilities/operations/schemas/limits |
 | POST /v1/invoke | InvocationEnvelope | Receipt or Rejection |
 | GET /v1/operations/{operation_id} | authenticated request | authorized receipt or unavailable/not-found rejection |
+| GET /v1/operations/{operation_id}/result | authenticated request | authorized current receipt and exact retained JSON result, or safe rejection |
 
 POST accepts commands and queries but advertised kind controls execution. No REST endpoint bypasses Facade. API documentation is generic; private operation schemas come only from authorized catalog discovery. Catalog responses are private/no-store.
 
@@ -351,7 +355,16 @@ Principal comes from the authenticated HTTP boundary, never request payload or a
 
 Task 6.2 implementation clarification: interfaces receive an application-owned `TransportWire` protocol for envelope decoding, canonical JSON bytes, result/catalog encoding, schemas and outcome classification. The concrete `TransportWireAdapter` remains in adapters and is supplied by composition. Interfaces do not import concrete adapters, and the existing inward import gate remains unchanged. REST exposes its raw UTF-8 framing cap as authorized catalog `transport_limits.max_raw_bytes`; descriptor limits remain the shared decoded-envelope/depth/output guarantees. Operators must configure the framing cap for their advertised operations. The transport maps existing facade diagnostic codes to the table's HTTP categories without rewriting their body meanings; unknown rejection codes map conservatively to unavailable. Generic OpenAPI schemas contain no private operation schemas and must resolve their references correctly when embedded.
 
+### Authorized retained-result readback (approved 2026-10-14)
+
+The owner-approved [result-readback amendment](result-readback-amendment.md) extends the facade with `read_result`. `ResultReadback` pairs the current authorized receipt with the exact retained JSON object identified by its `result_ref`. Receipt authorization precedes result lookup; the existing principal-scoped ResultStore verifies visibility and exact reference/availability. Missing results, inaccessible content, unavailable storage and mismatched references produce safe rejections without content disclosure or regeneration. Reads do not admit new work, mutate targets, rerun handlers or upgrade receipt state.
+
+REST exposes GET `/v1/operations/{operation_id}/result`; MCP exposes built-in `craftreport.result.v1` with only `operation_id`. Both use application-owned typed contracts and shared serialization/schema. MCP preserves the embedded receipt's error-state semantics. Invocation and receipt-inspection schemas are unchanged. Historical task 5.1's absence of a public retrieval endpoint is superseded only by this amendment. Existing capability ownership and engineering budgets apply.
+
+Task 6.4 establishes focused contract and transport evidence. Task 8.2 retrieves results through ordinary installed clients in both transport orders and compares them with private independent target observations; private observations cannot substitute for caller retrieval. Query and retrieval preserve target value, version and effect count.
+
 ## Data Models
+
 
 Task 8.1 implementation clarification: the installed-runtime harness uses an isolated interpreter with explicit test-helper import paths and verifies that kernel and plugin imports resolve inside the installed environment. A private parent/child control pipe carries generated credentials without persisting the raw channel. The child binds and retains its ephemeral loopback socket, while evidence records sanitized client exchanges, negotiated protocol, package/build identities and cleanup. Windows launcher and runtime process identities are tracked separately with verified parentage. The integration command initially establishes harness smoke and injected lifecycle-failure detection; complete conformance remains tasks 8.2–8.4.
 
