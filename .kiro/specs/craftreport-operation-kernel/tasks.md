@@ -53,7 +53,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 1.4_
   - _Requirements: 1.5, 2.1, 2.5, 5.1, 5.2, 5.3, 5.6_
 
-- [ ] 2.2 Define guarantee-provider and execution-context contracts
+- [x] 2.2 Define guarantee-provider and execution-context contracts
   - Define authorization, atomic operation admission/observations, version guards, capability resolution, evidence lookup and facade inspection contracts with typed unavailable/conflict outcomes.
   - Separate query inspection services from command services; keep canonical completion and registry mutation out of capability execution contexts.
   - Done when typed conformance doubles demonstrate required admission/guard/evidence outcomes and a query cannot receive the command-only service bundle.
@@ -250,3 +250,4 @@ Browser verification remains the next bounded spec: latest official GridCraft do
 - Task 1.3: independent rereview passed after repairing generated-stage consistency and shared-namespace plugin ownership. Fresh breadth/import gates pass; independent suite36tests41subtests. Full suite currently roughly3minutes; direct real check(root) fixture calls proved much faster than subprocess-per-case. Task1.4 can optimize that measured overhead while retaining CLI smoke coverage.
 - Task 1.4: independent review passed canonical fast and pre-commit all-files (40 tests/40 subtests), verified installed-hook and all six deliberate rejections plus clean-checkout evidence. Full fast command is now canonical; integration remains unavailable until8.1. Direct gate fixture calls and pinned Ruff executable reduce process overhead. CI configured, not remotely executed.
 - Task 2.1: independent review verified90tests40subtests, immutable value contracts and wheel py.typed/exports. Disposable engineering fixture now counts its own source tree, preserving deliberate stale-count checks. Contract results retain immutable Decimal/date/frozen data classes; wire conversion and outcome policy remain later tasks.
+- Task 2.2: resumed 2026-10-14 with fresh independent approval and canonical98tests40subtests. Public success signatures preserve Design; structured exceptions distinguish unavailable/guard/catalog failures, and admission retains its explicit result union. Read/command contexts are disjoint; provider atomicity remains later verification.
