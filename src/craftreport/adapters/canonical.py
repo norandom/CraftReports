@@ -79,3 +79,20 @@ def fingerprint(
     # Payloads are already validated and normalized, including contract defaults.
     # The hashing wrapper must not impose a second depth budget on that content.
     return hashlib.sha256(canonical_bytes(content, max_depth=None)).hexdigest()
+
+
+class CanonicalFingerprint:
+    """Injectable versioned fingerprint boundary for application admission."""
+
+    @property
+    def policy(self) -> str:
+        return NORMALIZATION_POLICY
+
+    def __call__(
+        self,
+        operation: OperationKey,
+        content: JsonObject,
+        resources: tuple[ResourceRef, ...],
+        versions: tuple[ExpectedVersion, ...],
+    ) -> str:
+        return fingerprint(operation, content, resources, versions, policy=self.policy)

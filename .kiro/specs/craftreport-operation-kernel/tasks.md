@@ -135,7 +135,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 2.2, 2.3, 3.1, 3.3, 4.3_
   - _Requirements: 2.2, 2.3, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 5.2, 5.5, 6.4_
 
-- [ ] 5.2 Admit retries and versioned effects exactly once within the journal scope
+- [x] 5.2 Admit retries and versioned effects exactly once within the journal scope
   - Look up authorized retained retries before current-version checks, then acquire the authoritative guard and atomically admit new command identity with its initial receipt.
   - Distinguish equivalent retries, content/precondition conflicts and admission acknowledgement loss; recheck guard validity before effect and release a race-losing guard safely.
   - Done when 20 equivalent concurrent requests yield one synthetic effect and one accepted identity; stale versions, different-content retries and cross-principal reuse cannot overwrite or disclose another operation.
@@ -244,6 +244,8 @@ The approved Design owns concrete file paths and signatures. Each implementer re
 Browser verification remains the next bounded spec: latest official GridCraft download, no local build, owned browser/Compose environment, screenshots/videos and actual XLSX save/reopen evidence. Passing this kernel plan cannot close that work.
 
 ## Implementation Notes
+
+- Task 5.2: independent review approved canonical325tests40subtests; parent fresh admission22tests pass. Atomic admission grants one execution owner; lost acknowledgements return retained receipts without replay. Command resources require complete expected-version coverage after retry lookup. Execution must hold admission context through effects in5.3. Application1150LLOC leaves350 under currentcap. RED evidence is retained in the implementer transcript, not an artifact directory.
 
 - Task 1.1: approved pins resolve on CPython 3.12.10; independent review and fresh bootstrap, Ruff and Pyright checks pass. Fast/integration modes remain explicitly unavailable until tasks 1.4/8.1. On this host use uv.exe directly: the PowerShell uv wrapper can mis-forward arguments in multi-command calls.
 - Task 1.2: independent review and fresh standalone quality check pass; 21 tests/15 subtests. Parenthesized decorators use token positions; only approved test roots receive separate accounting. quality_policy.py and quality_measurement.py separate policy/extraction responsibilities. Full pipeline remains pending task 1.4.
