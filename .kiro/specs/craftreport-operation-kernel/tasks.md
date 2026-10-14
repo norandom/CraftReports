@@ -79,7 +79,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 1.4, 2.1, 2.2, 2.3_
   - _Requirements: 2.3, 2.4, 4.1, 4.2, 6.2_
 
-- [ ] 3.2 (P) Determine completion from result and evidence
+- [x] 3.2 (P) Determine completion from result and evidence
   - Validate effect disposition, result status, required evidence pins, safe diagnostics and allowed receipt transitions.
   - Keep missing/inaccessible/unavailable evidence distinct; require new reconciliation evidence to resolve ambiguity and preserve prior attempts.
   - Done when outcome fixtures with missing evidence, malformed results or partial/unknown effects cannot become complete, and unsafe diagnostics are removed.
@@ -255,3 +255,5 @@ Browser verification remains the next bounded spec: latest official GridCraft do
 - Task 2.3: independent review and fresh canonical110tests40subtests passed. Typed closures preserve request/result pairing and command observations across encoding failure; immutable catalog resolves exact keys and checks advertised descriptors. Wire validation and outcome policy remain downstream.
 
 - Task 3.1: independent rereview verified163tests40subtests after correcting fingerprint wrapper-depth and strict float coercion. Explicit PydanticCodec.for_input() gives request normalization its input budget; result codecs keep output budgets. Hashing consumes already validated normalized content without a second depth admission cap.
+
+- Task 3.2: independent review verified214tests40subtests. Pure OutcomeFacts require dispatcher-supplied codec/provider facts; authoritative completion pins can differ from admission versions. Required-stage refs also occur in top-level evidence, and stage pass labels reflect inspected evidence. New scoped reconciliation resolves ambiguity; journal CAS/provider provenance remain later tasks.
