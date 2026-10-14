@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling==1.32.4"]
+build-backend = "hatchling.build"
+
+[project]
+name = "craftreport-kernel-fixture"
+version = "0.1.0"
+description = "Synthetic, temporary CraftReport conformance fixture only"
+requires-python = ">=3.12,<3.13"
+dependencies = ["craftreport==0.1.0"]
+
+[project.entry-points."craftreport.capabilities"]
+synthetic = "craftreport_kernel_fixture:factory"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/craftreport_kernel_fixture"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/craftreport_kernel_fixture", "pyproject.toml"]

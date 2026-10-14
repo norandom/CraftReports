@@ -98,7 +98,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Requirements: 3.4, 4.3, 4.4, 5.5, 7.2, 7.4_
 
 - [ ] 4. Activate independently packaged capabilities
-- [ ] 4.1 Package an independently installable conformance capability
+- [x] 4.1 Package an independently installable conformance capability
   - Create the separate synthetic fixture distribution with discovery metadata, typed operations, settings and lifecycle instrumentation.
   - Produce selectable/unselected and incompatible/colliding variants from isolated fixture builds, without placing executable fixtures in public production plugin paths.
   - Done when a built fixture wheel installs alongside the kernel and its manifest/bindings match the author contract; update the author example with this executable contract.
@@ -259,3 +259,5 @@ Browser verification remains the next bounded spec: latest official GridCraft do
 - Task 3.2: independent review verified214tests40subtests. Pure OutcomeFacts require dispatcher-supplied codec/provider facts; authoritative completion pins can differ from admission versions. Required-stage refs also occur in top-level evidence, and stage pass labels reflect inspected evidence. New scoped reconciliation resolves ambiguity; journal CAS/provider provenance remain later tasks.
 
 - Task 3.3: independent review verified234tests40subtests. Fixture providers stay under tests/kernel with temporary single-event-loop state and explicit epochs. Target-wide non-reentrant guard is bounded; lost acknowledgements follow actual retained writes. Later installed fixture assembly must wire providers explicitly; plugin code depends only on public contracts.
+
+- Task 4.1: independent review verified240tests40subtests with real offline wheel installs/origin checks and executable author docs. Generic CapabilityFactory/CapabilityInstance defines the public author boundary; closer/context share one idempotent resource owner. Pyright fixture source extraPath is typing-only. Variant builds and lifecycle probes remain test-only; activation follows in4.2.
