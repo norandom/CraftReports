@@ -1,6 +1,6 @@
 # Roadmap
 
-Updated: 2026-10-14. **Five-part decomposition approved** by the owner's contextual "ok". There are three real specs: the umbrella has approved requirements; the kernel has approved requirements, Design and Tasks and all 26 executable tasks accepted; browser verification now has generated requirements awaiting owner review. The kernel's 36 Python source modules and final validation cover synthetic effects and temporary state, not the composed reporting application. The remaining three downstream bounded specs are not initialized.
+Updated: 2026-10-14. **Five-part decomposition approved** by the owner's contextual "ok". There are three real specs: the umbrella has approved requirements; the kernel has approved requirements, Design and Tasks and all 26 executable tasks accepted; browser verification has approved requirements and a generated Design awaiting owner review. The kernel's 36 Python source modules and final validation cover synthetic effects and temporary state, not the composed reporting application. The remaining three downstream bounded specs are not initialized.
 
 ## Overview
 
@@ -32,14 +32,14 @@ The umbrella acceptance baseline is retained. Child requirements/designs referen
 | Order | Candidate | Responsibility | Dependencies |
 | --- | --- | --- | --- |
 | 1 | [craftreport-operation-kernel](../specs/craftreport-operation-kernel/requirements.md) | Typed contracts, plugin/operation registration, shared command/query middleware, thin software interfaces and evidence/port contracts. Requirements, Design and Tasks approved; implementation and final synthetic-scope validation accepted. | Approved umbrella acceptance baseline. |
-| 2 | [craftreport-browser-verification](../specs/craftreport-browser-verification/requirements.md) | Latest web-release download/serve profile, owned browser verification, screenshots/videos/diagnostics and real edit/save/reopen feasibility proof. Requirements generated for review; no Design or Tasks approval. | Kernel contract/evidence identities; browser feasibility is verified independently of a complete report workflow. |
+| 2 | [craftreport-browser-verification](../specs/craftreport-browser-verification/requirements.md) | Latest web-release download/serve profile, owned browser verification, screenshots/videos/diagnostics and real edit/save/reopen feasibility proof. Requirements approved; Design generated for review; no Design or Tasks approval. | Kernel contract/evidence identities; browser feasibility is verified independently of a complete report workflow. |
 | 3 | `craftreport-snapshot-runtime` | Typed producer publication, ordered immutable snapshots, retained operations/binding state, scheduler and restart reconciliation. | Operation kernel; reviewed persistence choice. |
 | 4 | `craftreport-report-model-packs` | Declarative compilation, semantic themes, public/private pack compatibility, scoped findings and draft/release rules. | Kernel data/model/evidence contracts. |
 | 5 | `craftreport-gridcraft-web-reports` | App package: owned-region rendering, controls, live refresh, actual XLSX export and integrated browser journey. | Browser proof, snapshot runtime and report/packs capabilities. |
 
 Kernel, snapshot, pack and app responsibilities have separate closure evidence. Browser feasibility is checked early; its harness later verifies the fully composed system. A successful UI-only feasibility test cannot claim a working facade/report flow.
 
-The operation kernel and browser verification have child spec.json metadata. Browser verification requirements are generated but not approved; Design and Tasks are absent. The remaining three scopes are approved roadmap entries awaiting initiation, not existing specs or approved task sets. Do not run batch fast-track automatically. Preserve human Requirements -> Design -> Tasks approvals and register each actual spec as it is created.
+The operation kernel and browser verification have child spec.json metadata. Browser verification requirements are approved; Design is generated awaiting review and Tasks are absent. The remaining three scopes are approved roadmap entries awaiting initiation, not existing specs or approved task sets. Do not run batch fast-track automatically. Preserve human Requirements -> Design -> Tasks approvals and register each actual spec as it is created.
 
 ## Existing Spec Updates
 
@@ -52,7 +52,7 @@ None authorized. Core steering and research documentation are current; productio
 ## Specs (dependency order)
 
 1. [craftreport-operation-kernel](../specs/craftreport-operation-kernel/requirements.md) — requirements, Design and Tasks approved; all 26 executable tasks accepted with final synthetic-scope validation. Upstream: approved umbrella baseline. Downstream: browser verification is initialized; the other three scopes remain uninitialized.
-2. [craftreport-browser-verification](../specs/craftreport-browser-verification/requirements.md) — requirements generated and independently reviewed for generation; owner approval, Design and Tasks remain pending. Proves the released-browser interaction and actual file boundary, without implementing the reporting service.
+2. [craftreport-browser-verification](../specs/craftreport-browser-verification/requirements.md) — requirements approved; Design generated and independently reviewed for generation; owner Design approval and Tasks remain pending. Proves the released-browser interaction and actual file boundary, without implementing the reporting service.
 
 This is a sequential review plan, not authorization for batch generation or execution. Kernel acceptance supports shared contracts only; the umbrella stays open for the complete reporting journeys.
 

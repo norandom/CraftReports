@@ -53,9 +53,13 @@ launched for requirements generation. Existing smoke evidence only establishes
 rendering/input dispatch. The sibling project's historical failed-cleanup run
 remains a useful lesson; its current handoff has since accepted that task.
 
-## Current phase
+## Phase at requirements generation
 
 Requirements are generated and await owner review. All human-approved flags remain false;
 Design and Tasks are not generated, and ready_for_implementation remains false.
 The ledger registers three actual specs and two open fronts without activating
 new source capabilities or extending numeric budget approval.
+
+Subsequent owner decision: Requirements approved on 2026-10-14. Current phase
+and approval flags are in spec.json; this historical generation review does not
+supersede that approval.

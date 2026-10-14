@@ -66,7 +66,7 @@ phase_at_draft = "initialized"
 status_since = "2026-10-14"
 owner = [".kiro/specs/craftreport-browser-verification"]
 path_state = "existing-documents"
-closes = "n/a (active; initialization and requirements generation authorized; phase approvals required before implementation)"
+closes = "n/a (active; requirements approved and Design generated for review; Design/Tasks approvals required before implementation)"
 closure_required = false
 close_targets = []
 

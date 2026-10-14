@@ -23,7 +23,7 @@ the approval authority.
 | 5 | GridCraft web reports | Owned report regions, controls, visible live refresh and actual XLSX export through the composed system, including reopen and content comparison |
 
 The operation kernel is complete within its synthetic scope. Browser verification
-is now initialized with generated requirements awaiting review; Design and Tasks
+has approved requirements and a generated Design awaiting review; Design and Tasks
 remain unapproved. The other three entries are not initialized and require their
 own Requirements, Design and Tasks reviews before implementation. Integrated app
 reports depend on browser proof, snapshot runtime and report/packs contracts.
