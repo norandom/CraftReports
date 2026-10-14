@@ -78,9 +78,10 @@ def spec_facts(
                 source = table(ledger[name])["phase_source"]
                 if source != path.relative_to(root).as_posix():
                     errors.append(f"wrong phase source: {name}: {source}")
-            if has_tasks and name not in scopes:
-                errors.append(f"unapproved task scope: {name}")
-            if name in scopes and not approved(spec):
+            implementing = phase in {"implementation-in-progress", "implementation-complete"}
+            if implementing and name not in scopes:
+                errors.append(f"unapproved implementation scope: {name}")
+            if (implementing or name in scopes) and not approved(spec):
                 errors.append(f"not implementation-approved: {name}")
         except (KeyError, ValueError) as error:
             errors.append(f"{path.relative_to(root).as_posix()}: {error}")

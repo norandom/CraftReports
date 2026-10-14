@@ -134,6 +134,7 @@ class BoundaryGateTests(unittest.TestCase):
     def test_stale_counts(self) -> None:
         for key in (
             "spec_count",
+            "generated_task_sets",
             "actual_python_modules",
             "planned_plugin_packages",
             "open_fronts",
@@ -148,7 +149,7 @@ class BoundaryGateTests(unittest.TestCase):
                 )
                 self.assertIn(f"stale count: {key}", str(self.run_gate("breadth", 1)))
 
-    def test_unregistered_spec_and_unapproved_tasks(self) -> None:
+    def test_unregistered_spec_and_unapproved_implementation(self) -> None:
         original = self.root / ".kiro/specs/craftreport-operation-kernel/spec.json"
         spec = cast(dict[str, object], json.loads(original.read_text(encoding="utf-8")))
         spec["feature_name"] = "surprise"
@@ -156,14 +157,108 @@ class BoundaryGateTests(unittest.TestCase):
         self.assertIn("unregistered spec: surprise", str(self.run_gate("breadth", 1)))
         self.write(
             "breadth.toml",
-            self.ledger.replace(
-                'approved_spec_scopes = ["craftreport-operation-kernel"]',
-                "approved_spec_scopes = []",
-            ),
+            self.scope_ledger(self.ledger, remove=("craftreport-operation-kernel",)),
         )
         self.assertIn(
-            "unapproved task scope: craftreport-operation-kernel", str(self.run_gate("breadth", 1))
+            "unapproved implementation scope: craftreport-operation-kernel",
+            str(self.run_gate("breadth", 1)),
         )
+
+    def scope_ledger(
+        self, ledger: str, *, remove: tuple[str, ...] = (), add: tuple[str, ...] = ()
+    ) -> str:
+        meta = cast(dict[str, object], tomllib.loads(ledger)["meta"])
+        scopes = cast(list[str], meta["approved_spec_scopes"])
+        scopes = sorted({scope for scope in scopes if scope not in remove} | set(add))
+        return "\n".join(
+            f"approved_spec_scopes = {json.dumps(scopes)}"
+            if line.startswith("approved_spec_scopes =")
+            else line
+            for line in ledger.splitlines()
+        )
+
+    def pending_task_spec(self, phase: str = "tasks-generated") -> dict[str, object]:
+        path = ".kiro/specs/craftreport-browser-verification/spec.json"
+        data = cast(dict[str, object], json.loads((self.root / path).read_text(encoding="utf-8")))
+        data.update(phase=phase, ready_for_implementation=False)
+        data["approvals"] = {
+            "requirements": {"generated": True, "approved": True},
+            "design": {"generated": True, "approved": True},
+            "tasks": {"generated": True, "approved": False},
+        }
+        self.write(path, json.dumps(data))
+        generated = sum(
+            json.loads(item.read_text(encoding="utf-8"))["approvals"]["tasks"]["generated"]
+            for item in (self.root / ".kiro/specs").glob("*/spec.json")
+        )
+        self.write(
+            "breadth.toml",
+            "\n".join(
+                f"generated_task_sets = {generated}"
+                if line.startswith("generated_task_sets =")
+                else line
+                for line in self.scope_ledger(
+                    self.ledger, remove=("craftreport-browser-verification",)
+                ).splitlines()
+            ),
+        )
+        return data
+
+    def test_registered_generated_tasks_can_await_human_review(self) -> None:
+        self.pending_task_spec()
+        report = self.run_gate("breadth")
+        self.assertEqual(cast(dict[str, int], report["counts"])["generated_task_sets"], 2)
+        self.assertEqual(
+            cast(dict[str, str], report["phases"])["craftreport-browser-verification"],
+            "tasks-generated",
+        )
+
+    def test_pending_tasks_cannot_claim_implementation_approval(self) -> None:
+        self.pending_task_spec()
+        path = self.root / "breadth.toml"
+        ledger = path.read_text(encoding="utf-8")
+        self.write(
+            "breadth.toml",
+            self.scope_ledger(ledger, add=("craftreport-browser-verification",)),
+        )
+        self.assertIn("not implementation-approved", str(self.run_gate("breadth", 1)))
+
+    def test_implementation_phases_require_scope_and_all_approvals(self) -> None:
+        path = ".kiro/specs/craftreport-browser-verification/spec.json"
+        for phase in ("implementation-in-progress", "implementation-complete"):
+            for missing in ("ready_for_implementation", "requirements", "design", "tasks", None):
+                with self.subTest(phase=phase, missing=missing):
+                    data = self.pending_task_spec(phase)
+                    data["ready_for_implementation"] = missing != "ready_for_implementation"
+                    approvals = cast(dict[str, dict[str, bool]], data["approvals"])
+                    for stage, values in approvals.items():
+                        values["approved"] = stage != missing
+                    self.write(path, json.dumps(data))
+                    errors = str(self.run_gate("breadth", 1)["errors"])
+                    self.assertIn("unapproved implementation scope", errors)
+                    if missing is not None:
+                        self.assertIn("not implementation-approved", errors)
+                    else:
+                        self.assertNotIn("not implementation-approved", errors)
+
+    def test_pending_task_registration_and_generated_flag_remain_required(self) -> None:
+        data = self.pending_task_spec()
+        path = ".kiro/specs/craftreport-browser-verification/spec.json"
+        approvals = cast(dict[str, dict[str, bool]], data["approvals"])
+        approvals["tasks"]["generated"] = False
+        self.write(path, json.dumps(data))
+        self.assertIn("inconsistent generated tasks", str(self.run_gate("breadth", 1)))
+        self.pending_task_spec()
+        path_ledger = self.root / "breadth.toml"
+        ledger = path_ledger.read_text(encoding="utf-8")
+        self.write(
+            "breadth.toml",
+            ledger.replace(
+                "[spec.craftreport-browser-verification]",
+                "[spec.unregistered-browser-verification]",
+            ),
+        )
+        self.assertIn("unregistered spec", str(self.run_gate("breadth", 1)))
 
     def test_approval_and_metadata_fail_closed(self) -> None:
         path = ".kiro/specs/craftreport-operation-kernel/spec.json"
