@@ -39,7 +39,7 @@ The existing probe on 8871 is preserved.
   - _Boundary: Values and Journey ownership foundation integration_
   - _Requirements: 2.1, 2.4, 5.1, 5.6, 6.1, 6.2, 7.1, 7.4_
 
-- [ ] 1.3 Prepare and independently review the synthetic workbook expectations
+- [x] 1.3 Prepare and independently review the synthetic workbook expectations
   - Retain the small single-sheet XLSX, hash and authoring provenance described by
     Design; keep the one-time authoring tool outside runtime dependencies.
   - Freeze known typed cells, marker/sentinels, B3 20-to-25 edit, line-chart title,
@@ -288,3 +288,4 @@ Deployments here are disposable verification infrastructure, not product release
 - Workers must leave installed hook execution to parent after selective staging: pre-commit stashes unstaged implementation while untracked regression tests can remain, causing a misleading baseline failure.
 - 1.2 accepted after output-ID alias repair: canonical fast 639 passed/65 subtests, independent focused review 32 passed; browser source 314/1,500 LLOC. Evidence `artifacts/browser-verification/task-1.2` and `artifacts/task1.2/remediation-*`.
 - Component records remain with their actual owners: release/bundle identities in 2.1, fixture expectations in 1.3/1.4, interaction observations/edits in 3.1 and visual profiles in 3.2. No placeholder runtime runner was introduced. Use `scripts.browser_verification` imports; the owned test-package marker prevents duplicate test-module names.
+- 1.3 accepted: independently audited/reproduced static fixture, 7,559 bytes SHA256 `7a0583c2418c988c4ec1d261e503b30c45aae3f77bc0fc548886fee4cc591ca8`; all 11 typed cells/chart references/styles checked. Before/after expectations differ only at B3 20 to 25. Evidence `artifacts/browser-verification/task-1.3`; no app-rendering or save/reopen claim.
