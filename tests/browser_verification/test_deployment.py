@@ -164,7 +164,10 @@ def setup(
     tmp_path: Path, bundle: BundleIdentity, monkeypatch: pytest.MonkeyPatch
 ) -> tuple[RunConfig, d.DeploymentState, Runtime]:
     config = RunConfig(
-        deployment=OwnedDeployment(mode="owned-wsl", port=9000), output_root=tmp_path
+        deployment=OwnedDeployment(
+            mode="owned-wsl" if tmp_path.drive else "owned-linux", port=9000
+        ),
+        output_root=tmp_path,
     )
     state = d.DeploymentState(ResourceRegistry(config.run_id))
     runtime = Runtime(config, bundle)
@@ -189,13 +192,14 @@ def test_owned_and_exact_cleanup(
     assert result.payload.origin == "http://localhost:9000"
     assert isinstance(state.registry, ResourceRegistry)
     assert state.registry.tokens[0].acquisition == "acquired"
-    assert next(argv for argv in runtime.calls if argv[0] == "wsl.exe")[:5] == [
-        "wsl.exe",
-        "-d",
-        "Debian",
-        "--",
-        "env",
-    ]
+    prefix = (
+        ["wsl.exe", "-d", "Debian", "--", "env"]
+        if config.deployment.mode == "owned-wsl"
+        else ["env"]
+    )
+    startup = next(argv for argv in runtime.calls if "compose" in argv)
+    assert startup[: len(prefix)] == prefix
+    assert startup[len(prefix) + 3] == "docker"
     assert d.close(state, 5).status == "graceful"
     assert not runtime.present and not runtime.network
     assert ["rm", runtime.id] in runtime.calls
