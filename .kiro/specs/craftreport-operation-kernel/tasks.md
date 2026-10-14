@@ -163,7 +163,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 2.1, 2.2, 5.1_
   - _Requirements: 3.2, 6.1, 6.4_
 
-- [ ] 6.2 Expose guarded REST discovery, invocation and inspection
+- [x] 6.2 Expose guarded REST discovery, invocation and inspection
   - Implement the approved HTTP surface, raw-body limit/duplicate-key handling, private discovery, canonical response/status mapping and safe diagnostics; expose the configured decoded-size, nesting and output limits without replacing their shared codec enforcement.
   - Keep business validation in the shared codec/dispatcher and update executable client examples alongside the public contract.
   - Done when adapter checks show canonical successful/rejected/pending outcomes and no alternate mutation or public private-schema path.
@@ -244,6 +244,8 @@ The approved Design owns concrete file paths and signatures. Each implementer re
 Browser verification remains the next bounded spec: latest official GridCraft download, no local build, owned browser/Compose environment, screenshots/videos and actual XLSX save/reopen evidence. Passing this kernel plan cannot close that work.
 
 ## Implementation Notes
+
+- Task 6.2: independent rereview approved the canonical fast pipeline with 445 tests and 40 subtests. REST uses the injected application-owned TransportWire contract and shared codecs, with no interface-to-adapter imports. Actual ASGI cases prove guarded effects, safe field/limit diagnostics, private discovery and canonical outcomes; duplicate preconditions retain their affected location. Raw framing limits are separately advertised. MCP parity, runtime-limit discovery and installed socket verification remain tasks 6.3, 7 and 8.
 
 - Task 5.3: independent review passed the canonical fast pipeline with 375 tests and 40 subtests. Execution owns shielded tasks, admission leases, capacity, bounded shutdown and result/evidence/CAS readback. Recorded handoff metadata requires exact scoped readback; it proves no production durability or distributed fencing. A regression prevents cancellation-resistant admission from starting an effect after shutdown. Cancellation-resistant effects remain owned and shutdown reports false until they exit. Application size is 1,401/1,500 LLOC. Transport assembly must use Execution as Facade and treat unsuccessful shutdown as failed cleanup; real socket verification remains downstream.
 

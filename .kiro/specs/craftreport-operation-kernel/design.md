@@ -349,6 +349,8 @@ Construct streamable_http_app before startup, mount at root after REST routes wi
 
 Principal comes from the authenticated HTTP boundary, never request payload or an unverified forwarding header. Both interfaces translate the same verified subject/scope into Principal. The loopback conformance server uses generated test tokens and binds only 127.0.0.1; a remote bind with that profile fails startup. Production mode requires a supplied authenticator and access policy; default is deny. Actual OAuth interoperability/issuer setup belongs to deployment scope.
 
+Task 6.2 implementation clarification: interfaces receive an application-owned `TransportWire` protocol for envelope decoding, canonical JSON bytes, result/catalog encoding, schemas and outcome classification. The concrete `TransportWireAdapter` remains in adapters and is supplied by composition. Interfaces do not import concrete adapters, and the existing inward import gate remains unchanged. REST exposes its raw UTF-8 framing cap as authorized catalog `transport_limits.max_raw_bytes`; descriptor limits remain the shared decoded-envelope/depth/output guarantees. Operators must configure the framing cap for their advertised operations. The transport maps existing facade diagnostic codes to the table's HTTP categories without rewriting their body meanings; unknown rejection codes map conservatively to unavailable. Generic OpenAPI schemas contain no private operation schemas and must resolve their references correctly when embedded.
+
 ## Data Models
 
 ### Domain and Logical Model

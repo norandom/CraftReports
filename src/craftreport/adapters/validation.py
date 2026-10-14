@@ -15,6 +15,7 @@ from craftreport.contracts import (
     OperationLimits,
     ResourceRef,
 )
+from craftreport.contracts.identity import check_preconditions
 from craftreport.contracts.values import JsonValue, freeze_object, require_immutable
 
 
@@ -133,22 +134,54 @@ class PydanticCodec[T, M: StrictWireModel]:
 
 
 class _ResourceWire(StrictWireModel):
-    kind: str = Field(min_length=1)
-    identity: str = Field(min_length=1)
+    kind: str = Field(min_length=1, pattern=r"\S")
+    identity: str = Field(min_length=1, pattern=r"\S")
 
 
 class _ExpectedWire(StrictWireModel):
     resource: _ResourceWire
-    version: str = Field(min_length=1)
+    version: str = Field(min_length=1, pattern=r"\S")
 
 
 class _EnvelopeWire(StrictWireModel):
-    operation: str
-    contract_version: str
+    operation: str = Field(pattern=r"^[a-z][a-z0-9_.]{0,47}$")
+    contract_version: str = Field(pattern=r"^[1-9][0-9]*$")
     payload: dict[str, object]
-    correlation_id: str = Field(min_length=1)
-    retry_key: str | None = None
+    correlation_id: str = Field(min_length=1, pattern=r"\S")
+    retry_key: str | None = Field(default=None, min_length=1, pattern=r"\S")
     expected_versions: list[_ExpectedWire] = Field(default_factory=list[_ExpectedWire])
+
+
+def _envelope_location(location: tuple[str | int, ...]) -> tuple[str | int, ...]:
+    """Disclose only paths from the public envelope; never arbitrary input keys."""
+    children: dict[tuple[str | int, ...], set[str]] = {
+        (): set(_EnvelopeWire.model_fields),
+        ("expected_versions", -1): set(_ExpectedWire.model_fields),
+        ("expected_versions", -1, "resource"): set(_ResourceWire.model_fields),
+    }
+    safe: list[str | int] = []
+    for part in location:
+        path = tuple(-1 if isinstance(item, int) else item for item in safe)
+        if type(part) is int and part >= 0 and path == ("expected_versions",):
+            safe.append(part)
+        elif isinstance(part, str) and part in children.get(path, set()):
+            safe.append(part)
+        else:
+            safe.append("field")
+            break
+    return tuple(safe)
+
+
+def _decode_versions(values: list[_ExpectedWire]) -> tuple[ExpectedVersion, ...]:
+    result = tuple(
+        ExpectedVersion(ResourceRef(pin.resource.kind, pin.resource.identity), pin.version)
+        for pin in values
+    )
+    try:
+        check_preconditions(result)
+    except ValueError:
+        raise WireFailure("invalid_input", location=("expected_versions",)) from None
+    return result
 
 
 def decode_envelope(
@@ -172,12 +205,14 @@ def decode_envelope(
             payload,
             model.correlation_id,
             model.retry_key,
-            tuple(
-                ExpectedVersion(ResourceRef(pin.resource.kind, pin.resource.identity), pin.version)
-                for pin in model.expected_versions
-            ),
+            _decode_versions(model.expected_versions),
         )
-    except (ValidationError, ValueError, TypeError):
+    except ValidationError as error:
+        location = error.errors(include_input=False, include_context=False)[0]["loc"]
+        raise WireFailure("invalid_input", location=_envelope_location(location)) from None
+    except WireFailure:
+        raise
+    except (ValueError, TypeError):
         raise WireFailure("invalid_input") from None
 
 

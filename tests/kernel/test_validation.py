@@ -360,3 +360,49 @@ def test_input_normalization_does_not_apply_smaller_result_budget() -> None:
     with pytest.raises(WireFailure, match="result_contract_failure"):
         observed.encode_result()
     assert observed.effect is EffectDisposition.APPLIED
+
+
+@pytest.mark.parametrize(
+    "changes,location",
+    [
+        ({"contract_version": 1}, ("contract_version",)),
+        ({"operation": "bad/name"}, ("operation",)),
+        ({"payload": []}, ("payload",)),
+        ({"correlation_id": "   "}, ("correlation_id",)),
+        ({"retry_key": ""}, ("retry_key",)),
+        ({"private-secret": "secret-value"}, ("field",)),
+        (
+            {
+                "expected_versions": [
+                    {"resource": {"kind": "fixture", "identity": 12}, "version": "1"}
+                ]
+            },
+            ("expected_versions", 0, "resource", "identity"),
+        ),
+        (
+            {
+                "expected_versions": [
+                    {"resource": {"kind": "fixture", "identity": "target"}, "version": " "}
+                ]
+            },
+            ("expected_versions", 0, "version"),
+        ),
+    ],
+)
+def test_envelope_codec_preserves_only_public_validation_locations(
+    changes: JsonObject, location: tuple[str | int, ...]
+) -> None:
+    with pytest.raises(WireFailure) as error:
+        decode_envelope({**envelope(), **changes})
+    assert error.value.code == "invalid_input"
+    assert error.value.location == location
+    assert "private-secret" not in repr(error.value.location)
+    assert "secret-value" not in str(error.value)
+
+
+def test_envelope_duplicate_expected_resources_preserve_contract_failure_location() -> None:
+    pin: JsonObject = {"resource": {"kind": "fixture", "identity": "target"}, "version": "1"}
+    with pytest.raises(WireFailure) as error:
+        decode_envelope({**envelope(), "expected_versions": [pin, pin]})
+    assert error.value.code == "invalid_input"
+    assert error.value.location == ("expected_versions",)
