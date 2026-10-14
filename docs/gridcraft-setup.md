@@ -140,6 +140,49 @@ session owns a different workbook unless a separately verified bridge connects
 it. See [Craft app protocols](craft-app-protocols.md) before implementing an
 adapter.
 
+## Use this deployment for end-to-end testing
+
+The commands above prepare an app target. A repeatable CraftReport browser
+acceptance suite remains a separate
+[roadmap scope](roadmap.md#delivery-sequence-and-gates). The existing probe is a
+rendering/input smoke check, not an implemented full reporting test runner.
+
+For a browser journey, use this run structure with the selected Playwright
+environment. Keep the test fixture synthetic and the browser context separate
+from everyday browsing.
+
+| Stage | Action and evidence |
+| --- | --- |
+| Identify | Record archive checksum, container image, Compose project, origin, browser version, fixture and workbook identity in the run directory |
+| Observe | Enable video and download capture; collect page errors, failed requests and console messages before navigating |
+| Interact | Wait for the actual grid, perform the intended keyboard/pointer or supported UI action, then assert the content changed in that page |
+| Persist | Capture the real save/export download; inspect its bytes/content and reopen it in the intended app or reader |
+| Reconcile | Compare the reopened values and report version with the fixture and, once connected, the producer snapshot and facade receipt |
+| Close | Close the owned browser context to flush video; retain screenshots and diagnostics and stop only the Compose project owned by the run |
+
+For the planned live report, also test refresh during export and the specified
+pause/resume and rejected-update behavior. Treat unavailable save/control paths
+as unresolved capability findings. A headless MCP result cannot substitute for
+the browser action. The [protocol comparison](craft-app-protocols.md) explains
+where GridCraft, Collabora and Microsoft 365 keep editing and stored-file state.
+
+A test run's browser address must be reachable from the machine running the
+browser. Windows `localhost:8872`, Linux container service names and remote
+hostnames are not interchangeable. Preserve the existing probe on port 8871;
+parallel runs need distinct project names, ports, contexts and artifact paths.
+
+## Reuse the pattern for another Craft app
+
+Before adapting the Compose example, verify that the chosen app actually ships
+an official prebuilt web archive. Record its release URL, asset checksum,
+extraction root, entry page, WASM/assets, hosting requirements and supported
+open/save/control behavior. Change the mount, project name and port for that
+app, then repeat rendering, interaction and artifact checks.
+
+The GridCraft manifest and observed behavior do not establish those properties
+for WordCraft, DeckCraft or another app. Activate each integration through its
+bounded scope before adding reporting adapters.
+
 ## Operate and upgrade your instance
 
 Run these commands in your `artifacts/gridcraft-local` directory:

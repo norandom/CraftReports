@@ -16,6 +16,10 @@ for the authorized phase.
 
 ## Start with the task you have
 
+Start at the [documentation index](docs/index.md) for current readiness, a
+[quickstart](docs/quickstart.md), the [roadmap](docs/roadmap.md), and the proposed
+[product adoption strategy](docs/product-strategy.md).
+
 | You want to | Start here |
 | --- | --- |
 | Open GridCraft in a browser without building Rust | [GridCraft setup](docs/gridcraft-setup.md) |
