@@ -240,10 +240,10 @@ kind = "tooling"
 status = "active"
 line = "quality-verification"
 owner = ["scripts/browser_verification", "scripts/examples/verify_gridcraft_browser.py", "tests/browser_verification", "tests/fixtures/browser_verification"]
-path_state = "planned-design-approved"
+path_state = "existing-partial-implementation"
 feature_keys = ["development.verification"]
 approval_reference = ".kiro/specs/craftreport-browser-verification/design-review.md"
-closes = "n/a (active; tooling ownership approved with Design; implementation awaits Tasks approval)"
+closes = "n/a (active; all phases approved; browser implementation and bounded budget gate in progress)"
 closure_required = false
 close_targets = []
 

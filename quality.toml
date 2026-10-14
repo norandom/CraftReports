@@ -73,7 +73,9 @@ approved = true
 approved_at = "2026-10-14"
 approval_reference = ".kiro/specs/craftreport-browser-verification/design-review.md"
 capability_id = "browser-verification"
-limits = "same approved 50 function / 300 module / 1500 capability LLOC and McCabe 10"
+limits = "approved 50 function / 300 module / 2800 browser capability LLOC and McCabe 10"
+budget_amendment_reference = ".kiro/specs/craftreport-browser-verification/budget-amendment.md"
+budget_gate_state = "pending-task-2.3; current-global-1500-enforcement-remains"
 implementation_authorization_source = ".kiro/specs/craftreport-browser-verification/spec.json"
 
 [future_gate_families]

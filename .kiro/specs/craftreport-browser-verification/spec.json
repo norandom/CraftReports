@@ -41,9 +41,22 @@
     "sanity_verdict": "PASS",
     "review_mode": "independent",
     "repair_passes": 0,
-    "executable_tasks": 18,
+    "executable_tasks": 19,
     "major_groups": 7,
     "tasks_sha256": "6052e1dcab6d511eee6a6336dc252683d18d1f9cc08cdf905dd55bc162cd34e6",
     "hash_normalization": "UTF-8 with LF line endings"
+  },
+  "budget_amendment": {
+    "approved": true,
+    "approved_at": "2026-10-14",
+    "reference": "budget-amendment.md",
+    "independent_review": "PASS",
+    "capability": "browser-verification",
+    "max_capability_lloc": 2800,
+    "gate_task": "2.3",
+    "gate_implemented": false,
+    "executable_tasks": 19,
+    "original_generation_tasks": 18,
+    "amended_design_sha256": "544a5d62b2550937007a4ba9d4165c82021e7d9f2741216810aa6faa1326b782"
   }
 }

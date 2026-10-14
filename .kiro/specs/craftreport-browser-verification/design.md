@@ -151,12 +151,35 @@ Propose `capability.browser-verification`, kind `tooling`, line
 Register before code expansion. Existing development-gates owns shared gate/CI
 changes; documentation owns guides. No movement of existing code resets a budget.
 
-Apply 50 function LLOC, 300 module LLOC, 1,500 total capability source LLOC and
-McCabe 10. Count every reusable helper and recipe in source; test files are
-reported separately. Approximate allocation: values/config 200, acquisition/
-deployment 250, browser interactions 350, inspectors 250, evidence/journey 400,
-recipe 50. These sum to 1,500, not separate allowances. If the first slice cannot
-fit, simplify or request a precise budget amendment before exceeding it.
+Apply 50 function LLOC, 300 module LLOC and McCabe 10. The owner approved a
+browser-only 2,800 aggregate source-LLOC cap on 2026-10-14 after independent
+calibration; all other capabilities retain their 1,500 default. Count every
+owned helper and recipe once in source; tests remain separately reported. No
+waiver or relocation resets ownership. The new gate task must enforce the exact
+numeric override before further browser expansion.
+
+| Responsibility | Completed planning LLOC |
+| --- | ---: |
+| Values/configuration/resource registry | 314 |
+| Fixture records and bounded OOXML inspector | 409 |
+| Official release acquisition | 220 |
+| Deployment | 250 |
+| Browser startup/lifecycle | 240 |
+| Real UI interactions/readback/download | 290 |
+| Visual profiles and comparisons | 220 |
+| Evidence/finalization | 280 |
+| Additional Journey orchestration/cleanup | 210 |
+| Adopter CLI | 60 |
+| **Target total** | **2,493** |
+
+These are aggregate estimates, not separate allowances. Existing Journey 61 is
+included in the foundation subtotal; its planned completed module is 271.
+Measured accepted source through task 2.2 is 1,195. The remaining work is
+estimated at 2,300–2,750 whole-capability LLOC; canvas and lifecycle calibration
+are uncertainties. Reuse existing values and the same observation/Journey paths
+without weakening mandatory checks. Any further cap change requires review.
+See [the approved calibration amendment](budget-amendment.md) for provenance,
+owner decision, typed enforcement and required boundary regressions.
 
 ## System Flows
 

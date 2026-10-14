@@ -91,7 +91,23 @@ The existing probe on 8871 is preserved.
   - _Depends: 2.1_
   - _Requirements: 1.4, 2.2, 2.3, 7.1, 7.2_
 
-- [ ] 2.3 Integrate isolated browser startup with minimum evidence and cleanup
+- [ ] 2.3 Implement the reviewed browser capability budget amendment
+  - Implement the owner-approved exact browser-verification aggregate override
+    of 2,800 LLOC, retaining the global 1,500 default and local 50/300/10 rules.
+  - Parse typed capability/rule/value/owner/rationale/approval metadata; reject
+    unknown or unapproved capability, wildcard scope, unsupported rule, invalid
+    number, duplicate entry and missing approval. No CLI/env/run-config limits.
+  - Count all helpers and recipe once; preserve separate test reporting. No waiver
+    or ownership relocation replaces numeric enforcement.
+  - Done when browser 2,800 passes / 2,801 fails, another capability still fails
+    at 1,501, and function/module/branching and policy faults retain enforcement.
+  - Validation: flag-off RED/ON GREEN/removal, focused engineering regressions,
+    canonical fast checks, independent review and actual installed commit hook.
+  - _Boundary: Development-gates budget enforcement integration_
+  - _Depends: 2.2; owner approval recorded in budget-amendment.md_
+  - _Requirements: 2.6, 6.6, 8.1_
+
+- [ ] 2.4 Integrate isolated browser startup with minimum evidence and cleanup
   - Create owned fixed-profile contexts with diagnostics before navigation and
     explicit video recording; verify loaded asset hashes and usable canvas.
   - Exercise the disclosed picker-capability removal, confirm absence and record
@@ -103,7 +119,7 @@ The existing probe on 8871 is preserved.
     app assets/display/clipboard prerequisites stop without a passing journey.
   - Validation: real readiness run, startup-failure cleanup and canonical fast checks.
   - _Boundary: BrowserDriver, Evidence and Journey startup integration_
-  - _Depends: 1.2, 2.2_
+  - _Depends: 1.2, 2.2, 2.3_
   - _Requirements: 1.5, 1.6, 2.4, 2.6, 3.5, 3.6, 3.7, 5.3, 5.4, 6.6, 7.1_
 
 ## 3. Prove the released-browser route before expanding the harness
@@ -120,7 +136,7 @@ The existing probe on 8871 is preserved.
   - Validation: actual browser before/after journey and mismatch/timeout cases;
     input dispatch or stale clipboard alone cannot pass.
   - _Boundary: BrowserDriver_
-  - _Depends: 1.3, 2.3_
+  - _Depends: 1.3, 2.4_
   - _Requirements: 2.4, 2.5, 3.1, 3.2, 3.3, 5.2, 6.2_
 
 - [ ] 3.2 Establish independently reviewed live chart and presentation observations
@@ -295,3 +311,5 @@ Deployments here are disposable verification infrastructure, not product release
 - Owner authorized replacing the existing 8871 probe on 2026-10-14: it now serves verified v0.7.0 assets with a successful rendering smoke, screenshot and finalized video under `artifacts/gridcraft-deployment-probe/browser-0.7.0`. Disposable harness runs still preserve that operator-owned service.
 
 - 2.2 accepted after delayed-start cleanup repair: focused 17 passed, canonical fast 735 passed/65 subtests; actual WSL owned/external asset hashes, normal cleanup and unrelated resource preservation independently reviewed. Ambiguous Compose startup retains failed cleanup/project ownership; no daemon quiescence claim. Native Linux has command/path unit coverage only. Source 1,195/1,500 LLOC. Evidence `artifacts/browser-verification/task-2.2/remediation-*`.
+
+- Owner approved the independently reviewed browser-only 2,800-LLOC amendment on 2026-10-14. New 2.3 implements bounded enforcement; former 2.3 is now 2.4 and 3.1 depends on it. There are 19 executable tasks. All acceptance criteria and other numeric limits remain. See `budget-amendment.md`; current global enforcement stays until 2.3 is accepted.
