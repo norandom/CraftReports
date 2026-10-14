@@ -8,6 +8,9 @@ calculations; report owners still need a trustworthy way to present their result
 The proposed first value is a visible report and an exported file that agree on
 their inputs, with evidence a reviewer can inspect.
 
+[Why CraftReport](why-craftreport.md) compares that intended value with direct
+GridCraft/app MCP and identifies what an integrator can evaluate today.
+
 The [roadmap](roadmap.md) supplies the technical gates. The
 [current readiness summary](index.md#current-readiness) prevents an early kernel
 evaluation from being mistaken for a finished reporting product.

@@ -1,7 +1,8 @@
-# Feature quickstarts
+# Feature quickstarts and executable examples
 
 Updated: 2026-10-14. Owner-requested Kiro workflow extension: delivered
-user-facing features include a practical how-to guide. This is project memory
+user-facing features include a practical how-to guide and runnable adopter code
+that also demonstrates the feature. This is project memory
 and a review requirement, not a newly implemented automated documentation gate.
 
 ## Purpose and audience
@@ -39,11 +40,11 @@ index and the relevant product or technical entry point.
 
 | Phase | Required documentation decision |
 | --- | --- |
-| Discovery / requirements | Identify the reader, supported task and observable outcome; name the planned guide path and documentation acceptance alongside the feature |
-| Design | Define the actual UI/API path, environment and small example; identify the feature owner and evidence needed to verify the guide |
-| Tasks | Include mandatory guide creation or update with its file owner, prerequisite implementation and validation; it is part of feature acceptance |
-| Implementation | Write the guide against the working feature and record the environment and checks actually exercised |
-| Review / final validation | Follow or reconcile the guide with current evidence; check commands, interfaces, links, readiness claims and observable effects before accepting delivery |
+| Discovery / requirements | Identify the reader, supported task, observable outcome and reason to choose this workflow; name the planned guide/example paths and acceptance alongside the feature |
+| Design | Define the actual UI/API path, environment and small executable example; identify approved code ownership/budgets and the evidence needed to verify guide and demo |
+| Tasks | Include mandatory guide/example creation or update with file owners, prerequisite implementation and actual execution validation; both are part of feature acceptance |
+| Implementation | Write the guide and runnable example against the working feature; record the environment, commands and effects actually exercised |
+| Review / final validation | Follow the guide and run the example; check contracts, links, readiness claims, actual effects and owned cleanup before accepting delivery |
 
 Reuse the specification's existing numeric requirement identifiers where they
 apply. Do not invent a second requirements numbering system. A guide does not
@@ -72,6 +73,43 @@ Keep one task in focus. Link stable setup and protocol references instead of
 duplicating their complete procedures. A guide may require an assembled host,
 but must identify its provider, authentication and capability prerequisites;
 there is no implied default production server.
+
+## Adopter code and feature demos
+
+Examples serve two purposes: show a useful outcome and provide code an integrator
+can adapt. Lead with the reader's task and the reason to use the workflow.
+Explain when direct app MCP is sufficient and which reusable reporting behavior
+the facade adds. Distinguish current behavior from the reporting roadmap; do not
+claim that the protocol alone makes a report accurate or complete.
+
+Use the public interface with ordinary Python/REST/MCP callers. Do not require an
+AI service, private pack or notebook. Keep reusable caller code separate from
+demo fixture/bootstrap code; the demo runs that same caller path against a
+small public or synthetic fixture. Examples are recipes, not a new client SDK.
+
+Every example documents its input, invocation, expected output, independent
+verification and cleanup. A self-contained demo owns its deployment/processes
+and bounded run duration. A caller against an operator's host must not stop that
+host. Credentials are supplied explicitly and excluded from saved transcripts.
+Polling inspects the accepted operation; it must not replay business commands.
+
+Executable Python belongs to a declared owner and the canonical typed/linted
+scope. Current kernel recipes use `scripts/examples/`; their synthetic launcher
+uses the existing verification harness. Do not place executable files under
+content-only ownership to evade code checks or approved budgets. Public data and
+pack examples receive their own approved ownership when that scope is activated.
+
+For each future report feature, deliver a runnable example with its quickstart.
+A live-report demo must publish identified synthetic snapshots, visibly update
+the intended workbook, exercise the promised start/stop or pause/resume behavior
+and stop cleanly. When XLSX export is demonstrated, inspect the actual file and
+reopen/read back its contents against the same snapshot. These are delivery
+requirements for implemented features, not claims that they are available now.
+
+Use actual execution and one meaningful failure/recovery case where the feature
+requires it. Reuse existing independent oracles and fixtures; do not mock away
+the promised application, effect or artifact. Record limitations beside the
+example, and keep the guide and executable synchronized when contracts change.
 
 ## Verification and evidence
 

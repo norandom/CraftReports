@@ -52,6 +52,10 @@ diagnostics and cleanup are observed. See the
 
 ## Next action
 
+For a smaller adopter-code demonstration, [run the owned Python demo](../examples.md#run-the-owned-demo).
+It exercises the actual caller scripts with independent synthetic target checks;
+it is separate from the full conformance suite above.
+
 Read [host assembly](../kernel-host.md) before supplying your own providers and
 authentication. With an assembled host, [invoke through REST](Quickstart_How_to_invoke_an_operation_with_REST.md)
 or [MCP](Quickstart_How_to_invoke_an_operation_with_MCP.md). These synthetic checks

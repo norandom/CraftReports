@@ -35,7 +35,7 @@ evaluation or integration job, with prerequisites and observable verification.
 
 | Your role and immediate task | Read next |
 | --- | --- |
-| Report owner: understand the intended workflow and decide what to evaluate | [Product strategy](product-strategy.md), then [roadmap](roadmap.md) |
+| Report owner: decide what the reusable workflow adds beyond direct GridCraft/app MCP | [Why CraftReport](why-craftreport.md), then [product strategy](product-strategy.md) and [roadmap](roadmap.md) |
 | Integrator: reproduce the current kernel and inspect its evidence | [Quickstart](quickstart.md), then [kernel host assembly](kernel-host.md) |
 | Capability author: add behavior through the shared operation contract | [Capability authoring](capability-authoring.md) and [developer guide](development.md) |
 | App evaluator: open the downloaded spreadsheet application | [GridCraft setup](gridcraft-setup.md) |

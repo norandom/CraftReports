@@ -1,3 +1,7 @@
+# Static web-app hosting recipe; not a Rust daemon or CraftReport API deployment.
+# Download/extract the official web archive first, then set CRAFT_WEB_ROOT to
+# the directory containing index.html, the JS loader and the compiled WASM app.
+# See ../../gridcraft-setup.md. The existing probe uses its own project on 8871.
 name: craftreport-gridcraft-docs
 services:
   web:

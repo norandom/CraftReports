@@ -18,6 +18,14 @@ Link setup once. Explain which placeholders the reader must replace.>
 2. <Give the next action, its expected response, and what to do if it is pending.>
 3. <Finish the reader's task. Keep reference detail in linked documentation.>
 
+## Run or adapt the executable example
+
+<Link the typed/linted adopter example and its owned demo. Give the exact run
+command, public/synthetic input, expected output and prerequisites. Explain the
+user outcome it demonstrates and why this workflow is useful. The demo must
+exercise the same public caller path; do not substitute a mock for a promised
+visible effect or saved artifact. State any distinction from direct app MCP.>
+
 ## Verify the result
 
 <Describe the actual external effect and how to observe it independently. Match

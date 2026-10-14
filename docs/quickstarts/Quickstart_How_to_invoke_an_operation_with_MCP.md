@@ -100,6 +100,11 @@ replay an ambiguous effect.
 
 ## Next action
 
+[Run the Python MCP caller](../examples.md#use-the-callers-with-your-host) for the
+runnable recipe with bounded outcome inspection. The
+[owned demo](../examples.md#run-the-owned-demo) supplies its own synthetic host
+and independently checks cross-transport retries and retained results.
+
 [Retrieve the result](Quickstart_How_to_retrieve_an_operation_result.md) or read
 the [MCP reference](../mcp-client.md) for protocol and framing details. Synthetic
 evidence establishes no production durability or browser workbook behavior.

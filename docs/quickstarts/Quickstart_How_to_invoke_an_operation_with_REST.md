@@ -82,6 +82,10 @@ readiness and epoch, not the completion of your operation.
 
 ## Next action
 
+[Run the Python REST caller](../examples.md#use-the-callers-with-your-host) to
+reuse the same task in adopter code. For an isolated demonstration that supplies
+its own synthetic host, [run the owned demo](../examples.md#run-the-owned-demo).
+
 [Retrieve the retained result](Quickstart_How_to_retrieve_an_operation_result.md)
 or use [MCP](Quickstart_How_to_invoke_an_operation_with_MCP.md) with the same
 authorized contract. Temporary synthetic storage provides no restart durability.

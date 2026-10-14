@@ -69,6 +69,10 @@ Keep the existing operation ID and evidence for diagnosis.
 
 ## Next action
 
+[Run the Python result reader](../examples.md#use-the-callers-with-your-host) with
+your accepted operation ID, or use the
+[owned demo](../examples.md#run-the-owned-demo) for an isolated synthetic trial.
+
 Use the [result readback reference](../result-readback.md) for exact diagnostics
 and schemas, or [verify the kernel](Quickstart_How_to_verify_the_kernel.md) to
 reproduce cross-transport readback with an independently observed synthetic target.

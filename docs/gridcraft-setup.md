@@ -67,6 +67,15 @@ release read-only and pins nginx by image digest. The adjacent
 type and asset caching. Both files are documentation examples; downloaded app
 files remain outside the source tree.
 
+This Compose file is a reusable static-hosting recipe, not the running probe's
+configuration or a self-contained GridCraft image. `CRAFT_WEB_ROOT` supplies the
+extracted application, including its compiled WASM engine, through the volume
+mounted at `/usr/share/nginx/html`. Starting the YAML without the downloaded
+bundle and that variable does not install the app. The running probe has its
+own configuration under `artifacts/gridcraft-deployment-probe/` and uses port
+8871; the documented recipe defaults to a separate instance on 8872. Neither
+configuration starts a Rust backend daemon or a CraftReport Python service.
+
 The existing development probe owns port 8871. This recipe uses 8872 for a
 separate instance; select another unused port before starting if needed.
 From the checkout root, copy the configuration and set the Linux absolute path:

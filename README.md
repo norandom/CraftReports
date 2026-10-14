@@ -7,9 +7,10 @@ The repository directory is named `GridDash`; the Python package is `craftreport
 
 Development currently centers on the operation kernel: typed operations,
 capability packages, shared guards and evidence contracts. It is not yet a
-complete reporting service. The shared REST/MCP host assembly has focused synthetic
-tests and an installed-wheel harness smoke path; full installed-system conformance
-still has open tasks. See the
+complete reporting service. All 26 kernel tasks and final installed-system
+validation are accepted within the synthetic operation scope. The final integration
+run passed 611 kernel tests and ten fresh installed catalog proofs; hosted CI
+execution remains unverified. See the
 [kernel task list](.kiro/specs/craftreport-operation-kernel/tasks.md) for current
 progress and [approval metadata](.kiro/specs/craftreport-operation-kernel/spec.json)
 for the authorized phase.
@@ -22,6 +23,7 @@ Start at the [documentation index](docs/index.md) for current readiness, a
 
 | You want to | Start here |
 | --- | --- |
+| Decide whether CraftReport adds value beyond direct GridCraft/app MCP | [Why CraftReport](docs/why-craftreport.md) |
 | Open GridCraft in a browser without building Rust | [GridCraft setup](docs/gridcraft-setup.md) |
 | Work on the Python kernel | [Developer guide](docs/development.md) |
 | Supply providers and host REST/MCP | [Kernel host assembly](docs/kernel-host.md) |
@@ -52,8 +54,11 @@ The fast command runs Ruff, strict Pyright, size and branching checks, ownership
 and import checks, and focused tests. Passing it establishes those checks only.
 Run `uv.exe run --frozen python scripts/check.py --integration` on Windows (`uv`
 elsewhere) for installed-wheel startup, REST/MCP discovery and cleanup checks.
-Results appear under `artifacts/<run-id>/`. A passing `harness_smoke` result leaves
-`conformance_status` pending until tasks 8.2 through 8.4 pass. See the
+Results appear under `artifacts/<run-id>/`. Inspect the complete conformance packet
+and its scope; a smoke result alone cannot establish conformance. Accepted kernel
+evidence is recorded in the
+[validation assessment](.kiro/specs/craftreport-operation-kernel/implementation-validation.md).
+See the
 [developer guide](docs/development.md#run-the-installed-harness) for result inspection.
 
 ## Scope and contribution rules
