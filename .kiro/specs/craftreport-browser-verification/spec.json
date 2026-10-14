@@ -54,7 +54,7 @@
     "capability": "browser-verification",
     "max_capability_lloc": 2800,
     "gate_task": "2.3",
-    "gate_implemented": false,
+    "gate_implemented": true,
     "executable_tasks": 19,
     "original_generation_tasks": 18,
     "amended_design_sha256": "544a5d62b2550937007a4ba9d4165c82021e7d9f2741216810aa6faa1326b782"

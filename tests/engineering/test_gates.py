@@ -22,6 +22,8 @@ class QualityGateTests(unittest.TestCase):
         self.addCleanup(self.directory.cleanup)
         self.root = Path(self.directory.name)
         self.policy = (ROOT / "quality.toml").read_text(encoding="utf-8")
+        # This default-policy fixture has no browser capability or its approval file.
+        self.policy = self.policy.split("\n[capability_limits]")[0]
         self.write("quality.toml", self.policy)
         self.write(
             "breadth.toml",

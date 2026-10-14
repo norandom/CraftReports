@@ -91,7 +91,7 @@ The existing probe on 8871 is preserved.
   - _Depends: 2.1_
   - _Requirements: 1.4, 2.2, 2.3, 7.1, 7.2_
 
-- [ ] 2.3 Implement the reviewed browser capability budget amendment
+- [x] 2.3 Implement the reviewed browser capability budget amendment
   - Implement the owner-approved exact browser-verification aggregate override
     of 2,800 LLOC, retaining the global 1,500 default and local 50/300/10 rules.
   - Parse typed capability/rule/value/owner/rationale/approval metadata; reject
@@ -313,3 +313,5 @@ Deployments here are disposable verification infrastructure, not product release
 - 2.2 accepted after delayed-start cleanup repair: focused 17 passed, canonical fast 735 passed/65 subtests; actual WSL owned/external asset hashes, normal cleanup and unrelated resource preservation independently reviewed. Ambiguous Compose startup retains failed cleanup/project ownership; no daemon quiescence claim. Native Linux has command/path unit coverage only. Source 1,195/1,500 LLOC. Evidence `artifacts/browser-verification/task-2.2/remediation-*`.
 
 - Owner approved the independently reviewed browser-only 2,800-LLOC amendment on 2026-10-14. New 2.3 implements bounded enforcement; former 2.3 is now 2.4 and 3.1 depends on it. There are 19 executable tasks. All acceptance criteria and other numeric limits remain. See `budget-amendment.md`; current global enforcement stays until 2.3 is accepted.
+
+- 2.3 accepted: bounded typed browser-only 2,800-LLOC override enforced; focused policy regressions and independent review passed, canonical fast 741 passed/88 subtests. Other 1,500 defaults and local 50/300/10 retained. Development-gates 1,042/1,500; browser source 1,195/2,800. Evidence `artifacts/browser-verification/task-2.3`; first hosted Linux CI separately exposed fixture-cache/test-platform defects being repaired at their owners.

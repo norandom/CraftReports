@@ -80,12 +80,101 @@ class Waiver:
 
 
 @dataclass(frozen=True)
+class CapabilityLimit:
+    capability_id: str
+    rule: str
+    value: int
+    owner: str
+    rationale: str
+    approval_reference: str
+
+
+@dataclass(frozen=True)
 class Policy:
     approved: frozenset[str]
     limits: dict[str, int]
     versions: dict[str, str]
     excluded: tuple[PurePosixPath, ...]
     waivers: tuple[Waiver, ...]
+    capability_limits: tuple[CapabilityLimit, ...] = ()
+
+    def capability_limit(self, owner: str) -> int:
+        return next(
+            (entry.value for entry in self.capability_limits if entry.capability_id == owner),
+            self.limits["capability-lloc"],
+        )
+
+
+def validate_limit_approval(
+    fields: dict[str, object], config: dict[str, object], root: Path
+) -> str:
+    reference = ".kiro/specs/craftreport-browser-verification/budget-amendment.md"
+    scope = table(table(config.get("scope_approval"))["browser-verification"])
+    if (
+        fields.get("approved") is not True
+        or scope.get("approved") is not True
+        or scope.get("capability_id") != "browser-verification"
+        or scope.get("budget_amendment_reference") != reference
+        or fields.get("approval_reference") != reference
+    ):
+        raise ValueError("capability limit requires exact approved owner-decision reference/scope")
+    path = root / exact_path(reference)
+    if not path.is_file() or path.resolve() != path.absolute():
+        raise ValueError("capability limit approval reference must be an existing repository file")
+    return reference
+
+
+def validate_capability_limit(
+    entry: object,
+    config: dict[str, object],
+    root: Path,
+    ownership: Ownership,
+    approved: frozenset[str],
+) -> CapabilityLimit:
+    fields = table(entry)
+    expected = {
+        "capability_id",
+        "rule",
+        "value",
+        "approved",
+        "owner",
+        "rationale",
+        "approval_reference",
+    }
+    if set(fields) != expected:
+        raise ValueError("capability limit requires exact typed fields")
+    owner, rule, value = fields.get("capability_id"), fields.get("rule"), fields.get("value")
+    if not isinstance(owner, str) or owner != "browser-verification" or owner not in approved:
+        raise ValueError("capability limit has unsupported or unapproved capability")
+    if owner not in {item[0] for item in ownership.entries}:
+        raise ValueError("capability limit has unknown ownership")
+    if not isinstance(rule, str) or rule != "capability-lloc":
+        raise ValueError("capability limit has unsupported rule")
+    if type(value) is not int or value != 2800:
+        raise ValueError("capability limit requires approved integer value 2800")
+    metadata: dict[str, str] = {}
+    for key in ("owner", "rationale"):
+        item = fields.get(key)
+        if not isinstance(item, str) or not item.strip():
+            raise ValueError(f"capability limit requires nonempty {key}")
+        metadata[key] = item
+    reference = validate_limit_approval(fields, config, root)
+    return CapabilityLimit(owner, rule, value, metadata["owner"], metadata["rationale"], reference)
+
+
+def load_capability_limits(
+    config: dict[str, object], root: Path, ownership: Ownership, approved: frozenset[str]
+) -> tuple[CapabilityLimit, ...]:
+    entries = table(config.get("capability_limits", {})).get("entries", [])
+    if not isinstance(entries, list):
+        raise ValueError("capability limit entries must be a list")
+    result: list[CapabilityLimit] = []
+    for entry in cast(list[object], entries):
+        limit = validate_capability_limit(entry, config, root, ownership, approved)
+        if any(previous.capability_id == limit.capability_id for previous in result):
+            raise ValueError("duplicate capability limit")
+        result.append(limit)
+    return tuple(result)
 
 
 def limits_from(config: dict[str, object]) -> dict[str, int]:
@@ -181,4 +270,5 @@ def load_policy(root: Path, ownership: Ownership) -> Policy:
         versions[tool] = version
     excluded = tuple(exact_path(path) for path in strings(lloc.get("excluded_paths", [])))
     waivers = load_waivers(table(config["waivers"])["entries"], root, ownership, approved)
-    return Policy(approved, limits_from(config), versions, excluded, waivers)
+    capability_limits = load_capability_limits(config, root, ownership, approved)
+    return Policy(approved, limits_from(config), versions, excluded, waivers, capability_limits)

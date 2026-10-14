@@ -57,12 +57,9 @@ def size_violations(report: Report, policy: Policy) -> list[Violation]:
                 )
             )
     for owner, total in report.production_capabilities.items():
-        if total > policy.limits["capability-lloc"]:
-            result.append(
-                Violation(
-                    "capability-lloc", owner, "", f"{total} > {policy.limits['capability-lloc']}"
-                )
-            )
+        limit = policy.capability_limit(owner)
+        if total > limit:
+            result.append(Violation("capability-lloc", owner, "", f"{total} > {limit}"))
     return result
 
 

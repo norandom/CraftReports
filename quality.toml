@@ -75,7 +75,7 @@ approval_reference = ".kiro/specs/craftreport-browser-verification/design-review
 capability_id = "browser-verification"
 limits = "approved 50 function / 300 module / 2800 browser capability LLOC and McCabe 10"
 budget_amendment_reference = ".kiro/specs/craftreport-browser-verification/budget-amendment.md"
-budget_gate_state = "pending-task-2.3; current-global-1500-enforcement-remains"
+budget_gate_state = "implemented-task-2.3; exact-browser-2800-enforced; task-review-pending"
 implementation_authorization_source = ".kiro/specs/craftreport-browser-verification/spec.json"
 
 [future_gate_families]
@@ -89,3 +89,14 @@ pyright = "1.1.414"
 radon = "6.0.1"
 pre_commit = "4.7.0"
 uv = "0.13.0"
+
+[capability_limits]
+# Numeric enforcement, never a waiver; omitted entries retain the global default.
+[[capability_limits.entries]]
+capability_id = "browser-verification"
+rule = "capability-lloc"
+value = 2800
+approved = true
+owner = "project-owner"
+rationale = "Owner-approved calibration retains all acceptance and local limits"
+approval_reference = ".kiro/specs/craftreport-browser-verification/budget-amendment.md"
