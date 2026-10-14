@@ -34,6 +34,16 @@ Do not game caps by moving a feature across many tiny files. Extraction follows 
 
 Exceptions need an exact capability/path/rule, rationale, accountable owner, approval reference and expiry. Expired or overbroad exceptions fail; they do not silently renew. Core library/application code and externally maintained Craft/Rust code have separate ownership.
 
+## Git Delivery Workflow
+
+Owner-confirmed on 2026-10-14: work directly on `main`; do not create feature
+branches or worktrees for routine tasks. After each task passes its required
+review and fresh checks, selectively stage its owned files, run the installed
+pre-commit hooks through the commit, and push the accepted task to `origin/main`.
+Do not batch unrelated tasks into one commit or include unfinished work in a
+push. Existing unrelated local changes remain untouched. The configured remote
+is `https://github.com/norandom/CraftReports.git`.
+
 ## Verification and Release
 
 Fast engineering checks, runtime/browser behavior, numerical evidence and artifact fidelity answer different questions. None substitutes for the others.
