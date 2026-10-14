@@ -32,7 +32,7 @@ def invoke(
             response = client.post("/v1/invoke", json=request)
         result = response.json()
         expected = (
-            200
+            (202 if result["state"] in {"accepted", "pending"} else 200)
             if "operation_id" in result
             else {
                 "invalid_input": 422,
@@ -40,6 +40,12 @@ def invoke(
                 "unsupported_operation": 404,
                 "limit_exceeded": 413,
                 "retry_conflict": 409,
+                "version_conflict": 409,
+                "service_unavailable": 503,
+                "unsupported_capability": 503,
+                "capacity": 429,
+                "evidence_missing": 503,
+                "evidence_unavailable": 503,
             }[result["diagnostic"]["code"]]
         )
         assert response.status_code == expected
@@ -106,7 +112,8 @@ def read_result(
         with rest_client(owner, principal) as client:
             response = client.get("/v1/operations/" + quote(operation_id, safe="") + "/result")
         result = response.json()
-        assert response.status_code == (404 if principal == "bob" else 200)
+        expected = 404 if principal == "bob" else 503 if "diagnostic" in result else 200
+        assert response.status_code == expected
     else:
         result = asyncio.run(mcp_read_result(owner, operation_id, principal))
     record = {

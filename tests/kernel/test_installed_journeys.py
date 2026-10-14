@@ -23,7 +23,8 @@ def test_installed_cross_transport_retry(
         before = owner.observe()
         receipt = invoke(owner, first, envelope())
         assert receipt["state"] == "complete" and receipt["evidence"]
-        changed = owner.observe().model_dump(exclude={"request_id"})
+        # Query audit records are separate from the canonical target state.
+        changed = owner.observe().model_dump(exclude={"request_id", "admissions", "receipts"})
         assert (changed["value"], changed["version"], changed["effect_count"]) == ("café ☃", "2", 1)
         assert before.effect_count == 0
         query = envelope(
@@ -41,7 +42,9 @@ def test_installed_cross_transport_retry(
                 public = read_result(owner, transport, result["operation_id"])
                 assert public == {"receipt": result, "value": independent}
                 assert public["value"] == {"value": changed["value"], "version": changed["version"]}
-        assert owner.observe().model_dump(exclude={"request_id"}) == changed
+        assert (
+            owner.observe().model_dump(exclude={"request_id", "admissions", "receipts"}) == changed
+        )
         retry = envelope(
             correlation_id="another-correlation",
             payload={"value": "café ☃", "resource": "target-1"},
@@ -58,4 +61,6 @@ def test_installed_cross_transport_retry(
             ),
         ):
             rejected(invoke(owner, second, request), "retry_conflict")
-        assert owner.observe().model_dump(exclude={"request_id"}) == changed
+        assert (
+            owner.observe().model_dump(exclude={"request_id", "admissions", "receipts"}) == changed
+        )

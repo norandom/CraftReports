@@ -37,6 +37,16 @@ class TargetObservation(BaseModel):
     version: str
     effect_count: int
     result: dict[str, str] | None = None
+    admissions: list[dict[str, object]] = Field(default_factory=list[dict[str, object]])
+    receipts: list[dict[str, object]] = Field(default_factory=list[dict[str, object]])
+
+
+class ControlReply(BaseModel):
+    request_id: str
+    ok: bool = False
+    admissions: list[dict[str, object]] = Field(default_factory=list[dict[str, object]])
+    race_arrivals: int = 0
+    error: str | None = None
 
 
 class StartupFailure(RuntimeError):
@@ -48,6 +58,9 @@ class CleanupFailure(RuntimeError):
 
 
 class ChildCleanup(BaseModel):
+    receipts: list[dict[str, object]] = Field(default_factory=list[dict[str, object]])
+    admissions: list[dict[str, object]] = Field(default_factory=list[dict[str, object]])
+    final_target: dict[str, object] = Field(default_factory=dict[str, object])
     providers_closed: bool
     plugin_events: list[str]
     effect_count: int
@@ -69,6 +82,11 @@ class InstalledProcess:
     failure: str = "none"
     boundary_probe: bool = False
     timeout: float = 20
+    capability_probe: bool = False
+    concurrent_operations: int = 16
+    response_seconds: float = 5.0
+    shutdown_seconds: float = 10.0
+    guard_timeout: float = 2.0
     process: subprocess.Popen[str] | None = field(default=None, init=False, repr=False)
     control: Control | None = field(default=None, init=False, repr=False)
     cleanup: dict[str, object] = field(default_factory=dict[str, object], init=False)
@@ -99,6 +117,20 @@ class InstalledProcess:
             str(ROOT / "tests/fixtures/kernel_server.py"),
             str(self.directory),
         ]
+        command.extend(
+            (
+                "--concurrent-operations",
+                str(self.concurrent_operations),
+                "--response-seconds",
+                str(self.response_seconds),
+                "--shutdown-seconds",
+                str(self.shutdown_seconds),
+                "--guard-timeout",
+                str(self.guard_timeout),
+            )
+        )
+        if self.capability_probe:
+            command.append("--capability-probe")
         if self.boundary_probe:
             command.append("--boundary-probe")
         if self.failure != "none":
@@ -150,6 +182,45 @@ class InstalledProcess:
         thread = threading.Thread(target=consume, daemon=True)
         thread.start()
         self._readers.append(thread)
+
+    def control_request(self, command: str, **fields: object) -> ControlReply:
+        assert self.process is not None and self.process.stdin is not None
+        request_id = uuid4().hex
+        payload = {"command": command, "request_id": request_id, **fields}
+        self.process.stdin.write(json.dumps(payload) + "\n")
+        self.process.stdin.flush()
+        reply = ControlReply.model_validate_json(self._messages.get(timeout=self.timeout))
+        assert reply.request_id == request_id
+        with (self.directory / "private-controls.jsonl").open("a", encoding="utf-8") as stream:
+            stream.write(json.dumps({"request": payload, "response": reply.model_dump()}) + "\n")
+        assert reply.error is None, reply.error
+        return reply
+
+    def configure_checkpoint(self, name: str, timeout: float = 40.0) -> ControlReply:
+        return self.control_request("checkpoint", checkpoint=name, timeout=float(timeout))
+
+    def wait_checkpoint(
+        self, name: str, participants: int = 1, timeout: float = 15.0
+    ) -> ControlReply:
+        return self.control_request(
+            "wait_checkpoint", checkpoint=name, participants=participants, timeout=float(timeout)
+        )
+
+    def release_checkpoint(self, name: str) -> ControlReply:
+        return self.control_request("release", checkpoint=name)
+
+    def set_availability(
+        self, service: str, available: bool, *, health_only: bool = False
+    ) -> ControlReply:
+        return self.control_request(
+            "availability", service=service, available=available, health_only=health_only
+        )
+
+    def configure_fault(self, name: str, enabled: bool = True) -> ControlReply:
+        return self.control_request("fault", fault=name, enabled=enabled)
+
+    def configure_race(self, participants: int = 20, timeout: float = 40.0) -> ControlReply:
+        return self.control_request("race", participants=participants, timeout=float(timeout))
 
     def observe(self, result_ref: str | None = None) -> TargetObservation:
         assert self.process is not None and self.process.stdin is not None

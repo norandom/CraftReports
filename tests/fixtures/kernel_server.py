@@ -16,15 +16,16 @@ from pathlib import Path
 HELPERS = Path(__file__).resolve().parent
 sys.path.extend((str(HELPERS), str(HELPERS.parent / "kernel")))
 
-from typing import Literal  # noqa: E402
 
 import craftreport_kernel_fixture  # noqa: E402
 import kernel_services  # noqa: E402
+from kernel_faults import ControlCommand  # noqa: E402
 from kernel_services import Providers  # noqa: E402
-from pydantic import BaseModel, ConfigDict, Field, ValidationError  # noqa: E402
+from pydantic import ValidationError  # noqa: E402
 
 import craftreport  # noqa: E402
 from craftreport.composition.app import BoundServer, open_application  # noqa: E402
+from craftreport.contracts.capabilities import ExecutionLimits  # noqa: E402
 
 
 def installed_origins() -> dict[str, str]:
@@ -42,13 +43,6 @@ def installed_origins() -> dict[str, str]:
     return origins
 
 
-class ObserveCommand(BaseModel):
-    model_config = ConfigDict(extra="forbid", strict=True)
-    command: Literal["observe"]
-    request_id: str = Field(min_length=1, max_length=64)
-    result_ref: str | None = Field(default=None, max_length=128)
-
-
 def shutdown_reader(
     loop: asyncio.AbstractEventLoop, server: BoundServer, providers: Providers
 ) -> None:
@@ -58,14 +52,19 @@ def shutdown_reader(
         if command == "" or command.rstrip("\r\n") == "shutdown":
             break
         try:
-            request = ObserveCommand.model_validate_json(command)
+            request = ControlCommand.model_validate_json(command)
         except ValidationError:
             print("kernel_server rejected unknown control command", file=sys.stderr, flush=True)
             continue
-        future = asyncio.run_coroutine_threadsafe(providers.observe(request.result_ref), loop)
-        print(
-            json.dumps({"request_id": request.request_id, **future.result(timeout=5)}), flush=True
+        future = asyncio.run_coroutine_threadsafe(
+            providers.controls.execute(providers, request), loop
         )
+        try:
+            result = future.result(timeout=request.timeout + 5)
+        except Exception as error:
+            future.cancel()
+            result = {"error": type(error).__name__}
+        print(json.dumps({"request_id": request.request_id, **result}), flush=True)
     try:
         loop.call_soon_threadsafe(server.request_shutdown)
     except RuntimeError:
@@ -115,11 +114,25 @@ def main() -> int:
     parser.add_argument("run_dir", type=Path)
     parser.add_argument("--failure", choices=("startup", "cleanup"))
     parser.add_argument("--boundary-probe", action="store_true")
+    parser.add_argument("--capability-probe", action="store_true")
+    parser.add_argument("--concurrent-operations", type=int, default=16)
+    parser.add_argument("--response-seconds", type=float, default=5.0)
+    parser.add_argument("--shutdown-seconds", type=float, default=10.0)
+    parser.add_argument("--guard-timeout", type=float, default=2.0)
     args = parser.parse_args()
     run_dir = Path(str(args.run_dir)).resolve()
     run_dir.mkdir(parents=True, exist_ok=True)
     failure = str(args.failure) if args.failure is not None else None
-    providers = Providers(run_dir, failure, boundary_probe=bool(args.boundary_probe))
+    providers = Providers(
+        run_dir,
+        failure,
+        boundary_probe=bool(args.boundary_probe),
+        capability_probe=bool(args.capability_probe),
+        execution=ExecutionLimits(
+            args.concurrent_operations, args.response_seconds, args.shutdown_seconds
+        ),
+        guard_timeout=args.guard_timeout,
+    )
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     code = 0
     try:

@@ -218,7 +218,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 8.1, 6.4_
   - _Requirements: 2.1, 2.2, 2.3, 3.1, 3.2, 3.6, 4.1, 4.2, 5.2, 5.3, 5.6, 6.1, 6.2, 6.3, 6.4, 7.2_
 
-- [ ] 8.3 Verify disconnect, ambiguity and concurrent admission over sockets
+- [x] 8.3 Verify disconnect, ambiguity and concurrent admission over sockets
   - Use barriers to prove admission before client disconnect, then retry/inspect through a new client and independently read the synthetic target.
   - Exercise concurrent equivalent/conflicting commands, stale versions, unavailable required services, post-effect journal failure and bounded shutdown/capacity.
   - Done when there is one admitted effect per retry scope, unknown effects are never automatically replayed and temporary state/restart epochs are reported without a durability claim.
@@ -253,6 +253,8 @@ The approved Design owns concrete file paths and signatures. Each implementer re
 Browser verification remains the next bounded spec: latest official GridCraft download, no local build, owned browser/Compose environment, screenshots/videos and actual XLSX save/reopen evidence. Passing this kernel plan cannot close that work.
 
 ## Implementation Notes
+
+- Task 8.3: independent review approved fresh canonical fast (565 tests, 39 subtests) and integration (57 tests). Installed journeys prove atomic admission before disconnect, 20 mixed-transport equivalent requests with one effect, conflicts/stale versions, prerequisite outages, partial/unknown outcomes, retained-content loss, capacity, bounded shutdown and new temporary epochs. Private controls only inject failures/checkpoints and observe; business calls use public clients. Query immutability compares canonical target fields rather than added journal audit receipts. Evidence loss returns its public rejection while private state proves no replay. Cleanup audited 58 process records: only two intentional lifecycle injections failed, no forced terminations, unclosed providers or surviving processes. Failed oracle runs remain preserved; final conformance remains 8.4.
 
 - Task 8.2: independent rereview approved canonical fast (560 tests, 39 subtests) and installed integration (20 tests). Both transport orders publicly retrieve command/query results through REST and MCP, compared with private retained-content and independent target observations; foreign-principal reads disclose no value. Exact advertised input/output/depth limits and over-limit effect status are exercised. Integration command selects all marked kernel tests; bootstrap assertions retain marker/run-directory/JUnit checks. All 20 cleanup records inspected, only intentional lifecycle injections failed, no forced termination or surviving owned processes. Full conformance remains pending tasks 8.3–8.4.
 

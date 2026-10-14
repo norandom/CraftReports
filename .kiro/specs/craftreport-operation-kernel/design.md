@@ -365,6 +365,8 @@ Task 6.4 establishes focused contract and transport evidence. Task 8.2 retrieves
 
 Task 8.2 implementation clarification: an explicitly selected synthetic boundary probe makes exact input, nesting and output limits reachable without changing the default fixture operation set. Typed bounded private observations serve as independent target/result oracles. Installed clients retrieve command and query results through the approved public REST/MCP paths in both transport orders. The integration command selects all marked kernel tests, with unique evidence and owned cleanup.
 
+Task 8.3 implementation clarification: bounded typed private controls arm fixture checkpoints, guarantee failures and initial-lookup races. Atomic journal admission and an active lease establish the disconnect barrier; public HTTP/MCP clients invoke, retry and inspect. Shutdown evidence uses retained final observations rather than querying a destroyed endpoint. Target unavailability remains explicit during cleanup. Canonical target fields exclude query audit records. Explicit fixture settings select target requirements and bounded execution limits; these controls do not enter production providers.
+
 ## Data Models
 
 

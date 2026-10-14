@@ -94,7 +94,9 @@ wheels for the kernel and synthetic capability, then installs them offline in an
 isolated environment. The composed service owns one loopback listener. Generated
 credentials travel through pipes only. REST and official MCP clients exercise discovery, commands, query readback,
 retained retries, permissions and limits without an AI service or private pack.
-The run also exercises deliberate startup and cleanup failures.
+The run also exercises deliberate startup and cleanup failures, disconnects after
+admission, twenty concurrent retries, unavailable guarantees, post-effect uncertainty,
+capacity and bounded shutdown.
 
 Inspect the run directory printed by the command:
 
@@ -106,7 +108,7 @@ Inspect the run directory printed by the command:
 | Per-case diagnostics and cleanup transcripts | Failure details and evidence that owned resources closed |
 
 A successful run records `harness_smoke` as passed while `conformance_status`
-remains pending. Tasks 8.3 and 8.4 still own disconnect/concurrency and final conformance checks.
+remains pending. Task 8.4 still owns final conformance aggregation and sensitivity checks.
 An expected injected failure passes only when its case observes the expected
 failure and cleanup; an unexpected startup, discovery or cleanup failure fails
 the run. Read the failing case's diagnostics before rerunning. Missing cleanup
@@ -122,6 +124,35 @@ retain actual requests and responses. The default fixture still exposes two oper
 
 This harness establishes installed-service behavior with synthetic providers. Production durability, Craft browser behavior and saved or reopened
 XLSX artifacts require their own evidence.
+
+## Resolve an interrupted call
+
+Retry with the original key and equivalent content, or inspect the known operation
+identity. A disconnected response does not establish cancellation. The installed
+journeys pause the synthetic target after atomic admission, close the real HTTP or
+MCP client, and use a new client to observe the retained identity. Releasing the
+barrier must produce exactly one independently observed target change.
+
+Use the receipt and retained-content diagnostic together:
+
+| Observation | Interpretation |
+| --- | --- |
+| Pending after a post-effect journal outage | The target changed, but completion was not recorded; retry must not execute again. |
+| Partial with missing or unavailable evidence | An effect was observed, but required completion evidence was not established. |
+| Ambiguous with `effect_unknown` | The outcome remains unresolved; an equivalent retry must not replay it. |
+| `evidence_missing`, `evidence_unavailable` or `result_unavailable` on inspection | Retained content cannot currently support readback; this is not a successful result. |
+
+Private checkpoint/control transcripts record admission identity, revision, epoch
+and active target lease. They inject failures and observe providers; business calls
+still use public HTTP/MCP. Shutdown observations are saved during owned cleanup,
+not fetched from an endpoint after it has closed. Each restarted temporary fixture
+has a new epoch, initial target state and no retained prior operation. These tests
+make no production recovery or durability claim.
+
+When reviewing a failed journey, compare its public response with target value,
+version and effect count before rerunning. A second effect for an equivalent retry,
+a complete outcome without required evidence, or an orphaned owned process
+invalidates the tested guarantee. Preserve that run's diagnostics.
 
 ## Verify the effect you promise
 

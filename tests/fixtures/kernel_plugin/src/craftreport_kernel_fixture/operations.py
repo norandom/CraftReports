@@ -11,6 +11,7 @@ from craftreport.application.registry import (
     QueryBehavior,
 )
 from craftreport.contracts import (
+    CapabilityRequirement,
     Diagnostic,
     EffectDisposition,
     EvidencePolicy,
@@ -38,7 +39,7 @@ from .models import (
 
 
 def descriptors(
-    namespace: str, resource_kind: str, boundary_probe: bool = False
+    namespace: str, resource_kind: str, boundary_probe: bool = False, capability_probe: bool = False
 ) -> tuple[OperationDescriptor, ...]:
     base = (
         OperationDescriptor(
@@ -49,7 +50,9 @@ def descriptors(
             True,
             True,
             (resource_kind,),
-            (),
+            (CapabilityRequirement("synthetic-target", ">=1.0,<2.0", "native"),)
+            if capability_probe
+            else (),
             ("resources", "effects", "guard", "evidence"),
             LIMITS,
             EvidencePolicy(("effect",)),
@@ -146,8 +149,12 @@ class Operations:
             observation, result=sized_result(request.output_size, observation.result.version)
         )
 
-    def bindings(self, boundary_probe: bool = False) -> tuple[BoundOperation, ...]:
-        write, read = descriptors(self.namespace, self.resource_kind)
+    def bindings(
+        self, boundary_probe: bool = False, capability_probe: bool = False
+    ) -> tuple[BoundOperation, ...]:
+        write, read = descriptors(
+            self.namespace, self.resource_kind, capability_probe=capability_probe
+        )
         base = (
             OperationBinding(
                 write, WRITE, RESULT, CommandBehavior(self.write), self.resources
@@ -156,7 +163,7 @@ class Operations:
         )
         if not boundary_probe:
             return base
-        probe = descriptors(self.namespace, self.resource_kind, True)[2]
+        probe = descriptors(self.namespace, self.resource_kind, True, capability_probe)[2]
         return (
             *base,
             OperationBinding(
