@@ -1,9 +1,9 @@
 # Develop the CraftReport kernel
 
 Start by reproducing the engineering checks, then choose an approved kernel task.
-There is no completed CraftReport server quick start yet. The current executable
-work covers value contracts, operation registration, capability activation,
-guards and related kernel collaborators; the
+There is no standalone installed-service launcher yet. The current executable
+work includes [host assembly](kernel-host.md), operation registration, capability
+activation, shared guards and REST/MCP interfaces; the
 [task list](../.kiro/specs/craftreport-operation-kernel/tasks.md) records the
 remaining implementation and review gates.
 

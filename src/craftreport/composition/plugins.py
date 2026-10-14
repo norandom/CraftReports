@@ -2,6 +2,7 @@
 
 from collections.abc import AsyncGenerator, Sequence
 from contextlib import AsyncExitStack, asynccontextmanager
+from dataclasses import dataclass
 from graphlib import TopologicalSorter
 from importlib.metadata import distributions
 
@@ -13,6 +14,15 @@ from craftreport.application.registry import BoundOperation, ImmutableOperationR
 from craftreport.composition.settings import ConfiguredCapability, PreparedCapability
 from craftreport.contracts import CapabilityManifest
 from craftreport.contracts.capabilities import CORE_CONTRACT_VERSION
+
+
+@dataclass(frozen=True, slots=True)
+class ActivationSnapshot:
+    registry: ImmutableOperationRegistry
+    manifests: tuple[CapabilityManifest, ...]
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "manifests", tuple(self.manifests))
 
 
 def _reserved(identity: str) -> bool:
@@ -83,9 +93,9 @@ def _ordered(prepared: Sequence[PreparedCapability]) -> tuple[PreparedCapability
 
 
 @asynccontextmanager
-async def activate(
+async def activate_snapshot(
     selections: Sequence[ConfiguredCapability],
-) -> AsyncGenerator[ImmutableOperationRegistry]:
+) -> AsyncGenerator[ActivationSnapshot]:
     """Only yield after every selected capability has initialized and matched.
 
     The snapshot is valid only inside this context. Cleanup exceptions propagate;
@@ -107,4 +117,15 @@ async def activate(
                 bindings.extend(instance.bindings)
             except Exception as exc:
                 raise ValueError(f"{item.manifest.identity}: initialization failed: {exc}") from exc
-        yield ImmutableOperationRegistry(bindings)
+        yield ActivationSnapshot(
+            ImmutableOperationRegistry(bindings), tuple(item.manifest for item in ordered)
+        )
+
+
+@asynccontextmanager
+async def activate(
+    selections: Sequence[ConfiguredCapability],
+) -> AsyncGenerator[ImmutableOperationRegistry]:
+    """Retain the registry-only activation interface and the same lifecycle."""
+    async with activate_snapshot(selections) as snapshot:
+        yield snapshot.registry

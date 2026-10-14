@@ -181,7 +181,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 3.1, 5.3, 6.1, 6.2_
   - _Requirements: 2.1, 2.2, 3.1, 3.2, 5.2, 5.6, 6.1, 6.2, 6.3, 6.4_
 
-- [ ] 7. Integrate capability activation, facade and application lifecycle
+- [x] 7. Integrate capability activation, facade and application lifecycle
   - Compose the registry, supplied services, fixed pipeline and both interfaces without embedding request policy in assembly.
   - Manage MCP sessions and admitted execution from the host lifespan, preserve the intended route paths and enforce Host/Origin and loopback-profile settings.
   - Done when the assembled application reaches usable discovery with AI disabled, missing required providers prevent dependent effects, and shutdown closes owned resources.
@@ -244,6 +244,8 @@ The approved Design owns concrete file paths and signatures. Each implementer re
 Browser verification remains the next bounded spec: latest official GridCraft download, no local build, owned browser/Compose environment, screenshots/videos and actual XLSX save/reopen evidence. Passing this kernel plan cannot close that work.
 
 ## Implementation Notes
+
+- Task 7: independent review approved the canonical fast pipeline with 532 tests and 40 subtests. Explicit provider and activation contexts assemble one Execution for REST/MCP; activation snapshots retain manifests and shared catalogs expose actual execution settings. The host validates its retained socket, applies interface-owned Host/Origin and bounded MCP framing checks, and propagates lifecycle failures even if Uvicorn only logs them. Missing guarantees prevent effects; unsuccessful execution shutdown fails cleanup while remaining owned resources unwind. Task 8 must use this production assembly with installed wheels and real clients; current evidence is synthetic ASGI integration.
 
 - Task 6.3: independent review approved the canonical fast pipeline with 489 tests and 40 subtests. Official MCP clients over ASGI exercise the shared Execution and independently observed synthetic effects, including a retained REST retry. Explicit tool-to-envelope identity checks supplement published schema constants; private discovery uses the current principal. Schema embedding preserves recursive local references and resource scopes. Post-effect serialization failure reports unavailable while retaining the operation for inspection. Composition owns framing, Host/Origin and session lifespan; installed socket acceptance remains downstream.
 

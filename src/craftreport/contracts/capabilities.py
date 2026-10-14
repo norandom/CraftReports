@@ -6,6 +6,7 @@ module retains plain version strings and never loads a provider or package.
 
 from dataclasses import dataclass
 from enum import StrEnum
+from math import isfinite
 from typing import Final
 
 from craftreport.contracts.identity import CapabilityRequirement, CapabilityVersion
@@ -90,12 +91,27 @@ class CapabilityView:
 
 
 @dataclass(frozen=True, slots=True)
+class ExecutionLimits:
+    capacity: int = 16
+    response_seconds: float = 5.0
+    shutdown_seconds: float = 10.0
+
+    def __post_init__(self) -> None:
+        if type(self.capacity) is not int or self.capacity < 1:
+            raise ValueError("Execution capacity must be a positive integer")
+        for value in (self.response_seconds, self.shutdown_seconds):
+            if not isfinite(value) or value <= 0:
+                raise ValueError("Execution timings must be finite and positive")
+
+
+@dataclass(frozen=True, slots=True)
 class Catalog:
     operations: tuple[OperationDescriptor, ...]
     capabilities: tuple[CapabilityView, ...]
     deployment_epoch: str
     retention_profile: str
     core_contract_version: str = CORE_CONTRACT_VERSION
+    execution_limits: ExecutionLimits | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "operations", tuple(self.operations))

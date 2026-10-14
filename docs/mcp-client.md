@@ -5,9 +5,9 @@ the returned receipt. The official MCP client works without an AI service. Keep 
 same retry key and normalized content when retrying through MCP or REST.
 
 The example below runs in the adapter tests against real guarded execution and a
-readable synthetic target. A standalone service launcher and installed socket
-conformance are still pending kernel tasks 7 and 8. Use an operator-supplied endpoint
-and bearer credential once that host is available.
+readable synthetic target. The [shared host assembly](kernel-host.md) also exercises
+MCP and REST together. A standalone installed-service launcher and socket
+conformance remain task 8. Deployments supply the endpoint and bearer credential.
 
 ## Discover, write and inspect
 

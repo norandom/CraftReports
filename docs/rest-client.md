@@ -1,8 +1,9 @@
 # REST client contract
 
 The REST router exposes `GET /health/ready`, `GET /v1/catalog`,
-`POST /v1/invoke` and `GET /v1/operations/{operation_id}`. Host assembly,
-server startup, socket conformance and MCP parity are separate tasks.
+`POST /v1/invoke` and `GET /v1/operations/{operation_id}`. The
+[host assembly](kernel-host.md) supplies lifecycle and both interfaces.
+Installed-wheel socket conformance remains task 8.
 Readiness reports activation readiness and deployment epoch only.
 
 Send a deployment-issued bearer credential. Identity, scope and authorization
@@ -18,6 +19,8 @@ for the intended operation limits. Shared codecs and guards enforce descriptor
 limits; REST does not replace them. Duplicate keys, non-finite numbers, unsafe
 integers, invalid UTF-8 and unknown envelope fields are rejected before behavior.
 Versions and decimal quantities use their operation-declared string representation.
+The assembled catalog also advertises `execution_limits` with the configured
+`capacity`, `response_seconds` and `shutdown_seconds` used by its execution owner.
 
 The following executable example uses an `httpx.AsyncClient` configured with
 `base_url` and an `Authorization: Bearer ...` header. Its synthetic `fixture.write`

@@ -195,6 +195,16 @@ def encode_catalog(catalog: Catalog) -> JsonObject:
         "retention_profile": catalog.retention_profile,
         "core_contract_version": catalog.core_contract_version,
     }
+    if catalog.execution_limits is not None:
+        limits = catalog.execution_limits
+        value = {
+            **value,
+            "execution_limits": {
+                "capacity": limits.capacity,
+                "response_seconds": limits.response_seconds,
+                "shutdown_seconds": limits.shutdown_seconds,
+            },
+        }
     canonical_bytes(value, max_depth=None)
     return freeze_object(value)
 

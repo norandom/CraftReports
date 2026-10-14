@@ -7,8 +7,8 @@ The repository directory is named `GridDash`; the Python package is `craftreport
 
 Development currently centers on the operation kernel: typed operations,
 capability packages, shared guards and evidence contracts. It is not yet a
-complete reporting service. REST/MCP service integration, lifecycle completion
-and full installed-system conformance still have open tasks. See the
+complete reporting service. The shared REST/MCP host assembly has focused synthetic
+tests; installed-system conformance still has open tasks. See the
 [kernel task list](.kiro/specs/craftreport-operation-kernel/tasks.md) for current
 progress and [approval metadata](.kiro/specs/craftreport-operation-kernel/spec.json)
 for the authorized phase.
@@ -19,6 +19,7 @@ for the authorized phase.
 | --- | --- |
 | Open GridCraft in a browser without building Rust | [GridCraft setup](docs/gridcraft-setup.md) |
 | Work on the Python kernel | [Developer guide](docs/development.md) |
+| Supply providers and host REST/MCP | [Kernel host assembly](docs/kernel-host.md) |
 | Write a capability package | [Capability author contract](docs/capability-authoring.md) |
 | Understand hosting, MCP, browser sessions and WOPI | [Craft app protocols](docs/craft-app-protocols.md) |
 | Check planned reporting scope | [Reporting requirements](.kiro/specs/craftreport-reporting-facade/requirements.md) |
