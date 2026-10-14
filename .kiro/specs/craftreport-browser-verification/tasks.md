@@ -51,7 +51,7 @@ The existing probe on 8871 is preserved.
   - _Boundary: FixtureManifest_
   - _Requirements: 3.1, 3.4, 4.5, 8.2_
 
-- [ ] 1.4 Inspect the fixed fixture and saved XLSX semantics without rewriting bytes
+- [x] 1.4 Inspect the fixed fixture and saved XLSX semantics without rewriting bytes
   - Follow sheet/drawing/chart/style relationships and compare declared cells,
     types, sentinels, series/category formulas and presentation semantics.
   - Support equivalent inline/shared strings and normalized references; bound
@@ -289,3 +289,4 @@ Deployments here are disposable verification infrastructure, not product release
 - 1.2 accepted after output-ID alias repair: canonical fast 639 passed/65 subtests, independent focused review 32 passed; browser source 314/1,500 LLOC. Evidence `artifacts/browser-verification/task-1.2` and `artifacts/task1.2/remediation-*`.
 - Component records remain with their actual owners: release/bundle identities in 2.1, fixture expectations in 1.3/1.4, interaction observations/edits in 3.1 and visual profiles in 3.2. No placeholder runtime runner was introduced. Use `scripts.browser_verification` imports; the owned test-package marker prevents duplicate test-module names.
 - 1.3 accepted: independently audited/reproduced static fixture, 7,559 bytes SHA256 `7a0583c2418c988c4ec1d261e503b30c45aae3f77bc0fc548886fee4cc591ca8`; all 11 typed cells/chart references/styles checked. Before/after expectations differ only at B3 20 to 25. Evidence `artifacts/browser-verification/task-1.3`; no app-rendering or save/reopen claim.
+- 1.4 accepted after chart-reference normalization repair: real-ZIP focused tests 42 passed, canonical fast 681 passed/65 subtests, independent alias/binding/read-only checks passed. Saved-artifact inspection verifies size/hash against the same retained bounded bytes. Source 723/1,500 LLOC. Evidence `artifacts/browser-verification/task-1.4`; no actual browser persistence claim.
