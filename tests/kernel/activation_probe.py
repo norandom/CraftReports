@@ -82,8 +82,9 @@ async def failures() -> None:
         try:
             async with activate([selection(events, settings=settings)]):
                 raise AssertionError("Published invalid settings")
-        except ValueError:
-            pass
+        except ValueError as error:
+            assert "craftreport-kernel-fixture/synthetic" in str(error)
+            assert "invalid_input" in str(error)
         assert not events.events
 
 
@@ -137,8 +138,14 @@ async def lifecycle() -> None:
         try:
             async with activate([selection(events), selection(events, name, settings)]):
                 published = True
-        except (ValueError, RuntimeError):
-            pass
+        except (ValueError, RuntimeError) as error:
+            reason = str(error)
+            if failure == "fail_open":
+                assert "dependent" in reason and "initialization failed" in reason
+            elif failure == "fail_close":
+                assert "Synthetic cleanup failure after release" in reason
+            else:
+                assert "mismatch" in reason and "operation descriptors" in reason.lower()
         else:
             raise AssertionError("Ignored lifecycle failure")
         assert published == (failure == "fail_close")
@@ -153,8 +160,9 @@ async def preflight_all_settings() -> None:
     try:
         async with activate([selection(events), selection(events, "dependent", {})]):
             raise AssertionError("Published invalid settings")
-    except ValueError:
-        pass
+    except ValueError as error:
+        assert "craftreport-kernel-fixture-dependent/dependent" in str(error)
+        assert "invalid_input" in str(error)
     assert not events.events
 
 

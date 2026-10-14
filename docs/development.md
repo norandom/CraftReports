@@ -65,7 +65,7 @@ uv run --frozen python scripts/check.py --fast
 uv run --frozen python -m pytest -q tests/kernel/test_fixture_packaging.py
 uv run --frozen python -m pytest -q tests/kernel/test_activation.py
 
-# Installed-wheel client journeys; full conformance remains pending.
+# Contract coverage, installed client journeys, then catalog verification.
 uv run --frozen python scripts/check.py --integration
 ```
 
@@ -79,7 +79,7 @@ The installed hook takes no staged filenames and runs the whole-scope gate.
 Install it for each clone. [CI](../.github/workflows/kernel.yml) uses the same
 command on pushes, pull requests, manual runs and a daily schedule. Hosted CI
 execution has not yet been verified. The separate integration command records
-synthetic client evidence; it does not complete the remaining conformance tasks.
+synthetic conformance evidence. Both phases must pass; hosted CI execution remains unverified.
 
 ## Run the installed harness
 
@@ -102,17 +102,51 @@ Inspect the run directory printed by the command:
 
 | Artifact under `artifacts/<run-id>/` | What to inspect |
 | --- | --- |
-| `kernel-manifest.json` | Installed identities, run scope and conformance status |
+| `kernel-manifest.json` | Immutable packet: installed identity, cases, cleanup, scope and artifact hashes |
+| `verification.json` | Derived status and SHA-256 of the exact persisted packet bytes |
+| `coverage.json`, `required-cases.json` | All 36 criteria linked to required actual pytest node IDs |
+| `inventory.json`, `source.json` | Installed wheel/lock/package identities and checkout provenance |
+| `catalog-proof/results.json` | Separate fresh-host REST/MCP catalog verification |
 | `cases.json` | Each case's observed result, phase and duration |
 | `junit.xml` | Machine-readable case results |
 | Per-case diagnostics and cleanup transcripts | Failure details and evidence that owned resources closed |
 
-A successful run records `harness_smoke` as passed while `conformance_status`
-remains pending. Task 8.4 still owns final conformance aggregation and sensitivity checks.
+The first phase executes kernel contract checks, installed activation and socket
+journeys. Its finalizer requires every registered setup, call and teardown result
+and every owned runtime cleanup. Missing, duplicate, foreign-run or wrong-build
+results cannot pass. The packet is written before its digest-backed evidence
+reference, avoiding a self-referential hash.
+
+The second phase starts fresh hosts and loads that completed packet through a
+typed test/operator adapter. Expectations come independently from installed
+plugin Python bytes, package versions, the approved suite and installed dependencies.
+The operator binds both complete fixture-helper import trees (`tests/fixtures`
+and `tests/kernel`, including transitive modules and conformance registries) to
+their recorded file names and bytes. Changed, added or removed helpers leave an
+old packet pending. The catalog proof boots isolated copies with changed provider
+and target implementations and checks the untouched packet; matching copies pass.
+This intentionally invalidates evidence after any change within those helper trees.
+The operator also compares current installed core Python content with the packet's
+core digest. Each installed fixture case names its own retained build inventory;
+separate wheel archives retain their exact hashes while matching core/plugin content.
+Contract cases execute in the locked development environment and retain checkout
+provenance. Metadata matching in the production catalog resolver does not parse files
+or establish packet integrity; the test/operator adapter performs that check first.
+The packet names the tested normal fixture profile. A host explicitly selecting
+a disposable defect remains pending even if given the normal profile packet.
+REST and MCP must agree: matched passing evidence is passed, matched failed
+evidence is failed, and missing, stale, wrong-build or tampered evidence is pending.
+Existing access policy filters evidence references. A fresh host does not recover
+prior temporary receipts. Its catalog proof is separate from the packet it checks.
 An expected injected failure passes only when its case observes the expected
 failure and cleanup; an unexpected startup, discovery or cleanup failure fails
 the run. Read the failing case's diagnostics before rerunning. Missing cleanup
 evidence cannot support a successful cleanup claim.
+
+Sensitivity cases explicitly select disposable disconnected-command and mutating-query
+variants. A child process evaluates independent target observations and must fail
+with the intended assertion. The failed child packet remains retained even when
+the outer disproof test passes. Fresh normal variants must pass the same oracle.
 
 The boundary cases opt into `synthetic.probe` in the independently installed fixture.
 Its recursive input reaches depth 8, padding reaches 4096 decoded envelope bytes,

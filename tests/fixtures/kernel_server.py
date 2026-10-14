@@ -119,6 +119,10 @@ def main() -> int:
     parser.add_argument("--response-seconds", type=float, default=5.0)
     parser.add_argument("--shutdown-seconds", type=float, default=10.0)
     parser.add_argument("--guard-timeout", type=float, default=2.0)
+    parser.add_argument("--sensitivity-variant", default="normal")
+    parser.add_argument("--verification-packet", type=Path)
+    parser.add_argument("--verification-digest", default="")
+    parser.add_argument("--verification-run", default="")
     args = parser.parse_args()
     run_dir = Path(str(args.run_dir)).resolve()
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -132,6 +136,10 @@ def main() -> int:
             args.concurrent_operations, args.response_seconds, args.shutdown_seconds
         ),
         guard_timeout=args.guard_timeout,
+        sensitivity_variant=args.sensitivity_variant,
+        verification_packet=args.verification_packet,
+        verification_digest=args.verification_digest,
+        verification_run=args.verification_run,
     )
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     code = 0

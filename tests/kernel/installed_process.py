@@ -87,6 +87,11 @@ class InstalledProcess:
     response_seconds: float = 5.0
     shutdown_seconds: float = 10.0
     guard_timeout: float = 2.0
+    sensitivity_variant: str = "normal"
+    verification_packet: Path | None = None
+    verification_digest: str = ""
+    verification_run: str = ""
+    helper_root: Path = ROOT / "tests"
     process: subprocess.Popen[str] | None = field(default=None, init=False, repr=False)
     control: Control | None = field(default=None, init=False, repr=False)
     cleanup: dict[str, object] = field(default_factory=dict[str, object], init=False)
@@ -114,7 +119,7 @@ class InstalledProcess:
         command = [
             str(self.installed.python),
             "-I",
-            str(ROOT / "tests/fixtures/kernel_server.py"),
+            str(self.helper_root / "fixtures/kernel_server.py"),
             str(self.directory),
         ]
         command.extend(
@@ -131,6 +136,18 @@ class InstalledProcess:
         )
         if self.capability_probe:
             command.append("--capability-probe")
+        command.extend(("--sensitivity-variant", self.sensitivity_variant))
+        if self.verification_packet is not None:
+            command.extend(
+                (
+                    "--verification-packet",
+                    str(self.verification_packet),
+                    "--verification-digest",
+                    self.verification_digest,
+                    "--verification-run",
+                    self.verification_run,
+                )
+            )
         if self.boundary_probe:
             command.append("--boundary-probe")
         if self.failure != "none":

@@ -22,14 +22,18 @@ class BootstrapTests(unittest.TestCase):
     def test_integration_routes_to_separate_installed_client_suite(self) -> None:
         directory = ROOT / "artifacts" / "routing-only"
         steps = integration_steps(ROOT, directory)
-        self.assertEqual(len(steps), 1)
+        self.assertEqual(len(steps), 2)
         command = steps[0][1]
         self.assertEqual(command[0], sys.executable)
         self.assertIn(str(ROOT / "tests/kernel"), command)
-        self.assertEqual(command[command.index("-m", 3) + 1], "integration")
+        self.assertNotIn("integration", command)
         self.assertEqual(command[command.index("--kernel-run-dir") + 1], str(directory))
         self.assertIn("--junitxml", command)
         self.assertIn(str(directory / "junit.xml"), command)
+        self.assertEqual(
+            steps[1][1],
+            [sys.executable, str(ROOT / "tests/kernel/catalog_proof.py"), str(directory)],
+        )
 
     def test_command_requires_exactly_one_mode(self) -> None:
         for modes in ([], ["--fast", "--integration"]):

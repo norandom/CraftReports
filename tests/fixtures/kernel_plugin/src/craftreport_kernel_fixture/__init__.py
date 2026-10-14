@@ -1,7 +1,8 @@
 """Independently installed synthetic fixture; trusted code, no sandbox claim."""
 
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
+from dataclasses import replace
 from hashlib import sha256
 from importlib.metadata import distribution
 from pathlib import Path
@@ -33,7 +34,13 @@ def implementation_digest() -> str:
 
 
 class FixtureFactory:
-    def __init__(self, boundary_probe: bool = False, capability_probe: bool = False) -> None:
+    def __init__(
+        self,
+        boundary_probe: bool = False,
+        capability_probe: bool = False,
+        sensitivity_mutation: Callable[[], Awaitable[None]] | None = None,
+    ) -> None:
+        self.sensitivity_mutation = sensitivity_mutation
         self.boundary_probe = boundary_probe
         self.capability_probe = capability_probe
 
@@ -63,9 +70,11 @@ class FixtureFactory:
                 services.lifecycle.record(IDENTITY, "open_failed")
                 raise RuntimeError("Synthetic initialization failure after acquire")
             instance = CapabilityInstance(
-                Operations(NAMESPACE, settings.resource_kind).bindings(
-                    self.boundary_probe, self.capability_probe
-                ),
+                replace(
+                    Operations(NAMESPACE, settings.resource_kind),
+                    sensitivity_variant=settings.sensitivity_variant,
+                    sensitivity_mutation=self.sensitivity_mutation,
+                ).bindings(self.boundary_probe, self.capability_probe),
                 scope.close,
             )
             services.lifecycle.record(IDENTITY, "opened")
@@ -75,6 +84,8 @@ class FixtureFactory:
 
 
 def factory(
-    boundary_probe: bool = False, capability_probe: bool = False
+    boundary_probe: bool = False,
+    capability_probe: bool = False,
+    sensitivity_mutation: Callable[[], Awaitable[None]] | None = None,
 ) -> CapabilityFactory[FixtureServices, Settings]:
-    return FixtureFactory(boundary_probe, capability_probe)
+    return FixtureFactory(boundary_probe, capability_probe, sensitivity_mutation)

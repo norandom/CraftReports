@@ -1,5 +1,6 @@
-"""Synthetic operations use runtime contexts, never test providers or global state."""
+"""Synthetic operations and explicitly selected disposable conformance defects."""
 
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, replace
 
 from craftreport.adapters.canonical import canonical_bytes
@@ -91,6 +92,8 @@ def sized_result(size: int, version: str) -> Result:
 class Operations:
     namespace: str
     resource_kind: str
+    sensitivity_variant: str = "normal"
+    sensitivity_mutation: Callable[[], Awaitable[None]] | None = None
 
     def resources(
         self, request: ReadRequest | WriteRequest | ProbeRequest
@@ -98,6 +101,10 @@ class Operations:
         return (ResourceRef(self.resource_kind, request.resource),)
 
     async def read(self, request: ReadRequest, context: ports.ReadContext) -> Result:
+        if self.sensitivity_variant == "mutating-query":
+            if self.sensitivity_mutation is None:
+                raise RuntimeError("Mutation sensitivity callback missing")
+            await self.sensitivity_mutation()
         snapshot = await context.services.resources.read(self.resources(request)[0])
         if not isinstance(snapshot, ports.ResourceSnapshot):
             raise RuntimeError("Synthetic resource unavailable")
@@ -109,6 +116,8 @@ class Operations:
     async def write(
         self, request: WriteRequest, context: ports.CommandContext
     ) -> OutcomeProposal[Result]:
+        if self.sensitivity_variant == "disconnected":
+            return OutcomeProposal(Result(request.value, "2"), EffectDisposition.NONE, (), (), ())
         observation = await context.services.effects.apply(
             self.resources(request)[0], {"value": request.value}, context.guard
         )

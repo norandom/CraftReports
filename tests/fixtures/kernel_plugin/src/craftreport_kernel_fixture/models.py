@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Literal
 
 from pydantic import Field
 
@@ -17,21 +18,26 @@ class Settings:
     resource_kind: str
     fail_open: bool = False
     fail_close: bool = False
+    sensitivity_variant: Literal["normal", "disconnected", "mutating-query"] = "normal"
 
 
 class SettingsWire(StrictWireModel):
     resource_kind: str = Field(min_length=1, max_length=64)
     fail_open: bool = False
     fail_close: bool = False
+    sensitivity_variant: Literal["normal", "disconnected", "mutating-query"] = "normal"
 
 
 SETTINGS = PydanticCodec(
     SettingsWire,
-    lambda wire: Settings(wire.resource_kind, wire.fail_open, wire.fail_close),
+    lambda wire: Settings(
+        wire.resource_kind, wire.fail_open, wire.fail_close, wire.sensitivity_variant
+    ),
     lambda value: {
         "resource_kind": value.resource_kind,
         "fail_open": value.fail_open,
         "fail_close": value.fail_close,
+        "sensitivity_variant": value.sensitivity_variant,
     },
     LIMITS,
 ).for_input()

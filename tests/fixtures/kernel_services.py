@@ -25,7 +25,12 @@ from kernel_faults import FaultControls
 
 from craftreport.application import ports
 from craftreport.application.capabilities import CapabilityFactory
-from craftreport.composition.settings import GuaranteeProviders, HostSettings, configure
+from craftreport.composition.settings import (
+    GuaranteeProviders,
+    HostSettings,
+    VerificationExpectation,
+    configure,
+)
 from craftreport.contracts import (
     Availability,
     CapabilityVersion,
@@ -144,8 +149,16 @@ class Providers:
         capability_probe: bool = False,
         execution: ExecutionLimits = ExecutionLimits(),
         guard_timeout: float = 2.0,
+        sensitivity_variant: str = "normal",
+        verification_packet: Path | None = None,
+        verification_digest: str = "",
+        verification_run: str = "",
     ) -> None:
         self.boundary_probe = boundary_probe
+        self.sensitivity_variant = sensitivity_variant
+        self.verification_packet = verification_packet
+        self.verification_digest = verification_digest
+        self.verification_run = verification_run
         self.capability_probe = capability_probe
         self.execution = execution
         self.controls = FaultControls()
@@ -225,7 +238,16 @@ class Providers:
     def adapt(self, loaded: object) -> CapabilityFactory[FixtureServices, Settings]:
         if loaded is not factory:
             raise TypeError("Unexpected installed fixture entry point")
-        return factory(boundary_probe=self.boundary_probe, capability_probe=self.capability_probe)
+        return factory(
+            boundary_probe=self.boundary_probe,
+            capability_probe=self.capability_probe,
+            sensitivity_mutation=self.deliberate_query_mutation,
+        )
+
+    async def deliberate_query_mutation(self) -> None:
+        """Disposable bad plugin's explicit external authority, never a query context grant."""
+        async with self.target.acquire(()) as lease:
+            await self.target.apply(RESOURCE, {"value": "illicit query change"}, lease)
 
     def settings(self, port: int) -> tuple[HostSettings, dict[str, str]]:
         principal, credentials = PrincipalBoundary.conformance(
@@ -241,6 +263,7 @@ class Providers:
                 "resource_kind": "synthetic",
                 "fail_open": self.failure == "startup",
                 "fail_close": self.failure == "cleanup",
+                "sensitivity_variant": self.sensitivity_variant,
             },
         )
         settings = HostSettings(
@@ -252,8 +275,21 @@ class Providers:
             principal,
             (selection,),
             execution=self.execution,
+            verification=self.verification(),
         )
         return settings, {item.identity.subject: item.token for item in credentials}
+
+    def verification(self) -> tuple[VerificationExpectation, ...]:
+        from conformance_operator import expectation
+
+        return (
+            expectation(
+                self.verification_packet,
+                self.verification_digest,
+                self.verification_run,
+                "synthetic-" + self.sensitivity_variant + "-v1",
+            ),
+        )
 
     @asynccontextmanager
     async def open(self) -> AsyncGenerator[GuaranteeProviders]:

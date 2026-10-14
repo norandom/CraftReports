@@ -199,7 +199,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 4.2, 4.3, 5.3, 6.2, 6.3_
   - _Requirements: 1.3, 3.4, 3.5, 6.1, 6.3, 6.5_
 
-- [ ] 8. Prove the installed system through actual clients
+- [x] 8. Prove the installed system through actual clients
 - [x] 8.1 Establish owned installed-wheel execution and evidence capture
   - Install kernel and fixture wheels into an isolated environment and launch the actual composed service on an owned loopback port with generated credentials and run-specific artifacts.
   - Provide real HTTP and official MCP client fixtures, negotiated protocol identity, sanitized transcripts and deterministic process cleanup.
@@ -227,7 +227,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 8.2_
   - _Requirements: 3.3, 3.4, 4.1, 4.2, 4.3, 4.4, 4.5, 5.1, 5.4, 5.5, 6.5, 7.2, 7.4_
 
-- [ ] 8.4 Finalize conformance evidence and test its sensitivity
+- [x] 8.4 Finalize conformance evidence and test its sensitivity
   - Aggregate case results, all requirement references, build/contract identities and cleanup outcomes into the scoped conformance record consumed by catalog verification.
   - Prove that a disposable disconnected-handler variant fails actual-effect assertions and that a deliberately misclassified query which changes canonical synthetic state fails conformance. Verify stale/failed/wrong-build records cannot report passed; restore correct wiring/classification and verify it.
   - Complete CI's installed-wheel integration stage and retain diagnostics/artifacts on failure; required cleanup failure prevents conformance acceptance.
@@ -253,6 +253,8 @@ The approved Design owns concrete file paths and signatures. Each implementer re
 Browser verification remains the next bounded spec: latest official GridCraft download, no local build, owned browser/Compose environment, screenshots/videos and actual XLSX save/reopen evidence. Passing this kernel plan cannot close that work.
 
 ## Implementation Notes
+
+- Task 8.4: independent final review approved canonical fast (590 tests, 39 subtests) and two-phase integration (611 tests plus 10 fresh-host catalog proofs). Fixed required cases, all 36 criteria, exact artifact/build identities, actual helper trees, profile and cleanup determine scoped evidence; stale helper/core/profile or altered evidence cannot reuse passing status. Installed disconnected-handler and mutating-query variants fail actual oracles; restored variants pass. Review validated 660 artifact hashes and 76 actual host cleanup records, with only two intentional lifecycle failures and no forced/unclosed/surviving processes. CI integration is enabled; hosted execution remains unverified. A recurring execution test failure was deterministically traced to leaking its injected 20 ms budget into a separate retained retry; restoring the normal test budget preserves initial timeout/no-effect assertions and guard-removal sensitivity. No production timeout changed. Earlier failed packets remain retained.
 
 - Task 8.3: independent review approved fresh canonical fast (565 tests, 39 subtests) and integration (57 tests). Installed journeys prove atomic admission before disconnect, 20 mixed-transport equivalent requests with one effect, conflicts/stale versions, prerequisite outages, partial/unknown outcomes, retained-content loss, capacity, bounded shutdown and new temporary epochs. Private controls only inject failures/checkpoints and observe; business calls use public clients. Query immutability compares canonical target fields rather than added journal audit receipts. Evidence loss returns its public rejection while private state proves no replay. Cleanup audited 58 process records: only two intentional lifecycle injections failed, no forced terminations, unclosed providers or surviving processes. Failed oracle runs remain preserved; final conformance remains 8.4.
 

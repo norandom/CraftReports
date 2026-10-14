@@ -13,13 +13,22 @@ ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "tests/fixtures/kernel_plugin"
 ENVIRONMENT_PROBE = """
 import json, platform
+from hashlib import sha256
+from pathlib import Path
+import craftreport
 from importlib.metadata import distributions
 from craftreport_kernel_fixture import factory
 from craftreport.contracts.capabilities import CORE_CONTRACT_VERSION
 manifest = factory().describe()
+kernel_root = Path(craftreport.__file__).parent
+kernel_digest = sha256()
+for source in sorted(kernel_root.rglob("*.py")):
+    kernel_digest.update(source.relative_to(kernel_root).as_posix().encode())
+    kernel_digest.update(source.read_bytes())
 print(json.dumps({"python": platform.python_version(), "packages":
     {d.metadata["Name"]: d.version for d in distributions()},
     "core_contract_version": CORE_CONTRACT_VERSION,
+    "kernel_implementation_digest": kernel_digest.hexdigest(),
     "capability": {"identity": manifest.identity, "package": manifest.package,
         "version": manifest.version, "implementation_digest": manifest.implementation_digest,
         "operations": [{"name": op.key.name, "version": op.key.contract_version,

@@ -41,6 +41,7 @@ async def test_admission_timeout_cannot_execute_after_unavailable_response() -> 
     journal = LateAdmission()
     fixture = journal_fixture(journal)
     owner = executor(fixture)
+    normal_response_seconds = owner.response_seconds
     owner.response_seconds = 0.02
     client = asyncio.create_task(owner.invoke(ALICE, fixture.request()))
     await journal.point.wait_until_reached()
@@ -48,8 +49,12 @@ async def test_admission_timeout_cannot_execute_after_unavailable_response() -> 
     assert isinstance(result, Rejection) and result.diagnostic.code == "service_unavailable"
     journal.point.release()
     assert await owner.shutdown()
+    retained = await journal.find(RetryKey("deployment", "alice", KEY, "retry"))
+    assert isinstance(retained, ports.RetainedCommand)
+    assert retained.receipt.state is ReceiptState.ACCEPTED
+    owner.response_seconds = normal_response_seconds
     retry = await owner.invoke(ALICE, fixture.request())
-    assert isinstance(retry, Receipt) and retry.state is ReceiptState.ACCEPTED
+    assert retry == retained.receipt
     assert fixture.calls == fixture.target.effect_count == 0
     assert fixture.target.active_lease is None
 

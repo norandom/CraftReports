@@ -367,6 +367,8 @@ Task 8.2 implementation clarification: an explicitly selected synthetic boundary
 
 Task 8.3 implementation clarification: bounded typed private controls arm fixture checkpoints, guarantee failures and initial-lookup races. Atomic journal admission and an active lease establish the disconnect barrier; public HTTP/MCP clients invoke, retry and inspect. Shutdown evidence uses retained final observations rather than querying a destroyed endpoint. Target unavailability remains explicit during cleanup. Canonical target fields exclude query audit records. Explicit fixture settings select target requirements and bounded execution limits; these controls do not enter production providers.
 
+Task 8.4 implementation clarification: the canonical integration command first executes kernel contracts, installed activation and actual-client cases, persists and hashes a scoped conformance packet, then verifies its consumption through fresh installed REST/MCP hosts. Fixed case/cleanup registries and observed phase reports determine status. The operator-side loader independently binds installed core/plugin content, dependencies, normal fixture profile, current complete helper trees and registries, and exact artifact readback before supplying a typed verification record. Changed provider/target implementations are exercised in isolated copies. Catalog proof is separate from the packet it consumes. This adds no production filesystem parser or durability claim.
+
 ## Data Models
 
 

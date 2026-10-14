@@ -24,9 +24,7 @@ jobs:
       - run: uv run python scripts/check.py --fast
 
   integration:
-    name: Installed-wheel conformance (pending task 8.1)
-    # A skipped stage is pending, never passing conformance. Enable when task 8.1 supplies it.
-    if: ${{ false }}
+    name: Installed-wheel synthetic conformance
     needs: fast
     runs-on: ubuntu-latest
     steps:

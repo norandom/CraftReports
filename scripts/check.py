@@ -45,21 +45,23 @@ def run_steps(root: Path, steps: list[tuple[str, list[str]]]) -> int:
 def integration_steps(root: Path, directory: Path) -> list[tuple[str, list[str]]]:
     return [
         (
-            "Installed synthetic client journeys (full conformance pending)",
+            "Kernel contracts, installed activation and synthetic client journeys",
             [
                 sys.executable,
                 "-m",
                 "pytest",
                 "-q",
-                "-m",
-                "integration",
                 str(root / "tests/kernel"),
                 "--kernel-run-dir",
                 str(directory),
                 "--junitxml",
                 str(directory / "junit.xml"),
             ],
-        )
+        ),
+        (
+            "Fresh installed catalog verification of the completed packet",
+            [sys.executable, str(root / "tests/kernel/catalog_proof.py"), str(directory)],
+        ),
     ]
 
 
