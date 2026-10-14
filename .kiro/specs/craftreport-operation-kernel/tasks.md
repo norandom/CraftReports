@@ -154,7 +154,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Requirements: 2.4, 4.5, 5.1, 5.3, 5.4, 5.5, 5.6, 6.5_
 
 - [ ] 6. Adapt ordinary clients to the shared facade
-- [ ] 6.1 Establish trusted principal adaptation
+- [x] 6.1 Establish trusted principal adaptation
   - Map authenticated transport identity into immutable caller scope without accepting authority from payloads or unverified forwarding headers.
   - Supply generated loopback test credentials and deny production requests without the configured authenticating policy; refuse remote binding of the conformance profile.
   - Done when two principals, invalid/missing credentials and payload identity-spoofing fixtures produce the expected trusted scope or rejection.
@@ -244,6 +244,8 @@ The approved Design owns concrete file paths and signatures. Each implementer re
 Browser verification remains the next bounded spec: latest official GridCraft download, no local build, owned browser/Compose environment, screenshots/videos and actual XLSX save/reopen evidence. Passing this kernel plan cannot close that work.
 
 ## Implementation Notes
+
+- Task 6.1: independent review approved trusted principal adaptation; fresh focused22tests, strict typing and boundary checks passed. Whole-workspace checkpoint363tests40subtests includes unaccepted5.3 work; the task commit's installed hook validates its isolated accepted scope. Authentication derives identity from a supplied verifier and deployment configuration; generated conformance credentials require exact127.0.0.1. Server startup must call validate_bind and wire access_policy in task7. Owner explicitly requested independent parallel implementation on2026-10-14; reviews and task commits remain separate.
 
 - Task 5.2: independent review approved canonical325tests40subtests; parent fresh admission22tests pass. Atomic admission grants one execution owner; lost acknowledgements return retained receipts without replay. Command resources require complete expected-version coverage after retry lookup. Execution must hold admission context through effects in5.3. Application1150LLOC leaves350 under currentcap. RED evidence is retained in the implementer transcript, not an artifact directory.
 
