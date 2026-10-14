@@ -126,7 +126,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Requirements: 1.5, 7.1, 7.3, 7.4_
 
 - [ ] 5. Execute through fixed guards and truthful receipts
-- [ ] 5.1 Guard invocation and inspection consistently
+- [x] 5.1 Guard invocation and inspection consistently
   - Apply coarse operation authorization before private validation diagnostics, followed by typed resource authorization, service/capability availability and query-context restrictions.
   - Protect catalog/receipt visibility and keep built-in inspection from recursively creating business work.
   - Done when invalid, denied, unsupported or unavailable requests produce structured rejection without behavior invocation or restricted disclosure; query fixtures preserve canonical target state.
@@ -265,3 +265,5 @@ Browser verification remains the next bounded spec: latest official GridCraft do
 - Task 4.2: independent review verified241tests40subtests including actual installed activation matrix. Typed configured closures preflight before opens; AsyncExitStack reverses cleanup and registry publication follows all binding checks. Installed MCP2.3 limit is128;128/129 tested. Nonblocking review suggestion: extend exact diagnostic assertions in graph/lifecycle cases when those cases change.
 
 - Task 4.3: independent review verified267tests40subtests. VerificationIdentity and resolve_verification match exact operator expectations and unique order-independent dependencies, retaining only matched scoped records. Metadata matching does not inspect evidence contents; discovery/writer integration remains later.
+
+- Task 5.1: independent review verified303tests40subtests. Guards, Inspection and QueryDispatcher implement authorization/privacy and actual retained query readback. Narrow ServiceHealth, InvocationLimits/WireFailure and ResultStore contracts clarify existing guarantees; no public result endpoint or durability added. Full Facade command composition follows5.2-5.3. Application1026LLOC leaves474 under currentcap.

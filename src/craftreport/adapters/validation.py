@@ -179,3 +179,27 @@ def decode_envelope(
         )
     except (ValidationError, ValueError, TypeError):
         raise WireFailure("invalid_input") from None
+
+
+class DecodedInvocationLimits:
+    """Fixed shared limit check after operation authorization, before preparation."""
+
+    def check(self, request: InvocationEnvelope, limits: OperationLimits) -> None:
+        value: JsonObject = {
+            "operation": request.operation.name,
+            "contract_version": request.operation.contract_version,
+            "payload": request.payload,
+            "correlation_id": request.correlation_id,
+            "retry_key": request.retry_key,
+            "expected_versions": [
+                {
+                    "resource": {"kind": pin.resource.kind, "identity": pin.resource.identity},
+                    "version": pin.version,
+                }
+                for pin in request.expected_versions
+            ],
+        }
+        bounded_object(value, limits.max_input_bytes, limits.max_nesting_depth)
+
+    def check_result(self, value: JsonObject, limits: OperationLimits) -> None:
+        bounded_object(value, limits.max_output_bytes, limits.max_nesting_depth)

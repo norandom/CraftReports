@@ -5,23 +5,12 @@ import json
 import math
 from collections.abc import Mapping
 
+from craftreport.application.dispatch_ports import WireFailure as WireFailure
 from craftreport.contracts import ExpectedVersion, JsonObject, OperationKey, ResourceRef
 from craftreport.contracts.values import JsonValue
 
 NORMALIZATION_POLICY = "craftreport-json-v1"
 MAX_SAFE_INTEGER = 2**53 - 1
-
-
-class WireFailure(ValueError):
-    """Safe boundary diagnostic; never includes submitted values."""
-
-    def __init__(
-        self, code: str, *, location: tuple[str | int, ...] = (), limit: str | None = None
-    ) -> None:
-        self.code = code
-        self.location = location
-        self.limit = limit
-        super().__init__(code)
 
 
 def wire_value(value: JsonValue, max_depth: int | None = 32, depth: int = 0) -> JsonValue:
