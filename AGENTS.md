@@ -1,0 +1,86 @@
+# Agentic SDLC and Spec-Driven Development
+
+Kiro-style Spec-Driven Development on an agentic SDLC
+
+## Project Memory
+Project memory keeps persistent guidance (steering, specs notes, component docs) so Codex honors your standards each run. Treat it as the long-lived source of truth for patterns, conventions, and decisions.
+
+- Use `.kiro/steering/` for project-wide policies: architecture principles, naming schemes, security constraints, tech stack decisions, api standards, etc.
+- Use local `AGENTS.md` files for feature or library context (e.g. `src/lib/payments/AGENTS.md`): describe domain assumptions, API contracts, or testing conventions specific to that folder. Codex auto-loads these when working in the matching path.
+- Specs notes stay with each spec (under `.kiro/specs/`) to guide specification-level workflows.
+
+## Project Context
+
+### Paths
+- Steering: `.kiro/steering/`
+- Specs: `.kiro/specs/`
+
+### Steering vs Specification
+
+**Steering** (`.kiro/steering/`) - Guide AI with project-wide rules and context
+**Specs** (`.kiro/specs/`) - Formalize development process for individual features
+
+### Active Specifications
+- Check `.kiro/specs/` for active specifications
+- Use `$kiro-spec-status [feature-name]` to check progress
+
+## Development Guidelines
+- Think in English, generate responses in English. All Markdown content written to project files (e.g., requirements.md, design.md, tasks.md, research.md, validation reports) MUST be written in the target language configured for this specification (see spec.json.language).
+
+## Minimal Workflow
+- Phase 0 (optional): `$kiro-steering`, `$kiro-steering-custom`
+- Discovery: `$kiro-discovery "idea"` — determines action path, writes brief.md + roadmap.md for multi-spec projects
+- Phase 1 (Specification):
+  - Single spec: `$kiro-spec-quick {feature} [--auto]` or step by step:
+    - `$kiro-spec-init "description"`
+    - `$kiro-spec-requirements {feature}`
+    - `$kiro-validate-gap {feature}` (optional: for existing codebase)
+    - `$kiro-spec-design {feature} [-y]`
+    - `$kiro-validate-design {feature}` (optional: design review)
+    - `$kiro-spec-tasks {feature} [-y]`
+  - Multi-spec: `$kiro-spec-batch` — creates all specs from roadmap.md in parallel by dependency wave
+- Phase 2 (Implementation): `$kiro-impl {feature} [tasks] [--review required|inline|off]`
+  - Without task numbers: autonomous mode (subagent per task + independent review + final validation)
+  - With task numbers: manual mode (selected tasks in main context, still reviewer-gated before completion)
+  - `--review off` skips task-local review; use it intentionally and keep `$kiro-validate-impl {feature}` as the final quality gate
+  - `$kiro-validate-impl {feature}` (standalone re-validation)
+- Progress check: `$kiro-spec-status {feature}` (use anytime)
+
+## Skills Structure
+Skills are located in `.agents/skills/kiro-*/SKILL.md`
+- Each skill is a directory with a `SKILL.md` file
+- Use `/skills` to inspect currently available skills
+- Invoke a skill directly with `$kiro-<skill-name>`
+- `kiro-review` — task-local adversarial review protocol used by reviewer subagents
+- `kiro-debug` — root-cause-first debug protocol used by debugger subagents
+- `kiro-verify-completion` — fresh-evidence gate before success or completion claims
+- Use skills explicitly requested by the user and skills relevant to the task's domain, including design, accessibility, and UX.
+- Select skills from their descriptions or metadata first, then read only the selected skills and the references needed for the task.
+- Follow explicit host and project rules and retain required workflow checks. Do not skip relevant skills just because the task is small.
+
+## Subagents
+
+Current Codex releases enable subagents by default. Use the available tools when the user, project rules, or this skill's workflow calls for delegation; no experimental feature flag is required. An administrator or user can disable subagents by setting `enabled = false` under `[agents]` in Codex configuration.
+
+Use a fresh context for each independent implementer or reviewer, passing the task-relevant inputs explicitly. If delegation is unavailable, follow the skill's inline fallback and identify the review as inline. Skill discovery alone does not prove subagent execution or independent review.
+
+## Development Rules
+- 3-phase approval workflow: Requirements → Design → Tasks → Implementation
+- Human review required each phase; use `-y` only for intentional fast-track
+- Keep steering current and verify alignment with `$kiro-spec-status`
+- Follow the user's instructions precisely, and within that scope act autonomously: gather the necessary context and complete the requested work end-to-end in this run, asking questions only when essential information is missing or the instructions are critically ambiguous.
+
+## Steering Configuration
+- For spec and implementation work, load the core steering files below from `.kiro/steering/`. Reuse current context rather than rereading unchanged files.
+- Load additional steering only when required by project rules or relevant to the task.
+- Default files: `product.md`, `tech.md`, `structure.md`
+- Custom files are supported (managed via `$kiro-steering-custom`)
+
+## CraftReport Development Gates
+
+- For scope, ownership, verification, integration, or implementation work, read `.kiro/steering/overview.md`, `.kiro/steering/testing.md`, `.kiro/steering/engineering.md`, and `.kiro/steering/breadth.md` in addition to relevant core steering.
+- Read `breadth.toml` for actual/planned capability ownership and lifecycle; read `quality.toml` for engineering requirements and proposed/approved limits. Draft status never implies a working gate or phase approval.
+- Every acceptance-critical action needs a typed interaction contract and evidence of its real external effect. Critical app paths include browser/native interaction, actual saved/exported artifacts, and reopen/read-back where promised.
+- Use project-isolated Craft app deployments and browser profiles/contexts. Match the tested page/window, document, engine and artifact identities; headless MCP success cannot establish browser/native UI behavior.
+- Typed Python, Ruff lint/format and pre-commit hooks are mandatory when the approved foundation is implemented. CI uses the same pinned checks; numeric budget proposals require review before enforcement.
+- Register new specs/modules/features in the breadth ledger before task/code expansion. Parked extensions may not be activated through general parent ownership. Respect Kiro approvals and existing completion gates.

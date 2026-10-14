@@ -17,9 +17,9 @@ Financial/forensic accounting, invoices, book reports, tax sheets, and WordCraft
 
 ## Current Reality
 
-- Two specifications exist: the umbrella has approved foundation requirements; the operation kernel has approved requirements, Design and Tasks, with implementation authorized on 2026-10-13. The owner approved the five-part split, and the remaining four bounded specs are not initialized. Kernel implementation is starting with the engineering foundation.
+- Two specifications exist: the umbrella has approved foundation requirements; the operation kernel has approved requirements, Design and Tasks, with implementation authorized on 2026-10-13. The owner approved the five-part split, and the remaining four bounded specs are not initialized. Kernel implementation is in progress; its task checklist records accepted work.
 - Existing GridCraft prototype files demonstrate a narrow historical live-update workflow. They are not the Python core or a financial validation engine.
-- Task 1.1 established and verified the minimal Python package and lock. Tasks 1.2–1.3 verified standalone size/branching, breadth and import gates. Task 1.4 has passing local fast-command, installed-hook and clean-checkout evidence; CI is configured but has not run remotely. Product operations, Compose stack and browser harness remain pending.
+- Task 1.1 established and verified the minimal Python package and lock. Tasks 1.2-1.3 verified standalone size/branching, breadth and import gates. Task 1.4 has passing local fast-command, installed-hook and clean-checkout evidence; CI is configured but has not run remotely. On 2026-10-14 a separate Compose probe served the official GridCraft web release; Playwright captured the rendered sample dashboard and video. Reporting operations and the reusable browser/artifact acceptance harness remain pending.
 - `breadth.toml` is the draft lifecycle ledger. Its actual and planned paths are deliberately separate.
 - `quality.toml` records approved kernel tool/limit decisions with explicit scope. Locked tools and the standalone size/branching gate are verified; local hook enforcement is verified and CI uses the same configured command; hosted CI execution is unverified. Future capability budgets remain subject to review.
 
