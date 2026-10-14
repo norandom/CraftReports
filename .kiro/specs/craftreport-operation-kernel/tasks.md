@@ -70,7 +70,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Requirements: 1.4, 2.1, 2.2, 2.5, 3.5_
 
 - [ ] 3. Build independent core collaborators
-- [ ] 3.1 (P) Preserve wire values and canonical retry content
+- [x] 3.1 (P) Preserve wire values and canonical retry content
   - Implement the shared strict input/result conversion path, explicit serializers, versioned normalization and stable request fingerprinting.
   - Cover forbidden extra fields, unsafe integer/decimal representations, booleans versus integers, numeric strings, defaults, array order and object-key order. Enforce decoded-envelope size, nesting depth and the advertised serialized-output limit in the common conversion boundary.
   - Done when equivalent decoded requests have the same normalized content/fingerprint and altered preconditions conflict; invalid or over-depth inputs never reach behavior, and oversized results become result-contract failures with truthful effect status.
@@ -253,3 +253,5 @@ Browser verification remains the next bounded spec: latest official GridCraft do
 - Task 2.2: resumed 2026-10-14 with fresh independent approval and canonical98tests40subtests. Public success signatures preserve Design; structured exceptions distinguish unavailable/guard/catalog failures, and admission retains its explicit result union. Read/command contexts are disjoint; provider atomicity remains later verification.
 
 - Task 2.3: independent review and fresh canonical110tests40subtests passed. Typed closures preserve request/result pairing and command observations across encoding failure; immutable catalog resolves exact keys and checks advertised descriptors. Wire validation and outcome policy remain downstream.
+
+- Task 3.1: independent rereview verified163tests40subtests after correcting fingerprint wrapper-depth and strict float coercion. Explicit PydanticCodec.for_input() gives request normalization its input budget; result codecs keep output budgets. Hashing consumes already validated normalized content without a second depth admission cap.
