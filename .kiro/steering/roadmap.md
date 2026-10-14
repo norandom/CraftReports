@@ -51,8 +51,8 @@ None authorized. Core steering and research documentation are current; productio
 
 ## Specs (dependency order)
 
-1. [craftreport-operation-kernel](../specs/craftreport-operation-kernel/requirements.md) â€” requirements, Design and Tasks approved; all 26 executable tasks accepted with final synthetic-scope validation. Upstream: approved umbrella baseline. Downstream: browser verification is initialized; the other three scopes remain uninitialized.
-2. [craftreport-browser-verification](../specs/craftreport-browser-verification/requirements.md) â€” requirements and Design approved; 18 tasks approved after independent graph review; implementation is in progress. Proves the released-browser interaction and actual file boundary, without implementing the reporting service.
+1. [craftreport-operation-kernel](../specs/craftreport-operation-kernel/requirements.md) — requirements, Design and Tasks approved; all 26 executable tasks accepted with final synthetic-scope validation. Upstream: approved umbrella baseline. Downstream: browser verification is initialized; the other three scopes remain uninitialized.
+2. [craftreport-browser-verification](../specs/craftreport-browser-verification/requirements.md) — requirements and Design approved; 18 tasks approved after independent graph review; implementation is in progress. Proves the released-browser interaction and actual file boundary, without implementing the reporting service.
 
 This is a sequential review plan, not authorization for batch generation or execution. Kernel acceptance supports shared contracts only; the umbrella stays open for the complete reporting journeys.
 
