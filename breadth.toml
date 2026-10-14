@@ -16,15 +16,15 @@ approved_spec_scopes = ["craftreport-operation-kernel"]
 approved_capability_owners = ["contracts", "application", "adapters", "interfaces", "composition", "development-gates", "documentation"]
 scope_approval_reference = ".kiro/specs/craftreport-operation-kernel/design-review.md"
 gate_implemented = true
-spec_count = 2
+spec_count = 3
 generated_task_sets = 1
 actual_python_modules = 36
 actual_plugin_packages = 0
 planned_plugin_packages = 19
 plugin_root = "packages"
 planned_module_capabilities = 13
-open_fronts = 1
-open_front_ids = ["spec.craftreport-reporting-facade"]
+open_fronts = 2
+open_front_ids = ["spec.craftreport-browser-verification", "spec.craftreport-reporting-facade"]
 source_root = "src/craftreport"
 work_lines_source = ".kiro/steering/overview.md"
 retirement_limit_days = 14
@@ -57,6 +57,18 @@ closure_required = false
 close_targets = []
 closure_executed = true
 closure_evidence = ".kiro/specs/craftreport-operation-kernel/closure-evidence.json"
+
+[spec.craftreport-browser-verification]
+status = "active"
+line = "quality-verification"
+phase_source = ".kiro/specs/craftreport-browser-verification/spec.json"
+phase_at_draft = "initialized"
+status_since = "2026-10-14"
+owner = [".kiro/specs/craftreport-browser-verification"]
+path_state = "existing-documents"
+closes = "n/a (active; initialization and requirements generation authorized; phase approvals required before implementation)"
+closure_required = false
+close_targets = []
 
 [capability.contracts]
 kind = "module"

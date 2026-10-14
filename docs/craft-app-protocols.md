@@ -21,11 +21,14 @@ Microsoft 365 for the web's external-storage integration.
 | --- | --- | --- | --- |
 | Editing state | WASM application in the selected browser page | Server document engine with a browser client | Microsoft editor service with its browser experience |
 | What you host | Static HTML/JS/WASM assets, as in this repository's nginx recipe | Collabora service plus integration with a document storage/access-control host | Your storage/WOPI host and embedding page; Microsoft supplies the web editor |
-| File boundary | Browser file picker for Open; Save downloads a file | WOPI host supplies document access and persistence | WOPI host exposes file identity, metadata, content and updates |
+| File boundary | Browser file picker for Open; Save picker or download fallback | WOPI host supplies document access and persistence | WOPI host exposes file identity, metadata, content and updates |
 | Main integration work | Prove control of the actual browser workbook and explicit save/reopen | Connect editor, WOPI host and browser, including session routing | Discovery, host page, tokens, WOPI operations and program requirements |
 
 GridCraft's [release mode contract](https://github.com/storytold/gridcraft/blob/v0.6.1/apps/gridcraft-web/src/main.rs)
 describes browser file picking/downloads and the absence of native TCP control.
+The [release-tagged browser implementation](https://github.com/storytold/gridcraft/blob/v0.6.1/apps/gridcraft-web/src/web.rs)
+attempts a native Save picker when available and otherwise uses a download
+fallback; cancellation is not persistence. Verify the route actually exercised.
 This is upstream behavior, not evidence that CraftReport has tested every file
 operation. Collabora's [architecture and integration FAQ](https://www.collaboraonline.com/faqs/)
 places document processing on the server and storage/access control with the

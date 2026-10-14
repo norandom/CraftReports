@@ -17,15 +17,16 @@ the approval authority.
 | Order | Bounded scope | Evidence needed before relying on it |
 | --- | --- | --- |
 | 1 | [Operation kernel](../.kiro/specs/craftreport-operation-kernel/requirements.md) | Typed contracts, shared guards and installed REST/MCP behavior with independently observed effects, result readback, cleanup and current conformance evidence |
-| 2 | Browser verification | An owned browser running the downloaded official release, retained screenshots/video/diagnostics, and real save/reopen feasibility with app, document and artifact identities matched |
+| 2 | [Browser verification](../.kiro/specs/craftreport-browser-verification/requirements.md) | An owned browser running the downloaded official release, retained screenshots/video/diagnostics, and real edit/save/reopen feasibility with app, document and artifact identities matched |
 | 3 | Snapshot runtime | Validated producer publication, ordered immutable snapshots, retained operation/binding state, scheduling and truthful restart reconciliation |
 | 4 | Report model and packs | Declarative report compilation, compatible versioned templates/themes, public/private pack separation and scoped draft/release findings |
 | 5 | GridCraft web reports | Owned report regions, controls, visible live refresh and actual XLSX export through the composed system, including reopen and content comparison |
 
-Only the operation kernel has an initialized bounded specification. The other
-four entries require their own Requirements, Design and Tasks reviews before
-implementation. Browser feasibility can be researched early; integrated app
-reports depend on the browser proof, snapshot runtime and report/packs contracts.
+The operation kernel is complete within its synthetic scope. Browser verification
+is now initialized with generated requirements awaiting review; Design and Tasks
+remain unapproved. The other three entries are not initialized and require their
+own Requirements, Design and Tasks reviews before implementation. Integrated app
+reports depend on browser proof, snapshot runtime and report/packs contracts.
 The umbrella [foundation requirements](../.kiro/specs/craftreport-reporting-facade/requirements.md)
 remain the acceptance baseline.
 
