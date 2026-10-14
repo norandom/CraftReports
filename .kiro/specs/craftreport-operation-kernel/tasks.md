@@ -69,7 +69,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Boundary: Registry_
   - _Requirements: 1.4, 2.1, 2.2, 2.5, 3.5_
 
-- [ ] 3. Build independent core collaborators
+- [x] 3. Build independent core collaborators
 - [x] 3.1 (P) Preserve wire values and canonical retry content
   - Implement the shared strict input/result conversion path, explicit serializers, versioned normalization and stable request fingerprinting.
   - Cover forbidden extra fields, unsafe integer/decimal representations, booleans versus integers, numeric strings, defaults, array order and object-key order. Enforce decoded-envelope size, nesting depth and the advertised serialized-output limit in the common conversion boundary.
@@ -88,7 +88,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 1.4, 2.1, 2.2, 2.3_
   - _Requirements: 2.4, 4.5, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6_
 
-- [ ] 3.3 (P) Supply deterministic synthetic guarantee providers
+- [x] 3.3 (P) Supply deterministic synthetic guarantee providers
   - Implement test-only authorization, atomic journal/observation state, guarded versions, capability/evidence lookup and an independently readable synthetic target.
   - Provide barriers and bounded failure controls for concurrent admission, lost acknowledgement, unavailable evidence and effect interruption.
   - Done when provider conformance cases show one atomic winner, monotone receipt revisions and explicit temporary retention/epoch; no production fallback is exported.
@@ -257,3 +257,5 @@ Browser verification remains the next bounded spec: latest official GridCraft do
 - Task 3.1: independent rereview verified163tests40subtests after correcting fingerprint wrapper-depth and strict float coercion. Explicit PydanticCodec.for_input() gives request normalization its input budget; result codecs keep output budgets. Hashing consumes already validated normalized content without a second depth admission cap.
 
 - Task 3.2: independent review verified214tests40subtests. Pure OutcomeFacts require dispatcher-supplied codec/provider facts; authoritative completion pins can differ from admission versions. Required-stage refs also occur in top-level evidence, and stage pass labels reflect inspected evidence. New scoped reconciliation resolves ambiguity; journal CAS/provider provenance remain later tasks.
+
+- Task 3.3: independent review verified234tests40subtests. Fixture providers stay under tests/kernel with temporary single-event-loop state and explicit epochs. Target-wide non-reentrant guard is bounded; lost acknowledgements follow actual retained writes. Later installed fixture assembly must wire providers explicitly; plugin code depends only on public contracts.
