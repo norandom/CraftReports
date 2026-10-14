@@ -65,7 +65,7 @@ uv run --frozen python scripts/check.py --fast
 uv run --frozen python -m pytest -q tests/kernel/test_fixture_packaging.py
 uv run --frozen python -m pytest -q tests/kernel/test_activation.py
 
-# Installed-wheel harness smoke checks; full conformance remains pending.
+# Installed-wheel client journeys; full conformance remains pending.
 uv run --frozen python scripts/check.py --integration
 ```
 
@@ -79,7 +79,7 @@ The installed hook takes no staged filenames and runs the whole-scope gate.
 Install it for each clone. [CI](../.github/workflows/kernel.yml) uses the same
 command on pushes, pull requests, manual runs and a daily schedule. Hosted CI
 execution has not yet been verified. The separate integration command records
-harness smoke evidence; it does not complete the remaining conformance tasks.
+synthetic client evidence; it does not complete the remaining conformance tasks.
 
 ## Run the installed harness
 
@@ -92,8 +92,8 @@ uv.exe run --frozen python scripts/check.py --integration
 Use `uv` in place of `uv.exe` outside the Windows workstation. The harness builds
 wheels for the kernel and synthetic capability, then installs them offline in an
 isolated environment. The composed service owns one loopback listener. Generated
-credentials travel through pipes only. REST catalog checks and official MCP client
-discovery exercise that installed service without an AI service or private pack.
+credentials travel through pipes only. REST and official MCP clients exercise discovery, commands, query readback,
+retained retries, permissions and limits without an AI service or private pack.
 The run also exercises deliberate startup and cleanup failures.
 
 Inspect the run directory printed by the command:
@@ -106,14 +106,21 @@ Inspect the run directory printed by the command:
 | Per-case diagnostics and cleanup transcripts | Failure details and evidence that owned resources closed |
 
 A successful run records `harness_smoke` as passed while `conformance_status`
-remains pending. Tasks 8.2 through 8.4 still own the remaining conformance checks.
+remains pending. Tasks 8.3 and 8.4 still own disconnect/concurrency and final conformance checks.
 An expected injected failure passes only when its case observes the expected
 failure and cleanup; an unexpected startup, discovery or cleanup failure fails
 the run. Read the failing case's diagnostics before rerunning. Missing cleanup
 evidence cannot support a successful cleanup claim.
 
-This harness establishes installed-service smoke behavior with synthetic
-providers. Production durability, Craft browser behavior and saved or reopened
+The boundary cases opt into `synthetic.probe` in the independently installed fixture.
+Its recursive input reaches depth 8, padding reaches 4096 decoded envelope bytes,
+and a sized result reaches 4096 output bytes. Each cap is also exceeded by one.
+Successful commands and oversized post-effect results are checked against the
+independent target; rejected inputs leave its value, version and effect count unchanged.
+Per-case `purpose.json` states the requirement references, and sanitized transcripts
+retain actual requests and responses. The default fixture still exposes two operations.
+
+This harness establishes installed-service behavior with synthetic providers. Production durability, Craft browser behavior and saved or reopened
 XLSX artifacts require their own evidence.
 
 ## Verify the effect you promise

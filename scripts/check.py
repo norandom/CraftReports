@@ -45,7 +45,7 @@ def run_steps(root: Path, steps: list[tuple[str, list[str]]]) -> int:
 def integration_steps(root: Path, directory: Path) -> list[tuple[str, list[str]]]:
     return [
         (
-            "Installed runtime harness smoke (full conformance pending)",
+            "Installed synthetic client journeys (full conformance pending)",
             [
                 sys.executable,
                 "-m",
@@ -53,7 +53,7 @@ def integration_steps(root: Path, directory: Path) -> list[tuple[str, list[str]]
                 "-q",
                 "-m",
                 "integration",
-                str(root / "tests/kernel/test_conformance.py"),
+                str(root / "tests/kernel"),
                 "--kernel-run-dir",
                 str(directory),
                 "--junitxml",

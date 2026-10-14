@@ -88,7 +88,8 @@ class ReadbackEffects:
 
 
 class Providers:
-    def __init__(self, run_dir: Path, failure: str | None) -> None:
+    def __init__(self, run_dir: Path, failure: str | None, *, boundary_probe: bool = False) -> None:
+        self.boundary_probe = boundary_probe
         self.run_dir = run_dir
         self.failure = failure
         self.events: list[str] = []
@@ -119,17 +120,42 @@ class Providers:
             {
                 OperationKey("synthetic.read", "1"): "read",
                 OperationKey("synthetic.write", "1"): "write",
+                OperationKey("synthetic.probe", "1"): "write",
+                # Authorize resolution of an unsupported version independently of visibility denial.
+                OperationKey("synthetic.write", "2"): "write",
             },
         )
+
+    async def observe(self, result_ref: str | None = None) -> dict[str, object]:
+        snapshot = await self.target.read(RESOURCE)
+        if not isinstance(snapshot, ports.ResourceSnapshot):
+            raise RuntimeError("Independent target unavailable")
+        value = snapshot.content["value"]
+        if not isinstance(value, str):
+            raise RuntimeError("Independent target value invalid")
+        return {
+            "epoch": self.journal.epoch,
+            "resource": RESOURCE.identity,
+            "value": value,
+            "version": snapshot.version.version,
+            "effect_count": self.target.effect_count,
+            "result": next(
+                (
+                    dict(value)
+                    for key, value in self.results.values.items()
+                    if key[:2] == ("deployment", "alice") and key[3] == result_ref
+                ),
+                None,
+            ),
+        }
 
     def record(self, capability: str, event: str) -> None:
         self.events.append(event)
 
-    @staticmethod
-    def adapt(loaded: object) -> CapabilityFactory[FixtureServices, Settings]:
+    def adapt(self, loaded: object) -> CapabilityFactory[FixtureServices, Settings]:
         if loaded is not factory:
             raise TypeError("Unexpected installed fixture entry point")
-        return factory()
+        return factory(boundary_probe=self.boundary_probe)
 
     def settings(self, port: int) -> tuple[HostSettings, dict[str, str]]:
         principal, credentials = PrincipalBoundary.conformance(

@@ -1,7 +1,8 @@
 """Synthetic operations use runtime contexts, never test providers or global state."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
+from craftreport.adapters.canonical import canonical_bytes
 from craftreport.application import ports
 from craftreport.application.registry import (
     BoundOperation,
@@ -23,11 +24,23 @@ from craftreport.contracts import (
     StageState,
 )
 
-from .models import LIMITS, READ, RESULT, WRITE, ReadRequest, Result, WriteRequest
+from .models import (
+    LIMITS,
+    PROBE,
+    READ,
+    RESULT,
+    WRITE,
+    ProbeRequest,
+    ReadRequest,
+    Result,
+    WriteRequest,
+)
 
 
-def descriptors(namespace: str, resource_kind: str) -> tuple[OperationDescriptor, ...]:
-    return (
+def descriptors(
+    namespace: str, resource_kind: str, boundary_probe: bool = False
+) -> tuple[OperationDescriptor, ...]:
+    base = (
         OperationDescriptor(
             OperationKey(f"{namespace}.write", "1"),
             OperationKind.COMMAND,
@@ -55,6 +68,20 @@ def descriptors(namespace: str, resource_kind: str) -> tuple[OperationDescriptor
             EvidencePolicy(),
         ),
     )
+    if not boundary_probe:
+        return base
+    return (
+        *base,
+        replace(base[0], key=OperationKey(f"{namespace}.probe", "1"), input_schema=PROBE.schema()),
+    )
+
+
+def sized_result(size: int, version: str) -> Result:
+    """Return exactly size compact UTF-8 JSON bytes, retaining the observed version."""
+    overhead = len(canonical_bytes({"value": "", "version": version}))
+    if size < overhead:
+        raise ValueError("Requested output cannot contain the observed version")
+    return Result("x" * (size - overhead), version)
 
 
 @dataclass(frozen=True)
@@ -62,7 +89,9 @@ class Operations:
     namespace: str
     resource_kind: str
 
-    def resources(self, request: ReadRequest | WriteRequest) -> tuple[ResourceRef, ...]:
+    def resources(
+        self, request: ReadRequest | WriteRequest | ProbeRequest
+    ) -> tuple[ResourceRef, ...]:
         return (ResourceRef(self.resource_kind, request.resource),)
 
     async def read(self, request: ReadRequest, context: ports.ReadContext) -> Result:
@@ -100,11 +129,37 @@ class Operations:
         )
         return OutcomeProposal(result, observation.effect, (stage,), observation.evidence, ())
 
-    def bindings(self) -> tuple[BoundOperation, ...]:
+    async def probe(
+        self, request: ProbeRequest, context: ports.CommandContext
+    ) -> OutcomeProposal[Result]:
+        observation = await self.write(WriteRequest(request.resource, request.value), context)
+        observation = replace(
+            observation,
+            diagnostics=tuple(
+                replace(item, operation=OperationKey(f"{self.namespace}.probe", "1"))
+                for item in observation.diagnostics
+            ),
+        )
+        if observation.result is None or request.output_size == 0:
+            return observation
+        return replace(
+            observation, result=sized_result(request.output_size, observation.result.version)
+        )
+
+    def bindings(self, boundary_probe: bool = False) -> tuple[BoundOperation, ...]:
         write, read = descriptors(self.namespace, self.resource_kind)
-        return (
+        base = (
             OperationBinding(
                 write, WRITE, RESULT, CommandBehavior(self.write), self.resources
             ).bind(),
             OperationBinding(read, READ, RESULT, QueryBehavior(self.read), self.resources).bind(),
+        )
+        if not boundary_probe:
+            return base
+        probe = descriptors(self.namespace, self.resource_kind, True)[2]
+        return (
+            *base,
+            OperationBinding(
+                probe, PROBE, RESULT, CommandBehavior(self.probe), self.resources
+            ).bind(),
         )

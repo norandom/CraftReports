@@ -25,8 +25,10 @@ class BootstrapTests(unittest.TestCase):
         self.assertEqual(len(steps), 1)
         command = steps[0][1]
         self.assertEqual(command[0], sys.executable)
-        self.assertIn(str(ROOT / "tests/kernel/test_conformance.py"), command)
-        self.assertIn("integration", command)
+        self.assertIn(str(ROOT / "tests/kernel"), command)
+        self.assertEqual(command[command.index("-m", 3) + 1], "integration")
+        self.assertEqual(command[command.index("--kernel-run-dir") + 1], str(directory))
+        self.assertIn("--junitxml", command)
         self.assertIn(str(directory / "junit.xml"), command)
 
     def test_command_requires_exactly_one_mode(self) -> None:

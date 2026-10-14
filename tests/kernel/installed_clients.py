@@ -60,12 +60,22 @@ def rest_client(owner: InstalledProcess, principal: str = "alice") -> Generator[
 
 
 @asynccontextmanager
-async def mcp_client(owner: InstalledProcess, principal: str = "alice") -> AsyncGenerator[Client]:
+async def mcp_client(
+    owner: InstalledProcess,
+    principal: str = "alice",
+    *,
+    token: str | None = None,
+    headers: dict[str, str] | None = None,
+) -> AsyncGenerator[Client]:
     assert owner.control is not None
+    credential = token if token is not None else owner.control.credentials[principal]
     async with (
         asyncio.timeout(owner.timeout),
         httpx2.AsyncClient(
-            headers={"Authorization": f"Bearer {owner.control.credentials[principal]}"},
+            headers={
+                **({"Authorization": f"Bearer {credential}"} if token != "" else {}),
+                **(headers or {}),
+            },
             timeout=5,
             trust_env=False,
         ) as http,

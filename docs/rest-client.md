@@ -4,8 +4,8 @@ The REST router exposes `GET /health/ready`, `GET /v1/catalog`,
 `POST /v1/invoke` and `GET /v1/operations/{operation_id}`. The
 [host assembly](kernel-host.md) supplies lifecycle and both interfaces.
 The [installed harness](development.md#run-the-installed-harness) checks REST
-catalog discovery over loopback; full conformance remains pending for tasks
-8.2 through 8.4.
+discovery, invocation and retained retries across REST and MCP over loopback.
+Disconnect/concurrency journeys and final conformance evidence remain tasks 8.3–8.4.
 Readiness reports activation readiness and deployment epoch only.
 
 Send a deployment-issued bearer credential. Identity, scope and authorization
@@ -67,3 +67,12 @@ are conservatively unavailable. Provider exceptions never expose their raw text.
 Current synthetic retention is temporary; inspect deployment epoch and retention
 profile rather than assuming restart durability. Runtime capacity/wait/shutdown
 configuration discovery is completed with host composition.
+
+The installed journey examples are executable in
+[`test_installed_journeys.py`](../tests/kernel/test_installed_journeys.py). They use
+`synthetic.write` with payload `{"resource": "target-1", "value": "changed"}`
+and the `synthetic` resource kind. The examples above retain the smaller adapter
+test fixture contract. Use the [public result readback contract](result-readback.md) to retrieve a query's
+retained value through REST or MCP. The installed journeys compare both public
+responses with private retained-result inspection and the independent target value,
+version and effect count.

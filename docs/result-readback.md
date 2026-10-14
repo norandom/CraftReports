@@ -117,5 +117,10 @@ representation. Temporary synthetic storage has no restart durability guarantee.
 `tests/kernel/test_result_readback.py` and `test_result_readback_examples.py` exercise
 these paths and examples through real guarded execution, REST ASGI and the official
 MCP client. They check identity, authorization, exact content and unchanged synthetic
-target value/version/effect count. Installed socket parity belongs to task 8.2;
-this evidence does not establish production durability, browser behavior or XLSX output.
+target value/version/effect count. Task 8.2's
+`tests/kernel/test_installed_journeys.py` retrieves command and query results through
+both ordinary transports from the installed service. Its independent target and
+private retained-result observations must match the publicly retrieved value.
+`test_installed_permissions.py` checks foreign-principal denial on both result
+interfaces. This evidence does not establish production durability, browser behavior
+or XLSX output.

@@ -363,6 +363,8 @@ REST exposes GET `/v1/operations/{operation_id}/result`; MCP exposes built-in `c
 
 Task 6.4 establishes focused contract and transport evidence. Task 8.2 retrieves results through ordinary installed clients in both transport orders and compares them with private independent target observations; private observations cannot substitute for caller retrieval. Query and retrieval preserve target value, version and effect count.
 
+Task 8.2 implementation clarification: an explicitly selected synthetic boundary probe makes exact input, nesting and output limits reachable without changing the default fixture operation set. Typed bounded private observations serve as independent target/result oracles. Installed clients retrieve command and query results through the approved public REST/MCP paths in both transport orders. The integration command selects all marked kernel tests, with unique evidence and owned cleanup.
+
 ## Data Models
 
 

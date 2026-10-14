@@ -209,7 +209,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 1.4, 4.1, 7_
   - _Requirements: 6.1, 6.3, 7.1, 7.4_
 
-- [ ] 8.2 Verify cross-transport behavior and permission boundaries
+- [x] 8.2 Verify cross-transport behavior and permission boundaries
   - Retrieve query content through public REST/MCP result readback and compare it with the private independent target oracle. Exercise discovery, command invocation, query readback and an equivalent retry through the other transport, using the real installed composition with AI disabled.
   - Compare normalized values, accepted identity, result/error meanings and evidence; exercise hidden schemas, denied resources, wrong versions, malformed input and both principals. Verify advertised input size, nesting depth and serialized-output caps at and beyond each boundary through both transports, including the recorded effect status after an oversized result.
   - Done when independent target inspection confirms one intended effect and the same retained retry identity, while negative cases produce no effect or private disclosure.
@@ -253,6 +253,8 @@ The approved Design owns concrete file paths and signatures. Each implementer re
 Browser verification remains the next bounded spec: latest official GridCraft download, no local build, owned browser/Compose environment, screenshots/videos and actual XLSX save/reopen evidence. Passing this kernel plan cannot close that work.
 
 ## Implementation Notes
+
+- Task 8.2: independent rereview approved canonical fast (560 tests, 39 subtests) and installed integration (20 tests). Both transport orders publicly retrieve command/query results through REST and MCP, compared with private retained-content and independent target observations; foreign-principal reads disclose no value. Exact advertised input/output/depth limits and over-limit effect status are exercised. Integration command selects all marked kernel tests; bootstrap assertions retain marker/run-directory/JUnit checks. All 20 cleanup records inspected, only intentional lifecycle injections failed, no forced termination or surviving owned processes. Full conformance remains pending tasks 8.3–8.4.
 
 - Task 6.4: owner-approved result-readback amendment implemented and independently approved. Fresh canonical fast passed 559 tests and 39 subtests; 27 focused checks exercise real facade, REST and official MCP over ASGI, public schemas and executable examples. Retrieval authorizes the receipt before scoped content lookup, preserves exact reference/value and existing state, and creates no business work. Existing invoke/inspect status semantics remain unchanged. Application 1,449/1,500 LLOC; installed socket parity remains task 8.2.
 

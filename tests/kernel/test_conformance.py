@@ -36,7 +36,9 @@ def test_forced_startup_preserves_failure_and_cleanup(installed_runtime: Install
     assert owner.cleanup["status"] == "failed"
     assert owner.cleanup["exit_code"] != 0
     assert owner.cleanup["forced_termination"] is False
-    assert (owner.directory / "server-diagnostics.log").is_file()
+    assert "Synthetic initialization failure after acquire" in (
+        owner.directory / "server-diagnostics.log"
+    ).read_text(encoding="utf-8")
 
 
 def test_forced_cleanup_cannot_pass(installed_runtime: InstalledFixture) -> None:
@@ -51,6 +53,9 @@ def test_forced_cleanup_cannot_pass(installed_runtime: InstalledFixture) -> None
     assert owner.cleanup["status"] == "failed"
     assert owner.cleanup["exit_code"] != 0
     assert owner.cleanup["forced_termination"] is False
+    assert "Synthetic cleanup failure after release" in (
+        owner.directory / "server-diagnostics.log"
+    ).read_text(encoding="utf-8")
     _assert_secrets_absent(installed_runtime.directory, owner.secrets)
 
 

@@ -1,11 +1,13 @@
 """Strict wire schemas explicitly converted to immutable handler values."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 from pydantic import Field
 
 from craftreport.adapters.validation import PydanticCodec, StrictWireModel
-from craftreport.contracts import OperationLimits
+from craftreport.contracts import JsonObject, OperationLimits
 
 LIMITS = OperationLimits(max_input_bytes=4096, max_nesting_depth=8, max_output_bytes=4096)
 
@@ -83,3 +85,51 @@ RESULT = PydanticCodec(
     lambda value: {"value": value.value, "version": value.version},
     LIMITS,
 )
+
+
+@dataclass(frozen=True, slots=True)
+class ProbeNode:
+    child: ProbeNode | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ProbeRequest:
+    resource: str
+    value: str
+    padding: str = ""
+    nesting: ProbeNode | None = None
+    output_size: int = 0
+
+
+class ProbeNodeWire(StrictWireModel):
+    child: ProbeNodeWire | None = None
+
+
+class ProbeWire(WriteWire):
+    padding: str = ""
+    nesting: ProbeNodeWire | None = None
+    output_size: int = Field(default=0, ge=0, le=8192)
+
+
+def _node(wire: ProbeNodeWire | None) -> ProbeNode | None:
+    return None if wire is None else ProbeNode(_node(wire.child))
+
+
+def _node_wire(value: ProbeNode | None) -> JsonObject | None:
+    return None if value is None else {"child": _node_wire(value.child)}
+
+
+PROBE = PydanticCodec(
+    ProbeWire,
+    lambda wire: ProbeRequest(
+        wire.resource, wire.value, wire.padding, _node(wire.nesting), wire.output_size
+    ),
+    lambda value: {
+        "resource": value.resource,
+        "value": value.value,
+        "padding": value.padding,
+        "nesting": _node_wire(value.nesting),
+        "output_size": value.output_size,
+    },
+    LIMITS,
+).for_input()

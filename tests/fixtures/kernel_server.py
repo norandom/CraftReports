@@ -1,4 +1,4 @@
-"""Isolated installed-wheel host; stdout is a private one-record control pipe."""
+"""Isolated installed-wheel host; stdout is a private typed control pipe."""
 
 import argparse
 import asyncio
@@ -16,9 +16,12 @@ from pathlib import Path
 HELPERS = Path(__file__).resolve().parent
 sys.path.extend((str(HELPERS), str(HELPERS.parent / "kernel")))
 
+from typing import Literal  # noqa: E402
+
 import craftreport_kernel_fixture  # noqa: E402
 import kernel_services  # noqa: E402
 from kernel_services import Providers  # noqa: E402
+from pydantic import BaseModel, ConfigDict, Field, ValidationError  # noqa: E402
 
 import craftreport  # noqa: E402
 from craftreport.composition.app import BoundServer, open_application  # noqa: E402
@@ -39,13 +42,30 @@ def installed_origins() -> dict[str, str]:
     return origins
 
 
-def shutdown_reader(loop: asyncio.AbstractEventLoop, server: BoundServer) -> None:
+class ObserveCommand(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    command: Literal["observe"]
+    request_id: str = Field(min_length=1, max_length=64)
+    result_ref: str | None = Field(default=None, max_length=128)
+
+
+def shutdown_reader(
+    loop: asyncio.AbstractEventLoop, server: BoundServer, providers: Providers
+) -> None:
     # A daemon thread also works with Windows anonymous pipes; EOF closes the host.
     while True:
         command = sys.stdin.readline()
         if command == "" or command.rstrip("\r\n") == "shutdown":
             break
-        print("kernel_server rejected unknown control command", file=sys.stderr, flush=True)
+        try:
+            request = ObserveCommand.model_validate_json(command)
+        except ValidationError:
+            print("kernel_server rejected unknown control command", file=sys.stderr, flush=True)
+            continue
+        future = asyncio.run_coroutine_threadsafe(providers.observe(request.result_ref), loop)
+        print(
+            json.dumps({"request_id": request.request_id, **future.result(timeout=5)}), flush=True
+        )
     try:
         loop.call_soon_threadsafe(server.request_shutdown)
     except RuntimeError:
@@ -60,11 +80,13 @@ async def serve(providers: Providers, imports: dict[str, str]) -> None:
         settings, credentials = providers.settings(port)
         async with open_application(settings, providers.open()) as application:
             # Uvicorn configures access output on stdout by default. Keep the control
-            # pipe exclusively for its one JSON record, retaining all logs on stderr.
+            # pipe for startup and observation records, retaining all logs on stderr.
             with redirect_stdout(sys.stderr):
                 server = application.server(listener)
             thread = threading.Thread(
-                target=shutdown_reader, args=(asyncio.get_running_loop(), server), daemon=True
+                target=shutdown_reader,
+                args=(asyncio.get_running_loop(), server, providers),
+                daemon=True,
             )
             thread.start()
             print(
@@ -92,11 +114,12 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("run_dir", type=Path)
     parser.add_argument("--failure", choices=("startup", "cleanup"))
+    parser.add_argument("--boundary-probe", action="store_true")
     args = parser.parse_args()
     run_dir = Path(str(args.run_dir)).resolve()
     run_dir.mkdir(parents=True, exist_ok=True)
     failure = str(args.failure) if args.failure is not None else None
-    providers = Providers(run_dir, failure)
+    providers = Providers(run_dir, failure, boundary_probe=bool(args.boundary_probe))
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     code = 0
     try:

@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from types import TracebackType
 from typing import IO
+from uuid import uuid4
 
 from fixture_packaging import ROOT, InstalledFixture
 from pydantic import BaseModel, ConfigDict, Field
@@ -26,6 +27,16 @@ class Control(BaseModel):
     parent_pid: int
     epoch: str
     fixture: dict[str, str]
+
+
+class TargetObservation(BaseModel):
+    request_id: str
+    epoch: str
+    resource: str
+    value: str
+    version: str
+    effect_count: int
+    result: dict[str, str] | None = None
 
 
 class StartupFailure(RuntimeError):
@@ -56,6 +67,7 @@ class InstalledProcess:
     installed: InstalledFixture
     name: str
     failure: str = "none"
+    boundary_probe: bool = False
     timeout: float = 20
     process: subprocess.Popen[str] | None = field(default=None, init=False, repr=False)
     control: Control | None = field(default=None, init=False, repr=False)
@@ -87,6 +99,8 @@ class InstalledProcess:
             str(ROOT / "tests/fixtures/kernel_server.py"),
             str(self.directory),
         ]
+        if self.boundary_probe:
+            command.append("--boundary-probe")
         if self.failure != "none":
             command.extend(("--failure", self.failure))
         environment = {
@@ -128,12 +142,32 @@ class InstalledProcess:
     def _reader(self, pipe: IO[str], *, control: bool) -> None:
         def consume() -> None:
             if control:
-                self._messages.put(pipe.readline())
-            self._diagnostics.extend(pipe.readlines())
+                for line in pipe:
+                    self._messages.put(line)
+            else:
+                self._diagnostics.extend(pipe.readlines())
 
         thread = threading.Thread(target=consume, daemon=True)
         thread.start()
         self._readers.append(thread)
+
+    def observe(self, result_ref: str | None = None) -> TargetObservation:
+        assert self.process is not None and self.process.stdin is not None
+        request_id = uuid4().hex
+        self.process.stdin.write(
+            json.dumps({"command": "observe", "request_id": request_id, "result_ref": result_ref})
+            + "\n"
+        )
+        self.process.stdin.flush()
+        observation = TargetObservation.model_validate_json(
+            self._messages.get(timeout=self.timeout)
+        )
+        assert observation.request_id == request_id
+        assert self.control is not None and observation.epoch == self.control.epoch
+        write_json(self.directory / "target-observation.json", observation.model_dump())
+        with (self.directory / "target-observations.jsonl").open("a", encoding="utf-8") as stream:
+            stream.write(observation.model_dump_json() + "\n")
+        return observation
 
     def _startup(self) -> Control:
         deadline = time.monotonic() + self.timeout

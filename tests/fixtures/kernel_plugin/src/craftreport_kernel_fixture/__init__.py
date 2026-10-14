@@ -33,6 +33,9 @@ def implementation_digest() -> str:
 
 
 class FixtureFactory:
+    def __init__(self, boundary_probe: bool = False) -> None:
+        self.boundary_probe = boundary_probe
+
     def describe(self) -> CapabilityManifest:
         return CapabilityManifest(
             IDENTITY,
@@ -42,7 +45,7 @@ class FixtureFactory:
             (CapabilityVersion(IDENTITY, "1.0.0"),),
             (),
             SETTINGS.schema(),
-            descriptors(NAMESPACE, RESOURCE_KIND),
+            descriptors(NAMESPACE, RESOURCE_KIND, self.boundary_probe),
             implementation_digest(),
         )
 
@@ -59,7 +62,8 @@ class FixtureFactory:
                 services.lifecycle.record(IDENTITY, "open_failed")
                 raise RuntimeError("Synthetic initialization failure after acquire")
             instance = CapabilityInstance(
-                Operations(NAMESPACE, settings.resource_kind).bindings(), scope.close
+                Operations(NAMESPACE, settings.resource_kind).bindings(self.boundary_probe),
+                scope.close,
             )
             services.lifecycle.record(IDENTITY, "opened")
             yield instance
@@ -67,5 +71,5 @@ class FixtureFactory:
             await scope.close()
 
 
-def factory() -> CapabilityFactory[FixtureServices, Settings]:
-    return FixtureFactory()
+def factory(boundary_probe: bool = False) -> CapabilityFactory[FixtureServices, Settings]:
+    return FixtureFactory(boundary_probe)
