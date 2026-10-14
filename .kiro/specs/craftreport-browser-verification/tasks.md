@@ -76,7 +76,7 @@ The existing probe on 8871 is preserved.
   - _Boundary: Release_
   - _Requirements: 1.1, 1.2, 1.3, 6.6_
 
-- [ ] 2.2 Select an owned Compose deployment or verify an explicit external target
+- [x] 2.2 Select an owned Compose deployment or verify an explicit external target
   - Use the existing static recipe with a unique project, verified absolute mount,
     labels and available port; preserve 8871 and unrelated services.
   - Implement Debian WSL and native Linux command/path handling plus external
@@ -293,3 +293,5 @@ Deployments here are disposable verification infrastructure, not product release
 
 - 2.1 accepted after malformed-deflate rejection repair: official latest v0.7.0 asset/checksum and cache reuse independently verified; focused 37 passed, canonical fast 718 passed/65 subtests; source 943/1,500 LLOC. Evidence `artifacts/browser-verification/task-2.1`. No deployment/browser acceptance follows.
 - Owner authorized replacing the existing 8871 probe on 2026-10-14: it now serves verified v0.7.0 assets with a successful rendering smoke, screenshot and finalized video under `artifacts/gridcraft-deployment-probe/browser-0.7.0`. Disposable harness runs still preserve that operator-owned service.
+
+- 2.2 accepted after delayed-start cleanup repair: focused 17 passed, canonical fast 735 passed/65 subtests; actual WSL owned/external asset hashes, normal cleanup and unrelated resource preservation independently reviewed. Ambiguous Compose startup retains failed cleanup/project ownership; no daemon quiescence claim. Native Linux has command/path unit coverage only. Source 1,195/1,500 LLOC. Evidence `artifacts/browser-verification/task-2.2/remediation-*`.
