@@ -107,7 +107,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 2.3, 3.1, 3.3_
   - _Requirements: 1.1, 1.2, 1.4, 2.5, 7.1, 7.4_
 
-- [ ] 4.2 Validate and atomically activate the selected capability set
+- [x] 4.2 Validate and atomically activate the selected capability set
   - Select only configured distribution/entry-point identities and validate explicit dependencies, version compatibility, settings, reserved names, generated tool names and binding consistency.
   - Initialize in dependency order, publish only the complete registry and unwind acquired resources on initialization or cleanup failure.
   - Done when the activation matrix proves selected-only imports, collision/cycle/incompatibility rejection and no partially published registry or leaked fixture lifecycle resources.
@@ -261,3 +261,5 @@ Browser verification remains the next bounded spec: latest official GridCraft do
 - Task 3.3: independent review verified234tests40subtests. Fixture providers stay under tests/kernel with temporary single-event-loop state and explicit epochs. Target-wide non-reentrant guard is bounded; lost acknowledgements follow actual retained writes. Later installed fixture assembly must wire providers explicitly; plugin code depends only on public contracts.
 
 - Task 4.1: independent review verified240tests40subtests with real offline wheel installs/origin checks and executable author docs. Generic CapabilityFactory/CapabilityInstance defines the public author boundary; closer/context share one idempotent resource owner. Pyright fixture source extraPath is typing-only. Variant builds and lifecycle probes remain test-only; activation follows in4.2.
+
+- Task 4.2: independent review verified241tests40subtests including actual installed activation matrix. Typed configured closures preflight before opens; AsyncExitStack reverses cleanup and registry publication follows all binding checks. Installed MCP2.3 limit is128;128/129 tested. Nonblocking review suggestion: extend exact diagnostic assertions in graph/lifecycle cases when those cases change.

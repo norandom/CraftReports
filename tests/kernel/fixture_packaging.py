@@ -27,6 +27,42 @@ print(json.dumps({"python": platform.python_version(), "packages":
 """
 
 
+def activation_variant(content: str, variant: str) -> str:
+    dependencies = {
+        "dependent": ("synthetic", ">=1,<2"),
+        "wrongrange": ("synthetic", ">=2"),
+        "cyclea": ("cycleb", ">=1"),
+        "cycleb": ("cyclea", ">=1"),
+    }
+    if variant in dependencies:
+        identity, version = dependencies[variant]
+        content = content.replace(
+            "            (),\n            SETTINGS.schema(),",
+            f"            (CapabilityRequirement({identity!r}, {version!r}),),\n"
+            "            SETTINGS.schema(),",
+        ).replace(
+            "CapabilityManifest, CapabilityVersion",
+            "CapabilityManifest, CapabilityVersion, CapabilityRequirement",
+        )
+    replacements = {
+        "provideddup": (
+            'CapabilityVersion(IDENTITY, "1.0.0")',
+            'CapabilityVersion("synthetic", "1.0.0")',
+        ),
+        "tooldup": ('NAMESPACE = "tooldup"', 'NAMESPACE = "synthetic"'),
+        "reserved": ('NAMESPACE = "reserved"', 'NAMESPACE = "craftreport.private"'),
+        "badversion": ("distribution(PACKAGE).version", '"9.0.0"'),
+        "badpackage": ("            PACKAGE,", '            "wrong-package",'),
+        "mismatch": (
+            "Operations(NAMESPACE, settings.resource_kind)",
+            'Operations("different", settings.resource_kind)',
+        ),
+    }
+    if variant in replacements:
+        content = content.replace(*replacements[variant])
+    return content
+
+
 def variant_source(directory: Path, variant: str) -> Path:
     """Build negative cases from owned copies; never mutate the canonical fixture."""
     source = directory / variant
@@ -54,7 +90,16 @@ def variant_source(directory: Path, variant: str) -> Path:
         content = content.replace('CORE_RANGE = ">=1.0,<2.0"', 'CORE_RANGE = ">=9.0,<10.0"')
     if variant == "unselected":
         content += '\nraise RuntimeError("Unselected fixture was imported")\n'
-    init.write_text(content)
+    init.write_text(activation_variant(content, variant))
+    if variant in ("tool128", "tool129"):
+        operations = source / "src" / module / "operations.py"
+        version = "1" * (int(variant[4:]) - len(variant + ".write.v"))
+        operations.write_text(
+            operations.read_text().replace(
+                'OperationKey(f"{namespace}.write", "1")',
+                f'OperationKey(f"{{namespace}}.write", "{version}")',
+            )
+        )
     return source
 
 
@@ -88,13 +133,14 @@ class InstalledFixture:
         (self.directory / "inventory.json").write_text(json.dumps(identity, indent=2))
 
 
-def build_fixture(directory: Path) -> InstalledFixture:
+def build_fixture(directory: Path, extra_variants: tuple[str, ...] = ()) -> InstalledFixture:
     uv = shutil.which("uv")
     assert uv is not None
     wheels = directory / "wheels"
     wheels.mkdir()
     variants = tuple(
-        variant_source(directory, v) for v in ("unselected", "incompatible", "collision")
+        variant_source(directory, v)
+        for v in ("unselected", "incompatible", "collision", *extra_variants)
     )
     for source in (ROOT, SOURCE, *variants):
         run(

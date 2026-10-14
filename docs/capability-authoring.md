@@ -34,7 +34,7 @@ during activation.
 Validate raw settings with the declared schema and typed codec **before** calling
 `open`. The fixture defensively repeats validation before acquiring resources.
 Its required resource kind must match the advertised resource declaration.
-`fail_open` and `fail_close` are synthetic failure controls for later activation
+`fail_open` and `fail_close` are synthetic failure controls for activation
 tests. Never allow plugin settings to disable the kernel's shared guards.
 
 The following example runs against the installed fixture wheel. The packaging
@@ -105,17 +105,43 @@ by the frozen lock, and runs isolated Python probes. Variants are copied into
 owned temporary build directories: `unselected` raises on import,
 `incompatible` declares an unsupported core version, and `collision` duplicates
 the base capability/operation identities. The canonical fixture is never
-rewritten. These are inputs for activation tests, not additional production
-plugins or a claim that task 4.2 activation validation already exists.
+rewritten. Activation tests add installed variants for dependency graphs,
+identity/version mismatches, binding mismatches and MCP name limits.
 
 Installation is distinct from selection, initialization, and verified support.
-The future activator selects exact distribution/entry-point pairs before loading,
+The activator selects exact distribution/entry-point pairs before loading,
 requires explicitly enabled dependencies, and publishes only a fully validated
 registry. Capability code is trusted deployment code; typed contexts and import
 boundaries do not sandbox malicious Python.
 
+Deployment code uses `composition.settings.configure(distribution, entry_point,
+adapt, services, codec, settings)` for each selected entry point. `adapt` accepts
+the loaded callable as `object`, checks the author contract and returns the
+specific `CapabilityFactory[Services, Settings]`. The selection closes over that
+typed factory, its purpose-specific service bundle and strict settings codec;
+use `PydanticCodec.for_input()` for settings. Its schema must match the manifest.
+Python package spelling is canonicalized (case, hyphens, underscores and dots);
+the entry-point name must match exactly.
+
+Use `async with composition.plugins.activate(selections) as registry:` and keep
+registry use inside that lifetime. All selected settings and compatibility are
+checked before any factory opens. Required capabilities must be explicitly
+selected; initialization follows dependency order. A complete immutable
+registry is yielded only after every binding matches its advertised descriptor.
+Context exit unwinds in reverse order, including after initialization failure,
+cancellation or cleanup failure. Cleanup exceptions propagate with their original
+exception context. Treat unsuccessful context exit as failed deployment cleanup.
+
+The `craftreport` namespace is reserved for core identities and operations.
+Generated names append `.v` and the positive integer contract version. The
+installed MCP 2.3.0 SDK's `mcp.shared.tool_name_validation` limit is 128 characters;
+activation rejects names above it. This validates naming, not transport behavior.
+
+Run `uv.exe run --frozen python -m pytest -q tests/kernel/test_activation.py` for
+the isolated installed activation matrix, including selected-only imports,
+dependency order, strict settings and reverse release on failures.
+
 This example supports requirements 1.1, 1.2, 1.4, 2.5, 7.1 and 7.4 within
 synthetic packaging and author-contract scope. It does not establish production
 durability, browser/native behavior, financial accuracy, or reporting-artifact
-fidelity. Full activation, transport and conformance acceptance remain later
-kernel tasks.
+fidelity. Transport and conformance acceptance remain later kernel tasks.
