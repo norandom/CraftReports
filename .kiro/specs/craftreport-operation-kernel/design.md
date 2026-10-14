@@ -353,6 +353,8 @@ Task 6.2 implementation clarification: interfaces receive an application-owned `
 
 ## Data Models
 
+Task 6.3 implementation clarification: the shared `TransportWire.envelope_schema` accepts an optional payload schema for authorized MCP tool discovery. Its adapter embeds that schema under `properties.payload` and rebases document-local pointers without expanding recursive definitions or rewriting instance-valued annotations. Explicit schema-resource scopes remain intact. MCP maps each authorized tool name to one exact operation/version and checks the supplied envelope identity at invocation; SDK schema publication alone does not enforce that binding. The host continues to own framing limits, Host/Origin policy and session lifespan.
+
 ### Domain and Logical Model
 
 No physical database schema is owned here.

@@ -153,7 +153,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 3.2, 3.3, 5.2_
   - _Requirements: 2.4, 4.5, 5.1, 5.3, 5.4, 5.5, 5.6, 6.5_
 
-- [ ] 6. Adapt ordinary clients to the shared facade
+- [x] 6. Adapt ordinary clients to the shared facade
 - [x] 6.1 Establish trusted principal adaptation
   - Map authenticated transport identity into immutable caller scope without accepting authority from payloads or unverified forwarding headers.
   - Supply generated loopback test credentials and deny production requests without the configured authenticating policy; refuse remote binding of the conformance profile.
@@ -172,7 +172,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 3.1, 5.3, 6.1_
   - _Requirements: 2.1, 2.3, 3.1, 3.2, 5.2, 5.6, 6.1, 6.2, 6.3, 6.4_
 
-- [ ] 6.3 Expose registry-driven MCP tools with identical semantics
+- [x] 6.3 Expose registry-driven MCP tools with identical semantics
   - Adapt ordinary MCP discovery/calls to the same registry, trusted principal and facade; preserve exact operation/version mapping and authorized deterministic tool ordering.
   - Return canonical structured results plus compatible JSON text, distinguishing protocol errors from rejected/failed/partial/ambiguous business outcomes.
   - Done when adapter checks demonstrate the same payload/error meanings as REST, no AI dependency and explicit unknown-tool rejection.
@@ -244,6 +244,8 @@ The approved Design owns concrete file paths and signatures. Each implementer re
 Browser verification remains the next bounded spec: latest official GridCraft download, no local build, owned browser/Compose environment, screenshots/videos and actual XLSX save/reopen evidence. Passing this kernel plan cannot close that work.
 
 ## Implementation Notes
+
+- Task 6.3: independent review approved the canonical fast pipeline with 489 tests and 40 subtests. Official MCP clients over ASGI exercise the shared Execution and independently observed synthetic effects, including a retained REST retry. Explicit tool-to-envelope identity checks supplement published schema constants; private discovery uses the current principal. Schema embedding preserves recursive local references and resource scopes. Post-effect serialization failure reports unavailable while retaining the operation for inspection. Composition owns framing, Host/Origin and session lifespan; installed socket acceptance remains downstream.
 
 - Task 6.2: independent rereview approved the canonical fast pipeline with 445 tests and 40 subtests. REST uses the injected application-owned TransportWire contract and shared codecs, with no interface-to-adapter imports. Actual ASGI cases prove guarded effects, safe field/limit diagnostics, private discovery and canonical outcomes; duplicate preconditions retain their affected location. Raw framing limits are separately advertised. MCP parity, runtime-limit discovery and installed socket verification remain tasks 6.3, 7 and 8.
 

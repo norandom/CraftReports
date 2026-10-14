@@ -426,3 +426,23 @@ async def test_duplicate_expected_resources_have_public_envelope_location() -> N
         assert response.json()["correlation_id"] == "client-correlation"
         assert "operation_id" not in response.json()
         assert fixture.target.effect_count == 0
+
+
+@pytest.mark.anyio
+async def test_rest_mcp_retained_retry_and_error_parity() -> None:
+    from test_mcp import connection
+
+    fixture = AdmissionFixture()
+    fixture.catalog = replace(fixture.catalog, operations=fixture.registry.describe())
+    owner = executor(fixture)
+    async with client(fixture, owner=owner) as rest, connection(fixture, owner) as mcp:
+        response = await rest.post("/v1/invoke", json=envelope())
+        retry = await mcp.call_tool("fixture.write.v1", envelope())
+        assert retry.structured_content == response.json()
+        assert not retry.is_error
+        invalid = envelope(payload={"value": 123}, retry_key="bad")
+        rest_error = await rest.post("/v1/invoke", json=invalid)
+        mcp_error = await mcp.call_tool("fixture.write.v1", invalid)
+        assert mcp_error.structured_content == rest_error.json()
+        assert mcp_error.is_error
+        assert fixture.target.effect_count == 1

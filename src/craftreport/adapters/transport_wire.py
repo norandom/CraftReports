@@ -1,6 +1,7 @@
 """Explicit canonical serializers and shared REST/MCP outcome semantics."""
 
 from craftreport.adapters.canonical import canonical_bytes
+from craftreport.adapters.schema_embedding import embed_payload_schema
 from craftreport.adapters.transport_models import EnvelopeWire, InvocationWire
 from craftreport.adapters.validation import decode_envelope
 from craftreport.contracts import (
@@ -104,11 +105,15 @@ def encode_invocation_result(result: InvocationResult) -> JsonObject:
     return freeze_object(value)
 
 
-def envelope_schema(key: OperationKey | None = None) -> JsonObject:
+def envelope_schema(
+    key: OperationKey | None = None, payload_schema: JsonObject | None = None
+) -> JsonObject:
     schema = EnvelopeWire.model_json_schema()
     if key is not None:
         schema["properties"]["operation"]["const"] = key.name
         schema["properties"]["contract_version"]["const"] = key.contract_version
+    if payload_schema is not None:
+        schema["properties"]["payload"] = embed_payload_schema(payload_schema)
     return freeze_object(schema)
 
 
@@ -244,8 +249,10 @@ class TransportWireAdapter:
     def encode_catalog(self, catalog: Catalog) -> JsonObject:
         return encode_catalog(catalog)
 
-    def envelope_schema(self, key: OperationKey | None = None) -> JsonObject:
-        return envelope_schema(key)
+    def envelope_schema(
+        self, key: OperationKey | None = None, payload_schema: JsonObject | None = None
+    ) -> JsonObject:
+        return envelope_schema(key, payload_schema)
 
     def invocation_result_schema(self) -> JsonObject:
         return invocation_result_schema()
