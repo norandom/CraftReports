@@ -1,8 +1,8 @@
 # Develop the CraftReport kernel
 
 Start by reproducing the engineering checks, then choose an approved kernel task.
-There is no standalone installed-service launcher yet. The current executable
-work includes [host assembly](kernel-host.md), operation registration, capability
+The installed harness provides an isolated synthetic service for verification.
+The current executable work includes [host assembly](kernel-host.md), operation registration, capability
 activation, shared guards and REST/MCP interfaces; the
 [task list](../.kiro/specs/craftreport-operation-kernel/tasks.md) records the
 remaining implementation and review gates.
@@ -65,7 +65,7 @@ uv run --frozen python scripts/check.py --fast
 uv run --frozen python -m pytest -q tests/kernel/test_fixture_packaging.py
 uv run --frozen python -m pytest -q tests/kernel/test_activation.py
 
-# Reserved integration entry point: currently reports unavailable and exits 1.
+# Installed-wheel harness smoke checks; full conformance remains pending.
 uv run --frozen python scripts/check.py --integration
 ```
 
@@ -78,8 +78,43 @@ Tests have separate size accounting from production code.
 The installed hook takes no staged filenames and runs the whole-scope gate.
 Install it for each clone. [CI](../.github/workflows/kernel.yml) uses the same
 command on pushes, pull requests, manual runs and a daily schedule. Hosted CI
-execution has not yet been verified. Its separate conformance job is explicitly
-skipped pending the installed-system harness.
+execution has not yet been verified. The separate integration command records
+harness smoke evidence; it does not complete the remaining conformance tasks.
+
+## Run the installed harness
+
+From the locked development environment, run:
+
+```powershell
+uv.exe run --frozen python scripts/check.py --integration
+```
+
+Use `uv` in place of `uv.exe` outside the Windows workstation. The harness builds
+wheels for the kernel and synthetic capability, then installs them offline in an
+isolated environment. The composed service owns one loopback listener. Generated
+credentials travel through pipes only. REST catalog checks and official MCP client
+discovery exercise that installed service without an AI service or private pack.
+The run also exercises deliberate startup and cleanup failures.
+
+Inspect the run directory printed by the command:
+
+| Artifact under `artifacts/<run-id>/` | What to inspect |
+| --- | --- |
+| `kernel-manifest.json` | Installed identities, run scope and conformance status |
+| `cases.json` | Each case's observed result, phase and duration |
+| `junit.xml` | Machine-readable case results |
+| Per-case diagnostics and cleanup transcripts | Failure details and evidence that owned resources closed |
+
+A successful run records `harness_smoke` as passed while `conformance_status`
+remains pending. Tasks 8.2 through 8.4 still own the remaining conformance checks.
+An expected injected failure passes only when its case observes the expected
+failure and cleanup; an unexpected startup, discovery or cleanup failure fails
+the run. Read the failing case's diagnostics before rerunning. Missing cleanup
+evidence cannot support a successful cleanup claim.
+
+This harness establishes installed-service smoke behavior with synthetic
+providers. Production durability, Craft browser behavior and saved or reopened
+XLSX artifacts require their own evidence.
 
 ## Verify the effect you promise
 

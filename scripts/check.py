@@ -3,7 +3,9 @@
 import argparse
 import subprocess
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
+from uuid import uuid4
 
 
 def fast_steps(root: Path) -> list[tuple[str, list[str]]]:
@@ -40,20 +42,41 @@ def run_steps(root: Path, steps: list[tuple[str, list[str]]]) -> int:
     return 0
 
 
+def integration_steps(root: Path, directory: Path) -> list[tuple[str, list[str]]]:
+    return [
+        (
+            "Installed runtime harness smoke (full conformance pending)",
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "-q",
+                "-m",
+                "integration",
+                str(root / "tests/kernel/test_conformance.py"),
+                "--kernel-run-dir",
+                str(directory),
+                "--junitxml",
+                str(directory / "junit.xml"),
+            ],
+        )
+    ]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run CraftReport verification.")
     modes = parser.add_mutually_exclusive_group(required=True)
     modes.add_argument("--fast", action="store_true", help="Run engineering and focused tests")
     modes.add_argument("--integration", action="store_true", help="Run installed-wheel conformance")
     args = parser.parse_args()
+    root = Path(__file__).resolve().parents[1]
     if args.fast:
-        root = Path(__file__).resolve().parents[1]
         return run_steps(root, fast_steps(root))
-    print(
-        "integration check unavailable: conformance harness task 8.1 is not implemented.",
-        file=sys.stderr,
-    )
-    return 1
+    run_id = datetime.now(UTC).strftime("kernel-%Y%m%dT%H%M%S-") + uuid4().hex[:8]
+    directory = root / "artifacts" / run_id
+    directory.mkdir(parents=True)
+    print(f"Evidence: {directory}", flush=True)
+    return run_steps(root, integration_steps(root, directory))
 
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@ fast_checks_passing = true
 installed_hook_passing = true
 ci_configured = true
 ci_run_verified = false
-integration_available = false
+integration_available = true
 capability_source = "breadth.toml"
 
 [tooling]

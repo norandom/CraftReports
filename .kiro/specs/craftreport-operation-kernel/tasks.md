@@ -191,7 +191,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Requirements: 1.3, 3.4, 3.5, 6.1, 6.3, 6.5_
 
 - [ ] 8. Prove the installed system through actual clients
-- [ ] 8.1 Establish owned installed-wheel execution and evidence capture
+- [x] 8.1 Establish owned installed-wheel execution and evidence capture
   - Install kernel and fixture wheels into an isolated environment and launch the actual composed service on an owned loopback port with generated credentials and run-specific artifacts.
   - Provide real HTTP and official MCP client fixtures, negotiated protocol identity, sanitized transcripts and deterministic process cleanup.
   - Done when the integration command boots the installed service, discovers the selected fixture and records wheel/lock/environment identities; readiness alone is not reported as conformance.
@@ -244,6 +244,8 @@ The approved Design owns concrete file paths and signatures. Each implementer re
 Browser verification remains the next bounded spec: latest official GridCraft download, no local build, owned browser/Compose environment, screenshots/videos and actual XLSX save/reopen evidence. Passing this kernel plan cannot close that work.
 
 ## Implementation Notes
+
+- Task 8.1: independent review passed fresh canonical fast (532 tests, 39 subtests) and integration (3 tests). Installed kernel/plugin origins, real REST and official MCP discovery, negotiated protocol, wheel/lock identities and graceful owned cleanup were verified; no recorded processes remained. Generated credentials are excluded from persisted evidence. Windows launcher/runtime PIDs differ and require verified parentage. Injected startup/cleanup failures retain failed records without forced termination. Full conformance remains 8.2–8.4. When extending failure cases, assert their specific injected diagnostics; task 8.4 must update stale CI wording while enabling integration.
 
 - Task 7: independent review approved the canonical fast pipeline with 532 tests and 40 subtests. Explicit provider and activation contexts assemble one Execution for REST/MCP; activation snapshots retain manifests and shared catalogs expose actual execution settings. The host validates its retained socket, applies interface-owned Host/Origin and bounded MCP framing checks, and propagates lifecycle failures even if Uvicorn only logs them. Missing guarantees prevent effects; unsuccessful execution shutdown fails cleanup while remaining owned resources unwind. Task 8 must use this production assembly with installed wheels and real clients; current evidence is synthetic ASGI integration.
 

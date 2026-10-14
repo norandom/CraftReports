@@ -3,13 +3,15 @@
 Use `open_application(settings, provider_context)` to connect installed capabilities
 to one guarded execution pipeline and both ordinary interfaces. The host owns
 activation, MCP sessions and admitted work. Your deployment supplies guarantee
-providers and authentication. There is no production provider bundle or installed
-service launcher in this repository yet.
+providers and authentication. The installed harness supplies synthetic providers
+for verification; a production provider bundle remains deployment work.
 
 The assembly tests exercise REST and the official MCP client against the same ASGI
-application, with independent synthetic target readback. Installed-wheel socket
-conformance remains task 8. These tests establish neither durable recovery nor
-Craft browser or exported-artifact behavior.
+application, with independent synthetic target readback. The
+[installed harness](development.md#run-the-installed-harness) exercises startup,
+REST/MCP discovery and cleanup over an owned loopback socket. Its `harness_smoke`
+result leaves `conformance_status` pending for tasks 8.2 through 8.4. These checks
+establish neither durable recovery nor Craft browser or exported-artifact behavior.
 
 ## Supply the deployment boundary
 

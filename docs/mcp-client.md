@@ -6,8 +6,9 @@ same retry key and normalized content when retrying through MCP or REST.
 
 The example below runs in the adapter tests against real guarded execution and a
 readable synthetic target. The [shared host assembly](kernel-host.md) also exercises
-MCP and REST together. A standalone installed-service launcher and socket
-conformance remain task 8. Deployments supply the endpoint and bearer credential.
+MCP and REST together. The [installed harness](development.md#run-the-installed-harness)
+checks official MCP client discovery over loopback; full conformance remains
+pending for tasks 8.2 through 8.4. Deployments supply the endpoint and bearer credential.
 
 ## Discover, write and inspect
 

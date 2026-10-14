@@ -3,7 +3,9 @@
 The REST router exposes `GET /health/ready`, `GET /v1/catalog`,
 `POST /v1/invoke` and `GET /v1/operations/{operation_id}`. The
 [host assembly](kernel-host.md) supplies lifecycle and both interfaces.
-Installed-wheel socket conformance remains task 8.
+The [installed harness](development.md#run-the-installed-harness) checks REST
+catalog discovery over loopback; full conformance remains pending for tasks
+8.2 through 8.4.
 Readiness reports activation readiness and deployment epoch only.
 
 Send a deployment-issued bearer credential. Identity, scope and authorization

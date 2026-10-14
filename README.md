@@ -8,7 +8,8 @@ The repository directory is named `GridDash`; the Python package is `craftreport
 Development currently centers on the operation kernel: typed operations,
 capability packages, shared guards and evidence contracts. It is not yet a
 complete reporting service. The shared REST/MCP host assembly has focused synthetic
-tests; installed-system conformance still has open tasks. See the
+tests and an installed-wheel harness smoke path; full installed-system conformance
+still has open tasks. See the
 [kernel task list](.kiro/specs/craftreport-operation-kernel/tasks.md) for current
 progress and [approval metadata](.kiro/specs/craftreport-operation-kernel/spec.json)
 for the authorized phase.
@@ -45,8 +46,11 @@ the PowerShell wrapper. Dependencies and tool versions are pinned in
 
 The fast command runs Ruff, strict Pyright, size and branching checks, ownership
 and import checks, and focused tests. Passing it establishes those checks only.
-The separate integration command currently exits nonzero because its harness is
-pending; a skipped CI integration job is not a passing result.
+Run `uv.exe run --frozen python scripts/check.py --integration` on Windows (`uv`
+elsewhere) for installed-wheel startup, REST/MCP discovery and cleanup checks.
+Results appear under `artifacts/<run-id>/`. A passing `harness_smoke` result leaves
+`conformance_status` pending until tasks 8.2 through 8.4 pass. See the
+[developer guide](docs/development.md#run-the-installed-harness) for result inspection.
 
 ## Scope and contribution rules
 
