@@ -97,7 +97,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 1.4, 2.1, 2.2, 2.3_
   - _Requirements: 3.4, 4.3, 4.4, 5.5, 7.2, 7.4_
 
-- [ ] 4. Activate independently packaged capabilities
+- [x] 4. Activate independently packaged capabilities
 - [x] 4.1 Package an independently installable conformance capability
   - Create the separate synthetic fixture distribution with discovery metadata, typed operations, settings and lifecycle instrumentation.
   - Produce selectable/unselected and incompatible/colliding variants from isolated fixture builds, without placing executable fixtures in public production plugin paths.
@@ -116,7 +116,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 2.3, 4.1_
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 2.5_
 
-- [ ] 4.3 Expose versioned conformance status accurately
+- [x] 4.3 Expose versioned conformance status accurately
   - Resolve operator-provided verification records against capability/build digest, core contract, fixture suite and dependency versions.
   - Make missing/stale evidence pending, matched failed evidence failed and matched passing evidence passed only within its recorded scope.
   - Done when catalog fixtures cannot gain passed status from plugin declarations or reused evidence for a different build.
@@ -263,3 +263,5 @@ Browser verification remains the next bounded spec: latest official GridCraft do
 - Task 4.1: independent review verified240tests40subtests with real offline wheel installs/origin checks and executable author docs. Generic CapabilityFactory/CapabilityInstance defines the public author boundary; closer/context share one idempotent resource owner. Pyright fixture source extraPath is typing-only. Variant builds and lifecycle probes remain test-only; activation follows in4.2.
 
 - Task 4.2: independent review verified241tests40subtests including actual installed activation matrix. Typed configured closures preflight before opens; AsyncExitStack reverses cleanup and registry publication follows all binding checks. Installed MCP2.3 limit is128;128/129 tested. Nonblocking review suggestion: extend exact diagnostic assertions in graph/lifecycle cases when those cases change.
+
+- Task 4.3: independent review verified267tests40subtests. VerificationIdentity and resolve_verification match exact operator expectations and unique order-independent dependencies, retaining only matched scoped records. Metadata matching does not inspect evidence contents; discovery/writer integration remains later.
