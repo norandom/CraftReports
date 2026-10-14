@@ -13,11 +13,11 @@ schema_version = 1
 drafted = "2026-10-13"
 map_approved = false
 approved_spec_scopes = ["craftreport-operation-kernel"]
-approved_capability_owners = ["contracts", "application", "adapters", "interfaces", "composition", "development-gates", "documentation"]
+approved_capability_owners = ["contracts", "application", "adapters", "interfaces", "composition", "development-gates", "documentation", "browser-verification"]
 scope_approval_reference = ".kiro/specs/craftreport-operation-kernel/design-review.md"
 gate_implemented = true
 spec_count = 3
-generated_task_sets = 1
+generated_task_sets = 2
 actual_python_modules = 36
 actual_plugin_packages = 0
 planned_plugin_packages = 19
@@ -66,7 +66,7 @@ phase_at_draft = "initialized"
 status_since = "2026-10-14"
 owner = [".kiro/specs/craftreport-browser-verification"]
 path_state = "existing-documents"
-closes = "n/a (active; requirements approved and Design generated for review; Design/Tasks approvals required before implementation)"
+closes = "n/a (active; requirements and Design approved; generated Tasks await approval before implementation)"
 closure_required = false
 close_targets = []
 
@@ -232,6 +232,18 @@ owner = ["scripts", ".pre-commit-config.yaml", "breadth.toml", "quality.toml", "
 path_state = "mixed-existing-draft-and-planned-tooling"
 feature_keys = ["development.verification", "development.breadth", "engineering.gates"]
 closes = "n/a (active; gate scripts and hook/CI integration implemented; hosted CI execution unverified)"
+closure_required = false
+close_targets = []
+
+[capability.browser-verification]
+kind = "tooling"
+status = "active"
+line = "quality-verification"
+owner = ["scripts/browser_verification", "scripts/examples/verify_gridcraft_browser.py", "tests/browser_verification", "tests/fixtures/browser_verification"]
+path_state = "planned-design-approved"
+feature_keys = ["development.verification"]
+approval_reference = ".kiro/specs/craftreport-browser-verification/design-review.md"
+closes = "n/a (active; tooling ownership approved with Design; implementation awaits Tasks approval)"
 closure_required = false
 close_targets = []
 

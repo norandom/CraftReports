@@ -48,3 +48,9 @@ generated and ready_for_implementation remains false.
 Owner Design approval is the next gate, including the disclosed browser profile,
 tooling ownership and proposed budget. Task generation follows that approval;
 implementation still requires its separate Tasks approval.
+
+Subsequent owner decision: Design approved on 2026-10-14, including the disclosed
+fallback browser profile, tooling owner and proposed 50/300/1,500/10 budgets.
+Current phase/approval flags remain authoritative in spec.json; Tasks approval
+is still required before implementation. This approval does not establish any
+runtime browser result.

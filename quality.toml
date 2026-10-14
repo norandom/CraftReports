@@ -1,14 +1,14 @@
 # Kernel engineering policy approved with its Design and implemented by foundation tasks 1.1-1.4.
 # Mandatory direction: typed Python, Ruff lint/format, pre-commit and CI parity.
-# Numeric approval covers the listed kernel capabilities; future capability budgets require activation review.
+# Numeric approval covers listed kernel and browser-verification tooling capabilities; future budgets require review.
 
 [meta]
 schema_version = 1
 drafted = "2026-10-13"
-status = "kernel-policy-enforced"
+status = "approved-scope-policy-enforced"
 numeric_limits_approved = true
 approval_reference = ".kiro/specs/craftreport-operation-kernel/design-review.md"
-approved_capability_ids = ["contracts", "application", "adapters", "interfaces", "composition", "development-gates"]
+approved_capability_ids = ["contracts", "application", "adapters", "interfaces", "composition", "development-gates", "browser-verification"]
 tool_versions_pinned = true
 enforcement_implemented = true
 hooks_installed = true
@@ -46,7 +46,7 @@ tool = "ruff-C901"
 version = "0.17.0"
 
 [limits]
-status = "approved-for-kernel-scope"
+status = "approved-for-meta-approved-capability-ids"
 max_function_lloc = 50
 max_module_lloc = 300
 max_capability_lloc = 1500
@@ -55,7 +55,7 @@ apply_before_associated_implementation_lands = true
 calibrate_against_first_vertical_slice = true
 
 [budgets]
-capability_ids = ["contracts", "domain", "data", "compute", "reporting", "themes", "policies", "application", "runtime", "adapters", "transports", "interfaces", "composition", "gridcraft", "development-gates"]
+capability_ids = ["contracts", "domain", "data", "compute", "reporting", "themes", "policies", "application", "runtime", "adapters", "transports", "interfaces", "composition", "gridcraft", "development-gates", "browser-verification"]
 scope_source = "breadth.toml capability owner paths"
 limit_state = "approved-for-meta-approved_capability_ids-only"
 more_specific_extension_owns_its_files = true
@@ -67,6 +67,14 @@ entries = []
 required_fields = ["id", "capability_id", "exact_path_or_rule", "owner", "reason", "approval_reference", "expires_at"]
 expired_waivers_fail = true
 blanket_waivers_forbidden = true
+
+[scope_approval.browser-verification]
+approved = true
+approved_at = "2026-10-14"
+approval_reference = ".kiro/specs/craftreport-browser-verification/design-review.md"
+capability_id = "browser-verification"
+limits = "same approved 50 function / 300 module / 1500 capability LLOC and McCabe 10"
+implementation_authorization_source = ".kiro/specs/craftreport-browser-verification/spec.json"
 
 [future_gate_families]
 required = ["ruff-lint", "ruff-format", "strict-typecheck", "lloc-budgets", "branching-budgets", "breadth-ledger", "dependency-boundaries"]
