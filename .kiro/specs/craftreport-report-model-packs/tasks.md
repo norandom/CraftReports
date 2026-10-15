@@ -24,12 +24,12 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
   - _Depends: 1_
   - _Requirements: 2.1, 3.1, 4.7, 5.1, 5.7_
 
-- [ ] 2.2 Define reusable report declarations and parameter validation
+- [x] 2.2 Define reusable report declarations and parameter validation
   - Consume accepted upstream Snapshot/Scalar/Field/InputRequirements and shared VersionPin; never redefine those values.
   - Consume the accepted theme/policy value contracts from 2.1; keep their ownership in themes.values/policies.values rather than introducing replacement types in reporting.
-  - Implement the closed table/line-chart/source/parameter schema using installed Pydantic support and frozen inward values. Validate definition/template identity, inclusive ranges, choices, defaults, reference dependencies, explicit field/metric kind/unit/shape/null constraints, target requirements and release scope.
+  - Implement closed frozen table/line-chart/source/parameter declarations and authoritative semantic validation, following declaration-boundary-clarification.md. Validate definition/template identity, inclusive ranges, choices, defaults, reference dependencies, explicit field/metric kind/unit/shape/null constraints, target requirements and release scope. Strict Pydantic raw JSON schemas belong to task 7; do not introduce a parallel JSON parser or adapter dependency here.
   - Emit parameter-resolved upstream input requirements and structured locations for missing/invalid parameters or unsupported executable/unknown constructs. Apply the reviewed bounded source/cardinality/string limits before admission; metric chart requirements exclude scalar/non-numeric input before latest-complete selection.
-  - Done when one public definition validates, invalid range/type/default/reference cases reject at the affected field, template digest mismatch cannot override pack structure, and no app effect is claimed.
+  - Done when one public definition validates as typed declarations, invalid range/type/default/reference cases and unknown/unsupported typed fields reject at the affected field, template digest mismatch cannot override pack structure, and no raw JSON validation or app effect is claimed.
   - _Boundary: DefinitionPreparation declarations_
   - _Depends: 2.1_
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6_
@@ -73,6 +73,7 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
   - _Requirements: 1.3, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 6.2_
 
 - [ ] 7. Encode the preparation contracts with exact public wire values
+  - Complete declaration-boundary-clarification.md's raw-input boundary: explicitly test rejection of unknown and executable JSON fields and unsupported content before public operation activation. Task 2.2's typed declaration validation does not replace these acceptance cases.
   - Reuse existing strict PydanticCodec and upstream scalar encoder/decoder for exact int64/Decimal/date/datetime values and typed fields; reject unknown fields and coercions.
   - Implement the reviewed definition, pack summary, requirements and PreparedReport/QualityEvaluation request/result codecs with published 64 KiB input/depth-32 and 8 MiB preparation-result limits; do not increase unrelated operation limits.
   - Bind the existing kernel canonical serialization to prepared content identity without an inward adapter import or duplicate fingerprint implementation.
@@ -154,3 +155,10 @@ No `(P)` marker is used: the first preparation slice reuses shared value contrac
   Theme values 220 LLOC plus initializer 1; policy values 198 plus initializer 1.
   Shared VersionPin remains unchanged. This accepts pure immutable contracts;
   theme resolution, policy evaluation, report preparation and app effects remain open.
+
+- Task 2.2: independently approved by `/root/review_report_definitions_2_2`;
+  61 focused tests and 8 independent adversarial probes passed, with scoped
+  Ruff/format/Pyright and matching frozen hashes. Evidence:
+  `artifacts/report-model-packs/task-2.2/`. Reporting source 339 LLOC. Typed
+  parameter resolution, requirement intersection and template matching are accepted;
+  projection remains task 4 and raw JSON validation remains mandatory task 7.

@@ -1,7 +1,7 @@
 {
   "feature_name": "craftreport-report-model-packs",
   "created_at": "2026-10-15T19:42:20.182967+02:00",
-  "updated_at": "2026-10-15T18:54:24.4335786+00:00",
+  "updated_at": "2026-10-15T19:28:45.4478446+00:00",
   "language": "en",
   "phase": "tasks-generated",
   "approvals": {
@@ -54,6 +54,14 @@
     "reviewer": "/root/review_foundation_cross_spec_fallback",
     "verdict": "PASS",
     "repair_passes": 1,
+    "authorization": "owner-directed-bounded-fast-track"
+  },
+  "declaration_boundary_clarification": {
+    "reference": "declaration-boundary-clarification.md",
+    "mode": "independent",
+    "reviewer": "/root/review_declaration_boundary",
+    "verdict": "PASS",
+    "reviewed_sha256": "27210828A2E4F0C8D14F7D2DB8AA532FD17D3301A03833248E8FE6CE97262C15",
     "authorization": "owner-directed-bounded-fast-track"
   }
 }
