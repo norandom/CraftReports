@@ -12,12 +12,12 @@
 schema_version = 1
 drafted = "2026-10-13"
 map_approved = false
-approved_spec_scopes = ["craftreport-operation-kernel", "craftreport-browser-verification", "craftreport-snapshot-runtime"]
+approved_spec_scopes = ["craftreport-operation-kernel", "craftreport-browser-verification", "craftreport-snapshot-runtime", "craftreport-report-model-packs"]
 approved_capability_owners = ["contracts", "application", "adapters", "interfaces", "composition", "development-gates", "documentation", "browser-verification"]
 scope_approval_reference = ".kiro/specs/craftreport-operation-kernel/design-review.md"
 gate_implemented = true
 spec_count = 6
-generated_task_sets = 3
+generated_task_sets = 4
 actual_python_modules = 36
 actual_plugin_packages = 0
 planned_plugin_packages = 19
