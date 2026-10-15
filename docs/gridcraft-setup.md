@@ -1,13 +1,13 @@
 # Run GridCraft in a browser without a Rust build
 
 Download the official web archive and serve it with Docker Compose. The archive
-contains the compiled spreadsheet application, including an approximately 18 MB
-WebAssembly file, JavaScript loader and HTML page. nginx serves those files;
+contains the compiled spreadsheet application, including its WebAssembly engine,
+JavaScript loader and HTML page. nginx serves those files;
 the spreadsheet engine runs in the browser. No local Rust toolchain is needed.
 
-This guide pins GridCraft 0.6.1, the latest official release checked on
-2026-10-14. It is an app-hosting recipe, separate from the unfinished CraftReport
-service. See the [official release](https://github.com/storytold/gridcraft/releases/tag/v0.6.1)
+This guide pins GridCraft 0.7.0, the latest official release checked on
+2026-10-15. It is an app-hosting recipe, separate from the unfinished CraftReport
+service. See the [official release](https://github.com/storytold/gridcraft/releases/tag/v0.7.0)
 and the `HOSTING.md` included in its archive.
 
 ## Prepare Linux or Debian WSL
@@ -20,7 +20,7 @@ PowerShell, enter it with:
 wsl.exe -d Debian
 ```
 
-Run the remaining shell commands in Linux. For this workstation, the checkout is
+Run the preparation shell commands in Linux. For this workstation, the checkout is
 `/mnt/d/Source/GridDash`; on another machine, use its checkout path. A native Linux
 host uses the same commands after that path change.
 
@@ -45,19 +45,19 @@ Bash; a failed download or checksum stops the subshell before extraction.
   set -euo pipefail
   mkdir -p artifacts/gridcraft-local
   cd artifacts/gridcraft-local
-  curl --fail --location --output gridcraft-web-0.6.1.zip \
-    https://github.com/storytold/gridcraft/releases/download/v0.6.1/gridcraft-web-0.6.1.zip
+  curl --fail --location --output gridcraft-web-0.7.0.zip \
+    https://github.com/storytold/gridcraft/releases/download/v0.7.0/gridcraft-web-0.7.0.zip
   printf '%s  %s\n' \
-    86048ba175689ff852c141d6115e5491f0856f891300c3e1f91274b9c2709a42 \
-    gridcraft-web-0.6.1.zip | sha256sum --check --strict
-  unzip -n gridcraft-web-0.6.1.zip -d web
-  test -f web/gridcraft-web-0.6.1/index.html
+    ad10af2baf9c7ed4ccbd81e32b37698f5075cdf4f26b726fee7fc7938a3a8d27 \
+    gridcraft-web-0.7.0.zip | sha256sum --check --strict
+  unzip -n gridcraft-web-0.7.0.zip -d web
+  test -f web/gridcraft-web-0.7.0/index.html
 )
 ```
 
-Continue only after this prints `gridcraft-web-0.6.1.zip: OK` and exits
-successfully. The digest identifies the exact release archive used by the local
-probe. Preserve the release's license files with the extracted application.
+Continue only after this prints `gridcraft-web-0.7.0.zip: OK` and exits
+successfully. The digest matches the official release asset and the locally
+cached archive. Preserve the release's license files with the extracted application.
 
 ## Configure and start the static container
 
@@ -85,19 +85,36 @@ cp docs/deployment/gridcraft/compose.yaml artifacts/gridcraft-local/compose.yaml
 cp docs/deployment/gridcraft/nginx.conf artifacts/gridcraft-local/nginx.conf
 cd artifacts/gridcraft-local
 printf 'CRAFT_WEB_ROOT=%s\nCRAFT_HTTP_BIND=0.0.0.0\nCRAFT_HTTP_PORT=8872\n' \
-  "$PWD/web/gridcraft-web-0.6.1" > .env
-(
-  set -e
-  docker compose -p craftreport-gridcraft-local config --quiet
-  docker compose -p craftreport-gridcraft-local up -d
-  docker compose -p craftreport-gridcraft-local ps
-  curl --fail --head http://localhost:8872/
-)
+  "$PWD/web/gridcraft-web-0.7.0" > .env
+docker compose -p craftreport-gridcraft-local config --quiet
 ```
 
-Keep the Compose project name unique. The subshell stops on a failed startup,
-so a response from another service cannot mask a port collision. Leave the
-existing `craftreport-gridcraft-probe` project on 8871 running.
+Continue only if configuration validation succeeds. On Windows with Debian WSL,
+run this in PowerShell and leave it attached throughout browser use. Adjust the
+checkout path if yours differs; `--cd` selects the directory containing the
+copied Compose file, nginx configuration and `.env`:
+
+```powershell
+wsl.exe -d Debian --cd /mnt/d/Source/GridDash/artifacts/gridcraft-local -- docker compose -p craftreport-gridcraft-local up
+```
+
+Keep that terminal open. Docker's systemd service alone does not keep WSL alive;
+after the last WSL client exits, the host can shut down and the browser's next
+request can fail. See [Microsoft's WSL service lifetime note](https://learn.microsoft.com/en-us/windows/wsl/systemd#how-does-enabling-systemd-affect-wsl-architecture).
+Ctrl+C stops the attached Compose service. On native Linux, start normally from
+`artifacts/gridcraft-local` with `docker compose -p craftreport-gridcraft-local up -d`.
+
+In another Linux/WSL terminal, enter the same `artifacts/gridcraft-local`
+directory and check startup:
+
+```sh
+docker compose -p craftreport-gridcraft-local ps
+curl --fail --head http://localhost:8872/
+```
+
+Check Compose errors and the project's published port before continuing, so
+another service cannot mask a port collision. Keep the project name unique and
+leave the existing `craftreport-gridcraft-probe` project on 8871 running.
 
 Open `http://localhost:8872/` in the Windows browser for WSL, or the Linux host's
 browser for native Linux. Substitute the selected port everywhere. An HTTP 200
@@ -143,7 +160,7 @@ verify live MCP control, save/export, reopen, or CraftReport integration.
 The probe evidence is local under `artifacts/gridcraft-deployment-probe/` and is
 not distributed with the repository.
 
-The [0.6.1 browser mode contract](https://github.com/storytold/gridcraft/blob/v0.6.1/apps/gridcraft-web/src/main.rs)
+The [0.7.0 browser mode contract](https://github.com/storytold/gridcraft/blob/v0.7.0/apps/gridcraft-web/src/main.rs)
 specifies no desktop TCP control bridge. A native or headless MCP
 session owns a different workbook unless a separately verified bridge connects
 it. See [Craft app protocols](craft-app-protocols.md) before implementing an
@@ -194,15 +211,18 @@ bounded scope before adding reporting adapters.
 
 ## Operate and upgrade your instance
 
-Run these commands in your `artifacts/gridcraft-local` directory:
+Run these commands in your `artifacts/gridcraft-local` directory, using another
+Linux/WSL terminal while Compose is attached:
 
 ```sh
 docker compose -p craftreport-gridcraft-local logs --tail=100 web
 docker compose -p craftreport-gridcraft-local stop
-docker compose -p craftreport-gridcraft-local start
 # Remove only this project's containers and network when finished:
 docker compose -p craftreport-gridcraft-local down
 ```
+
+To restart, use the platform-specific startup command above. On WSL, retain the
+attached client again for the whole browser session.
 
 The bind-mounted app files remain on disk. The container serves the application;
 it is not a workbook storage service. Treat browser state and downloaded files
@@ -212,7 +232,8 @@ on it.
 For an upgrade, select the latest official release, record its asset hash and
 extract into a new version directory. Read that archive's hosting notes, point
 `CRAFT_WEB_ROOT` at it, and recreate this project's service with
-`docker compose -p craftreport-gridcraft-local up -d --force-recreate`. Repeat
+`docker compose -p craftreport-gridcraft-local up --force-recreate` from the same
+Linux/WSL directory. Keep it attached on WSL; native Linux can add `-d`. Repeat
 browser, file and integration checks relevant to your use case. Retain the old
 version and configuration until those checks pass so the same command can
 restore the previous directory. Review the nginx image pin separately.
@@ -222,3 +243,10 @@ Confirm the mounted directory contains `index.html` directly, `.wasm` is served
 as `application/wasm`, and the browser has a usable graphics backend. If Linux
 `curl` works but Windows does not, check port publication and WSL networking
 before changing the app. No successful HTTP request proves browser rendering.
+
+If an already loaded page still edits but reload or a fresh browser context
+reports `ERR_CONNECTION_REFUSED`, check `wsl.exe --list --running` in PowerShell
+before starting another WSL command. If Debian stopped, rerun the attached WSL
+startup command and repeat the port and HTTP checks, then reload. The loaded
+WASM app can keep working after its HTTP host has gone away. If Debian is still
+running, inspect this project's status/logs and port routing instead.

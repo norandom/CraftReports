@@ -5,23 +5,29 @@ import hashlib
 import importlib
 import importlib.metadata
 import json
+import os
 import platform
 import socket
+import subprocess
 import sys
+import tempfile
 import time
 import tomllib
+from collections.abc import Generator
+from contextlib import ExitStack, contextmanager
 from dataclasses import replace
 from pathlib import Path
 from typing import cast
 from uuid import uuid4
 
 import pytest
+from playwright.async_api import ConsoleMessage, Page
 
 from craftreport.composition.app import open_application
 from craftreport.interfaces.principal import PrincipalBoundary
-from scripts.browser_verification import browser, deployment, release
+from scripts.browser_verification import browser, deployment, process, release
 from scripts.browser_verification.config import OwnedDeployment, RunConfig
-from scripts.browser_verification.contracts import ContentIdentity, Succeeded
+from scripts.browser_verification.contracts import CloseState, ContentIdentity, Succeeded
 from scripts.browser_verification.evidence import Diagnostics, verify_loaded
 from scripts.browser_verification.journey import ResourceRegistry
 from scripts.browser_verification.process import CommandScope, execute, scope
@@ -77,11 +83,79 @@ def write_json(path: Path, value: object) -> None:
     path.write_text(json.dumps(value, indent=2, sort_keys=True), encoding="utf-8")
 
 
+@contextmanager
+def attached_compose(
+    argv: list[str], state: deployment.DeploymentState, path: Path, *, exit_timeout: float = 15
+) -> Generator[subprocess.Popen[str]]:
+    owner = CommandScope(state.registry, state.processes, exit_timeout)
+    identity = "windows-process-group:attached-compose:" + uuid4().hex
+    child: subprocess.Popen[str] | None = None
+    status: CloseState = "failed"
+    with tempfile.TemporaryFile(mode="w+", encoding="utf-8") as logs:
+        token = state.registry.register("process", identity)
+        assert token.acquisition_id is not None
+        try:
+            child = subprocess.Popen(
+                argv,
+                stdout=logs,
+                stderr=subprocess.STDOUT,
+                text=True,
+                encoding="utf-8",
+                creationflags=(subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW)
+                if os.name == "nt"
+                else 0,
+                start_new_session=os.name != "nt",
+            )
+            state.processes.append(child)
+            state.registry.mark_acquired(token.token_id)
+            status = "graceful"
+            yield child
+        except BaseException:
+            status = "failed"
+            raise
+        finally:
+            try:
+                if child is not None:
+                    child.wait(timeout=exit_timeout)
+                    if child.returncode:
+                        status = "failed"
+            except subprocess.TimeoutExpired:
+                status = "timed-out"
+            finally:
+                process.finish(owner, token.token_id, identity, token.acquisition_id, child, status)
+                logs.seek(0)
+                path.write_text(logs.read(65536), encoding="utf-8")
+
+
+def wait_compose(child: subprocess.Popen[str], argv: list[str], deadline: float) -> None:
+    while True:
+        if child.poll() is not None:
+            raise subprocess.CalledProcessError(child.returncode or 1, argv)
+        if execute(argv[:-1] + ["ps", "--status", "running", "-q"], deadline):
+            return
+        release.remaining(deadline)
+        time.sleep(min(0.1, release.remaining(deadline)))
+
+
+def retain_console(page: Page, directory: Path, diagnostics: Diagnostics) -> None:
+    messages: list[dict[str, str]] = []
+
+    def capture(message: ConsoleMessage) -> None:
+        if message.type in ("warning", "error") and len(messages) < 32:
+            messages.append(
+                {"type": message.type, "text": message.text[:2048], "stage": diagnostics.stage}
+            )
+            write_json(directory / "synthetic-console.json", messages)
+
+    page.on("console", capture)
+
+
 def compose_start(
     config: RunConfig,
     bundle: release.BundleIdentity,
     state: deployment.DeploymentState,
     facade: str,
+    attached: ExitStack,
 ) -> deployment.DeploymentLease:
     root, selected = deployment.assets(bundle)
     selected = tuple(ContentIdentity(path="app/" + x.path, sha256=x.sha256) for x in selected)
@@ -122,27 +196,27 @@ def compose_start(
         f"CRAFT_FACADE_ORIGIN={facade}",
     ]
     state.startup_uncertain = True
-    execute(
-        [
-            "wsl.exe",
-            "-d",
-            "Debian",
-            "--",
-            "env",
-            *env,
-            "docker",
-            "compose",
-            "-p",
-            project,
-            "-f",
-            deployment.linux_path(DEPLOY / "compose.yaml", "owned-wsl"),
-            "-f",
-            deployment.linux_path(override, "owned-wsl"),
-            "up",
-            "-d",
-        ],
-        deadline,
+    argv = [
+        "wsl.exe",
+        "-d",
+        "Debian",
+        "--",
+        "env",
+        *env,
+        "docker",
+        "compose",
+        "-p",
+        project,
+        "-f",
+        deployment.linux_path(DEPLOY / "compose.yaml", "owned-wsl"),
+        "-f",
+        deployment.linux_path(override, "owned-wsl"),
+        "up",
+    ]
+    child = attached.enter_context(
+        attached_compose(argv, state, config.run_directory / "compose.log")
     )
+    wait_compose(child, argv, deadline)
     state.startup_uncertain = False
     state.container_ids = deployment.containers(lease, deadline)
     state.network_ids = deployment.networks(lease, deadline)
@@ -164,6 +238,7 @@ async def observe_bridge(
     diagnostics.warning_profile = (ARCHIVE, state.browser.version)
     state.diagnostics = diagnostics
     diagnostics.attach(page)
+    retain_console(page, config.run_directory, diagnostics)
     await diagnostics.capture_network(await state.context.new_cdp_session(page))
     await page.goto(lease.origin, wait_until="networkidle")
     await page.wait_for_function("window.bridgeEvents.length > 0")
@@ -208,14 +283,8 @@ async def observe_bridge(
     }
 
 
-async def readiness(config: RunConfig, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(sys, "path", [str(ROOT / "tests/kernel"), *sys.path])
-    from fixture_host import HostFixture
-
-    registry = ResourceRegistry(config.run_id)
-    deployed = deployment.DeploymentState(registry)
-    browsing = browser.BrowserState(registry)
-    report: dict[str, object] = {
+def source_report() -> dict[str, object]:
+    return {
         "requirements": ["1.1", "1.4", "6.4", "6.5", "6.6"],
         "scope": "prerequisite-only; no report, mutation or saved artifact verification",
         "headed": "MANUAL_VERIFY_REQUIRED",
@@ -240,6 +309,33 @@ async def readiness(config: RunConfig, monkeypatch: pytest.MonkeyPatch) -> None:
             for n in ("xlsxwriter", "openpyxl", "et-xmlfile", "playwright", "pyee", "greenlet")
         },
     }
+
+
+def resolved_bundle(config: RunConfig) -> release.BundleIdentity:
+    identity = release.resolve_release(config)
+    assert isinstance(identity, Succeeded), identity
+    assert identity.payload.sha256 == ARCHIVE
+    acquired = release.acquire(identity.payload, ROOT / "artifacts/browser-verification/cache")
+    assert isinstance(acquired, Succeeded), acquired
+    bundle = acquired.payload
+    for asset in bundle.files:
+        if Path(asset.path).suffix in EXPECTED:
+            assert asset.sha256 == EXPECTED[Path(asset.path).suffix]
+    write_json(config.run_directory / "bundle.json", bundle.model_dump(mode="json"))
+    return bundle
+
+
+async def readiness(
+    config: RunConfig, monkeypatch: pytest.MonkeyPatch, *, observer_timeout: float = 90
+) -> None:
+    monkeypatch.setattr(sys, "path", [str(ROOT / "tests/kernel"), *sys.path])
+    from fixture_host import HostFixture
+
+    registry = ResourceRegistry(config.run_id)
+    deployed = deployment.DeploymentState(registry)
+    browsing = browser.BrowserState(registry)
+    attached = ExitStack()
+    report = source_report()
     try:
         with scope(CommandScope(registry, deployed.processes, 30)):
             report["source_revision"] = execute(["git", "rev-parse", "HEAD"], time.monotonic() + 15)
@@ -247,24 +343,15 @@ async def readiness(config: RunConfig, monkeypatch: pytest.MonkeyPatch) -> None:
                 ["wsl.exe", "-d", "Debian", "--", "ip", "route", "show", "default"],
                 time.monotonic() + 15,
             ).split()[2]
-            identity = release.resolve_release(config)
-            assert isinstance(identity, Succeeded), identity
-            assert identity.payload.sha256 == ARCHIVE
-            acquired = release.acquire(
-                identity.payload, ROOT / "artifacts/browser-verification/cache"
-            )
-            assert isinstance(acquired, Succeeded), acquired
-            bundle = acquired.payload
-            for asset in bundle.files:
-                if Path(asset.path).suffix in EXPECTED:
-                    assert asset.sha256 == EXPECTED[Path(asset.path).suffix]
-            write_json(config.run_directory / "bundle.json", bundle.model_dump(mode="json"))
+            bundle = resolved_bundle(config)
             fixture = HostFixture(monkeypatch)
             with socket.socket() as listener:
                 listener.bind(("0.0.0.0", 0))
                 listener.listen(128)
                 port = listener.getsockname()[1]
-                lease = compose_start(config, bundle, deployed, f"http://{gateway}:{port}")
+                lease = compose_start(
+                    config, bundle, deployed, f"http://{gateway}:{port}", attached
+                )
                 settings = replace(
                     fixture.settings,
                     bind_host="0.0.0.0",
@@ -277,7 +364,7 @@ async def readiness(config: RunConfig, monkeypatch: pytest.MonkeyPatch) -> None:
                     server = application.server(listener)
                     serving = asyncio.create_task(server.serve())
                     try:
-                        async with asyncio.timeout(90):
+                        async with asyncio.timeout(observer_timeout):
                             report.update(await observe_bridge(config, lease, browsing))
                     finally:
                         try:
@@ -290,9 +377,14 @@ async def readiness(config: RunConfig, monkeypatch: pytest.MonkeyPatch) -> None:
                             await asyncio.wait_for(serving, timeout=20)
                             report["facade_shutdown"] = "awaited graceful server completion"
     finally:
-        await browser.close(config, browsing)
-        if deployed.lease is not None:
-            deployment.close(deployed, 30)
+        try:
+            await browser.close(config, browsing)
+        finally:
+            try:
+                if deployed.lease is not None:
+                    deployment.close(deployed, 30)
+            finally:
+                attached.close()
         if browsing.diagnostics:
             browsing.diagnostics.write(config.run_directory / "diagnostics.json")
         report["cleanup"] = [x.model_dump(mode="json") for x in registry.findings]

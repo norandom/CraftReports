@@ -1,6 +1,6 @@
 # Quickstart: how to preview GridCraft
 
-Open the official GridCraft 0.6.1 browser application and verify that its
+Open the official GridCraft 0.7.0 browser application and verify that its
 spreadsheet responds to input. This preview evaluates the app's hosting and
 rendering; CraftReport reporting integration remains pending.
 
@@ -17,7 +17,9 @@ recipe owns a separate Compose project on 8872.
 2. [Download and verify the release](../gridcraft-setup.md#download-and-verify-the-release).
    Continue only after the archive checksum reports `OK`.
 3. [Configure and start the static container](../gridcraft-setup.md#configure-and-start-the-static-container).
-   Wait for Compose startup to succeed, then open `http://localhost:8872/`.
+   On Windows WSL, keep the guide's attached `wsl.exe` Compose command running
+   throughout the preview. Wait for startup and HTTP checks to succeed, then
+   open `http://localhost:8872/`.
    Substitute your selected port if you changed it.
 4. Wait for the grid and ribbon to render. Click a visible cell, note its
    selection, and press ArrowDown. Check that the selection moves in that page.
@@ -38,10 +40,11 @@ content. See [Craft app protocols](../craft-app-protocols.md).
 | --- | --- |
 | Compose reports a port collision | Select an unused port; keep the existing probe on 8871 running |
 | The page stays blank | Check asset failures, the mount root, WASM MIME type and graphics diagnostics in [setup](../gridcraft-setup.md#operate-and-upgrade-your-instance) |
+| Editing works but reload or a fresh context reports `ERR_CONNECTION_REFUSED` | Check WSL lifetime and restart with the [attached startup command](../gridcraft-setup.md#configure-and-start-the-static-container); follow the [recovery checks](../gridcraft-setup.md#operate-and-upgrade-your-instance) |
 | Linux curl works but the Windows browser cannot connect | Check published ports and [WSL address routing](../gridcraft-setup.md#understand-which-address-is-reachable) |
 
 ## Close or continue
 
-Use the setup guide's [stop/start/down commands](../gridcraft-setup.md#operate-and-upgrade-your-instance)
+Use the setup guide's [lifecycle commands](../gridcraft-setup.md#operate-and-upgrade-your-instance)
 for your owned Compose project. To evaluate the Python side next,
 [verify the kernel](Quickstart_How_to_verify_the_kernel.md).

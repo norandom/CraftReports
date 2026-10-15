@@ -142,3 +142,227 @@ feature acceptance. The computer, application and WSL must remain running.
   audit runs independently. The custom spec-reviewer model was unavailable on
   this account; its failed launch performed no review. A fresh supported-model
   reviewer handles the same read-only consistency audit instead.
+
+### Values accepted and cross-spec alignment complete
+
+- Snapshot task 2.1 committed/pushed `0076ad5` after independent review and
+  installed hook. Final 59 tests include clock-rollback key identity and immutable
+  diagnostic-location regressions; independent extreme-Decimal and datetime probes
+  passed. Data 294 LLOC, shared pins 19, tests 192. Wire codecs remain task 2.3.
+- Cross-spec provider/lifecycle repair independently passed and was committed/pushed
+  `7a3548b`; see cross-spec-review-2026-10-15.md. Report-resource/fact ownership,
+  existing evidence-table integration and pause/start lock ordering are explicit.
+- Snapshot task 2.2 and report-model activation task 1 now run in parallel with
+  disjoint code ownership. The ledger counter belongs to the data worker; exact
+  report activation fields belong to the gate worker. Root accepts/commits the
+  data task first, then gate work, preserving unrelated tracked WIP through hooks.
+  Never rewrite the whole shared ledger from a stale copy.
+
+### 19:12 UTC checkpoint: completeness and model ownership accepted
+
+- Snapshot task 2.2 committed `ad0e20b`: pure report completeness checks,
+  independently reviewed with 40 focused tests; data now 425 LLOC.
+- Report-model task 1 committed `97d46ac`: exact ownership/import gates,
+  independently reviewed with 24 tests/106 subtests and additional negative
+  import probes. Both installed hooks passed; both commits pushed to main.
+- Snapshot task 2.3 wire-codec handoff amendment passed independent review
+  after making inward callable injection and canonical-byte reuse explicit.
+  No numeric limits changed. Report-model pure theme/policy values and snapshot
+  wire contracts now implement in parallel with disjoint ownership. Root owns
+  the shared source count and serializes acceptance/commits.
+- These are contract foundations. Installed durable publication, report
+  preparation, live GridCraft rendering and XLSX export remain open.
+
+### Theme/policy contracts accepted; wire review correction in progress
+
+- Report-model task 2.1 committed/pushed `b2e75db`; installed whole-scope hook
+  passed. Independent review required a local 128-byte pin identifier correction,
+  then verified 42 focused tests and 24 additional oversized-pin probes. Source:
+  themes 221 LLOC, policies 199. Shared upstream VersionPin remains unchanged.
+- Snapshot task 2.3 has 96 wire and 50 kernel validation tests passing, but is
+  not accepted: independent review found lowered string limits could admit
+  producer content whose generated digest exceeds the same limit. Repair must
+  validate the complete normalized read-result candidate before admission.
+- Journal library/schema plan passed independent review. Existing Pydantic
+  TypeAdapters round-trip typed receipts/intents; bounded SQLAlchemy catalog
+  expressions cover Inspector's trigger/expression-index gaps. Journal code
+  remains held until task 2.3 acceptance. No caps or application code changed.
+- Parallel-task commit used exact temporary holds for untracked wire files and
+  the pre-existing Linux profile test. Every file was restored with its hash
+  verified after the hook; unrelated browser/spec work remains preserved.
+
+### 19:33 UTC checkpoint: wire contracts accepted
+
+- Snapshot task 2.3 committed/pushed `6692cd1`; installed whole-scope hook passed.
+  Independent re-review verified 150 focused tests after the complete-candidate
+  string-limit fix. Shared adapter source totals 873 LLOC, data 436; no cap raises.
+- Report-model task 2.2 has started after independent clarification of typed
+  declarations versus task 7's strict raw JSON boundary. All constraints remain
+  required before public operations; pure reporting imports no Pydantic adapter.
+- Task 3.1 storage implementation preflight has started. Root added only the
+  reviewed exact serialization imports to the gate, with failing-before then
+  passing snapshot fixtures and scoped lint/type checks. Independent gate review
+  precedes storage source expansion. Source count is root-owned, currently 54
+  including the three report-declaration modules under active implementation.
+
+### Declarations committed; three implementation lanes prepared
+
+- Report-model task 2.2 committed `dde76e5`; independent 61 focused tests and
+  8 adversarial probes passed, source 339 LLOC. The installed hook passed.
+- Reviewed journal import gate/plan committed separately as `73c01a9`; its hook
+  also passed. Both commits pushed. This is a prerequisite commit, not completion
+  of journal task 3.1. Gate review verified 3 allowed/43 denied independent cases.
+- Journal source resumed after temporary hold. At first GREEN its complete
+  storage owner measured 356 LLOC, including the accepted database foundation,
+  with 53 focused tests; final self-review and independent review remain open.
+- Hook restoration changed two tracked storage WIP files from LF to CRLF.
+  The post-hook hash assertion detected it. Root verified normalized content
+  exactly matched the frozen hashes, restored original LF bytes, and confirmed
+  exact hashes before releasing the worker. All held files were restored.
+- GridCraft task 1 gate implementation is authorized and running separately;
+  the real-browser feasibility tasks can precede production provider integration.
+  Theme task 3 identified an underspecified support descriptor and compatibility
+  seam; a bounded proposal must receive independent review before its source.
+
+### Journal, themes and app gates accepted (20:08 UTC checkpoint)
+
+- Snapshot3.1 committed/pushed `4156712`: exact durable retry admission and
+  append-only receipt history, actual reopen and atomic rollback proof.
+  Independent59 journal/database plus63 kernel tests passed; storage365/1500 LLOC.
+- GridCraft1 committed/pushed `abfaffd`: exact ownership/import gates,
+  68 engineering tests/220 subtests and independent boundary probes passed.
+  Historical RED is explicitly surviving truncated excerpts, not a full raw log.
+- Report-model3 committed/pushed `ebe49e3`: immutable theme resolution and
+  complete support-property declarations. Independent123 focused tests and
+  static checks passed; themes369/1500 LLOC. Real packaging boundary and operation
+  tests remain tasks7/8; no app fidelity claim.
+- All three commits passed installed whole-scope pre-commit hooks. Root exact
+  file holds were restored, including original tracked line endings. Earlier
+  browser WIP remains untouched. Actual source module ledger is57.
+- Next parallel work: snapshot3.2 resource guards (schema proposal first),
+  report-model4 exact content preparation (pin/presentation seam clarification
+  first), GridCraft2 locked libraries and isolated released-page readiness.
+  Independent review remains required before accepting each task.
+- Current executable acceptance: snapshot6/19, report-model4/13, GridCraft1/16.
+  These are foundational task counts, not live-dashboard/export acceptance.
+
+### Released GridCraft prerequisites accepted
+
+- GridCraft2 committed/pushed `3d6c6ae` after the installed whole-scope hook.
+  Independent real Windows headless run against committed SDK sources passed3
+  tests: official v0.7.0 bridge, loaded JS/WASM hashes, same-origin readiness200
+  and catalog401, screenshot/flushed video and owned cleanup. Accepted run:
+  `358b83b5-d9b1-4780-af11-0c9566584be8`; review under `artifacts/gridcraft/task-2/`.
+  Earlier WIP-SDK runtime evidence is supplementary; committed-SDK reproduction
+  is authoritative. All seven SDK overlays and later commit holds restored exact
+  original bytes. Operator deployments preserved.
+- Task3 real same-document edit/save/reopen feasibility now started. No live
+  report or exported workbook capability is accepted by the prerequisite result.
+- Snapshot3.2 resource-effects proposal independently PASS after adding narrow
+  reuse of existing journal integrity reader. Explicit v3 schema and typed
+  codec/fingerprint injection; no new validation framework or cap increase.
+- Report-model4 prepared-content proposal independently PASS. Definition/template
+  pins remain explicit, first-slice exact-document semantics retained; per-table
+  null/wrapping fields survive preparation. Consumer tasks6–8 carry obligations.
+- Both implementation workers resumed after exact commit hold restoration.
+  Actual production module inventory61 includes four unaccepted new modules.
+- Root corrected UTF-8 punctuation damaged by Windows default cp1252 reads in
+  touched spec markdown. Future scripts use explicit UTF-8. No semantics changed.
+
+### Exact content preparation committed; real edit route progressing
+
+- Report-model4 committed/pushed `dd35ce0`, installed whole-scope hook passed.
+  Independent27 focused tests/adversarial probes/scoped static checks passed;
+  reporting559/1500 LLOC, net+220. Exact ordered supplied table/chart values,
+  field schemas/provenance, pins and immutable deterministic identity accepted.
+- First hook attempt correctly rejected a forbidden scalar-validator import.
+  Root recorded the failure and obtained independent approval for only the exact
+  reporting.prepared -> data.validation.validate_scalar reuse. Tests-first gate
+  repair, real import gate,11 independent import probes and final hook passed.
+  No duplicated validator or numeric cap increase. Whole-scope gates remain
+  necessary beyond focused lint/type checks.
+- Snapshot3.2 independent review REJECTED: issued lease metadata could be
+  retargeted to commit under an unrelated lock. Worker is repairing with
+  immutable issuance fields plus provider-owned original pins/task and actual
+  retarget/task-transfer regressions. This task is not accepted.
+- GridCraft3 actual probes establish official initial Save and a first same-
+  document numeric/category/run-marker update, changed rendered segment, exact
+  saved chart/cache/values and outside-content preservation. Full gate remains
+  incomplete: the90s test-host limit ended before all rounds/reopen/conflict.
+  Narrow test helper timeout180 approved; production action/operation bounds
+  unchanged. No live report capability or full theme support claimed.
+- All per-commit holds restored exact bytes. Workers resumed report-quality5,
+  storage repair and full browser feasibility after commit. Actual module count61
+  includes three unaccepted storage modules; accepted checkout source count58.
+
+### Durable guards accepted; browser host root cause isolated (20:53 UTC)
+
+- Snapshot3.2 committed/pushed `0cdc70a`; independent93 focused tests, four
+  issuance-authority adversarial regressions and real gates passed. Installed
+  whole-scope hook passed. Storage697/1500 LLOC. All commit holds and tracked
+  WIP restored exact bytes. Accepted module count61; worktree62 includes policy5.
+- Current executable acceptance: snapshot7/19, report-model5/13, GridCraft2/16.
+  No complete live dashboard/export feature is claimed.
+- GridCraft3 full journey reached two rendered/saved updates but failed fresh
+  reopen and cleanup. Debug evidence identified WSL shutting down Docker after
+  detached Compose released its last client. Attached-Compose diagnostic kept
+  origin alive and reopened exact saved bytes after the idle interval; all33
+  owned cleanup findings passed. Old owned container/network now confirmed absent.
+  This diagnostic used SDK WIP and is not task acceptance. Fresh implementation
+  retry will retain owned attached Compose and use existing exact reference.xlsx
+  title-warning allowance, with no new warning suppression.
+- Policy5 independent review rejected whole-scope equality across preparation
+  and app scopes. A bounded reuse/provenance amendment is under preparation.
+  Snapshot3.3 proposal handles actual pre-journal query result staging; review
+  requires AVAILABLE observations to atomically validate present exact bytes.
+  Exact preparation fact schema remains pending cross-spec alignment.
+
+### Quality decision committed; full browser conflict oracle isolated (21:10 UTC)
+
+- Report-model5 committed/pushed `bd04016` after independent repair approval and
+  installed whole-scope hook. Fresh115 independent focused tests plus adversarial
+  source/app transitions and actual gates passed. Evaluator68LLOC/policies267;
+  original preparation provenance survives app scope additions, while stale app
+  checks fail. Actual trusted producer integration remains downstream.
+- Cross-spec preparation-scope contract and exact six-field retained fact shape
+  independently approved by report and storage reviewers. Original observed pins
+  derive from verified original prepared-stage receipt refs, not optional caller
+  preconditions. Scope identity uses one preselected retained ReleasePolicy.
+- Snapshot3.3 frozen READY with145 focused tests and scoped/static/real gates
+  passing; storage949/1500, net+252. Independent implementation review underway;
+  no task3.3 acceptance yet. Query staging is not publicly exposed without receipt.
+- Committed-SDK browser run4bd03679-f005-4f6d-855a-0abda50ce054 passed two actual
+  same-document saves and fresh-context reopen, then failed the conflict oracle:
+  the readback changed only sheet-view activeCell/sqref A10 to A9. All other ZIP
+  members byte-identical; both contexts zero fatal diagnostics; all33 cleanup
+  findings accepted including attached Compose; both videos decoded. Run remains
+  failed. Independent debug RETRY_TASK directs exact two-attribute normalization
+  with all other content/style/chart/drawing members compared, negative regressions,
+  and one fresh full run after freeze. No app/SDK/warning changes authorized.
+- Per-commit holds and tracked line endings restored exactly. Accepted source
+  module count62; worktree64 includes two unaccepted storage modules.
+  Accepted executable tasks: snapshot7/19, report-model6/13, GridCraft2/16.
+
+### Retained results committed; complete minimal browser journey passes (21:28 UTC)
+
+- Snapshot3.3 committed/pushed `3fce4bb` after independent approval and the
+  installed whole-scope hook. Fresh344 snapshot tests, malformed retained-fact
+  probes, populated-schema migration and scoped/actual gates passed. Storage
+  949/1500 LLOC; application1449 unchanged. Unlinked query staging remains
+  inaccessible through public result retrieval; original receipt bytes survive.
+- Fresh committed-SDK browser run `9b3b0dad-41f2-4e59-894a-9c0ebc45bd22`
+  passed the complete minimal journey in209.91s: two visible updates, actual
+  XLSX saves, fresh-context reopening, conflict preservation, diagnostics,
+  videos and owned cleanup. Exact view-selection-only normalization received
+  independent review plus20 negative mutation categories. Earlier failed runs
+  remain failed and retained. Final independent task3 acceptance is underway;
+  this does not establish the production live facade or full theme support.
+- Report-model6 frozen for independent review:413 reporting/upstream tests,
+  Ruff/format/Pyright and actual engineering gates pass. Library-derived codecs
+  and configured opened-file pack reads add368 source LLOC; adapters1200/1500.
+  Remaining adapter tasks forecast1490, leaving10; no cap increase authorized.
+- Snapshot3.4 proposal review requires three clarifications before coding:
+  one-shot activation lifetime, truthful empty/partial precondition handoffs,
+  and concrete typed assembly/probe/retention contracts. Revision is underway.
+- Accepted tasks: snapshot8/19, report-model6/13, GridCraft2/16. Accepted source
+  modules64; worktree68 includes four unaccepted report-model6 modules.

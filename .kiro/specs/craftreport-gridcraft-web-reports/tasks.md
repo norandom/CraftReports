@@ -19,7 +19,7 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Depends: 1_
   - _Requirements: 1.1, 1.4, 6.4, 6.5, 6.6_
 
-- [ ] 3. Prove the bounded real browser route before production expansion
+- [x] 3. Prove the bounded real browser route before production expansion
   - Use a tiny literal test-only workbook to bootstrap once through the selected official bridge, observe marker/table/line chart/styles/outside sentinel, perform two real UI value edits in that same document and inspect actual chart/category/series effects. Include literal formula-marker text and a null gap in the minimum supported profile.
   - Invoke actual released Save, correlate the official outbound bytes under one armed lane, persist/read back private scratch, independently inspect and reopen those exact bytes in a separate GridCraft context. Deliberately modify owned content and prove the next mismatched update rejects before mutation. Resolve the recorded chart-before/category-copy problem against this route; no screenshot-only or source-equivalence pass.
   - Done when current real evidence proves every promised minimal effect and records the support subset, dimensions/types/styles/bounds, commands/exit code, screenshots/flushed video/diagnostics and observed owned cleanup. This test-only fixture does not require or pretend to implement upstream production providers.
@@ -151,3 +151,18 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   screenshot/video and owned cleanup verified; seven SDK WIP files restored
   byte-for-byte. Evidence: `artifacts/gridcraft/task-2/independent-review.md`.
   This proves released-app prerequisites, not same-document update/export.
+
+- Task 3: independently approved by `/root/review_gridcraft_3_final`; full
+  committed-SDK Windows headless run9b3b0dad-41f2-4e59-894a-9c0ebc45bd22
+  passed two same-document edits/saves, exact-byte fresh-context reopening and
+  conflict preservation. Independent37 focused tests, saved-byte/visual replay,
+  static checks, zero fatal diagnostics, both videos and all33 cleanup findings
+  passed. Evidence: `artifacts/gridcraft/task-3/final-review.md`.
+  Accepted scope is the test-only four-row/three-column/one-series fixture and
+  its measured style/type subset. Full theme fidelity, other scalar types and
+  wider dimensions remain untested; requested axis bounds were unsupported.
+  The narrowed production profile requires independent Design review before
+  task4, which also waits for report-model7. This is not the live-report facade
+  or production export feature. Headed acceptance remains MANUAL_VERIFY_REQUIRED.
+  WSL preview docs retain attached Compose to keep the VM/HTTP origin alive;
+  official0.7.0 pin/hash verified. Operator deployments remain untouched.
