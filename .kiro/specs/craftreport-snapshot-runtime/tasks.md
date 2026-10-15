@@ -20,7 +20,7 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   - _Requirements: 5.1, 5.2, 5.7_
 
 - [ ] 2. Establish exact immutable input contracts
-- [ ] 2.1 Implement snapshot values and the shared generic version pin
+- [x] 2.1 Implement snapshot values and the shared generic version pin
   - Add recursively immutable datasets, fields, scalar/series metrics, SnapshotRef/Snapshot and contracts.pins.VersionPin exactly as reviewed; add typed publication validation with no financial recomputation.
   - Exercise signed 64-bit integer/Decimal precision 38 exactness, null/key/required-field rules, empty typed content, dataset labels/source provenance, ordered metric scalar/series shape, formula-like text and distinct provenance/timings; reject datetime precision above six fractional digits before parsing.
   - Done when invalid values identify the affected rule/location and supplied values roundtrip independently fixed fixtures without coercion or mutable aliases; report-model imports the single agreed value seam.
@@ -163,3 +163,13 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   application unchanged. Schema v1 currently has the deployment table; provider
   tables belong to later tasks. Cancelled awaits do not roll back a running
   worker transaction; close retains ownership until that transaction finishes.
+
+- Task 2.1: independently approved by `/root/review_snapshot_values_2_1` after
+  two validation repairs. Focused Windows suite: 59 passed; Ruff/format/Pyright
+  and real gates passed. Five repair regressions first failed. Evidence:
+  `artifacts/snapshot-runtime/task-2.1/`. Data 294 LLOC; shared pins 19; tests192.
+  Datetime keys compare exact UTC instants without changing source rows; invalid
+  identifiers cannot contaminate diagnostic locations. Generic VersionPin.version
+  is a nonempty string label; producer_version is positive signed64; digests are
+  lowercase SHA256. Task 2.3 must check datetime lexical precision before parsing
+  and normalize UTC; wire serialization remains that task's responsibility.
