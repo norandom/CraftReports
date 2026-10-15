@@ -4,6 +4,19 @@ Updated: 2026-10-15. Kernel tool selections and numeric budgets are approved; br
 
 ## Typed Contracts and Boundaries
 
+Owner-confirmed on 2026-10-15: prefer established library capabilities and
+ordinary composition before custom infrastructure. Before adding a reusable
+abstraction, identify the concrete product operation it serves, the existing
+library capability considered, the demonstrated gap and the code it replaces.
+Do not introduce a generic framework solely for anticipated future reuse.
+Use one authoritative schema/state representation and derive other views;
+share test setup through pytest fixtures. Keep custom checks for domain-specific
+effects that libraries do not establish, such as snapshot consistency and actual
+export/reopen contents. Review added and removed logical lines alongside the
+delivered behavior; line caps alone do not establish proportionality. Prefer
+bounded simplifications with explicit deletions over broad rewrites or new
+dependency wrappers. This is a design review practice, not another custom gate.
+
 Use typed Python for the core, public operations, adapters, results and errors. Explicitly validate untrusted runtime inputs and dataframe schemas at ingress. Static typing does not validate financial methodology or serialized input values.
 
 Use the approved Pyright strict selection for the kernel, pin its version/configuration and check its complete source/scripts/tests scope. Avoid broad unknown/Any types in business contracts or blanket ignores that erase boundary checks.
@@ -69,6 +82,15 @@ would cause contention; do not run duplicate whole suites alongside browser
 timing checks merely to fill slots. Record each group's command and exit code.
 All automated browser work remains
 headless under the owner's current instruction.
+
+Owner clarification on 2026-10-15: Linux hosting does not require duplicating
+the Python suite locally on Windows and Linux for every change. During edits,
+run focused Windows tests. The installed commit hook runs the canonical fast
+check; reuse fresh matching-source results wherever the required review gates
+permit. Linux CI provides platform coverage, with additional local Linux checks
+only for affected Linux behavior or initial platform acceptance. Run browser
+end-to-end checks for affected browser behavior and explicit acceptance gates,
+not every Python edit. Distinguish Linux web hosting from Linux browser execution.
 
 Keep Kiro task acceptance sequential: independent final review, fresh evidence,
 selective commit with installed hooks, then push. Parallel support within a task
