@@ -11,7 +11,7 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   - Done when canonical fast checks accept allowed fixtures and reject forbidden dependencies; ledger approval refers to this reviewed Design and shared edits are serialized with sibling activation.
   - _Boundary: ActivationGate; root-owned shared engineering files from File Structure Plan_
   - _Requirements: 1.5, 5.7, 6.1, 6.2_
-- [ ] 1.2 Resolve the selected storage dependency and create a fail-closed database lifetime
+- [x] 1.2 Resolve the selected storage dependency and create a fail-closed database lifetime
   - Pin SQLAlchemy 2.1.4 and resolve uv.lock against installed Python 3.12; record exact Python/sqlite/dependency versions and installed-wheel import.
   - Implement database/schema version 1, local path validation, OS lifetime lock, explicit nonlegacy transactions, per-connection constraints/configuration and short worker-thread transactions; no custom queue or database engine.
   - Done when a real file commits/rolls back/reopens, foreign keys and durability settings read back, unknown schema fails without replacement and a second actual process cannot open the same host database until the first exits. No PID/lockfile-presence heuristic.
@@ -155,3 +155,11 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   data.ports exception; recipes remain development-gates, fixture public-packs.
   Scanner +7 LLOC; no application code or budget increase. Installed hook is
   required before this acceptance lands.
+- Task 1.2: independent `/root/review_snapshot_database_1_2` approval;
+  15 focused Windows tests and Ruff/format/Pyright passed. Installed-wheel
+  storage files match current source; actual database reopen retains epoch.
+  Python 3.12.10 / SQLite 3.49.1 / SQLAlchemy 2.1.4. Evidence:
+  `artifacts/snapshot-runtime/task-1.2/`. Storage +134 LLOC, tests +200;
+  application unchanged. Schema v1 currently has the deployment table; provider
+  tables belong to later tasks. Cancelled awaits do not roll back a running
+  worker transaction; close retains ownership until that transaction finishes.

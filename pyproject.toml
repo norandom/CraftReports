@@ -12,6 +12,7 @@ dependencies = [
     "mcp==2.3.0",
     "packaging==26.3",
     "pydantic==2.14.1",
+    "sqlalchemy==2.1.4",
     "uvicorn==0.54.0",
 ]
 
