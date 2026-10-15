@@ -5,10 +5,11 @@ from sqlalchemy.engine import Connection
 
 from craftreport.adapters.storage.database import Database, StorageUnavailable
 from craftreport.adapters.storage.journal import DurableJournal
-from craftreport.adapters.storage.schema import commands, evidence, snapshots
+from craftreport.adapters.storage.schema import commands, evidence, feeds, snapshots
 from craftreport.adapters.storage.serialization import (
     decode_evidence,
     decode_object,
+    decode_tombstone,
     validate_preparation,
 )
 from craftreport.application import ports
@@ -103,7 +104,8 @@ class DurableEvidence:
                 preparation_command(connection, self.journal, reference)
                 validate_preparation(fact, reference)
             elif reference.scope == "snapshot_persisted":
-                self._snapshot_fact(connection, reference, fact)
+                if self._snapshot_fact(connection, reference, fact):
+                    return EvidenceStatus(reference, Availability.MISSING)
             else:
                 return EvidenceStatus(reference, Availability.UNAVAILABLE)
             return EvidenceStatus(reference, Availability.AVAILABLE, StageState.PASSED)
@@ -112,7 +114,7 @@ class DurableEvidence:
 
     def _snapshot_fact(
         self, connection: Connection, reference: EvidenceRef, fact: JsonObject
-    ) -> None:
+    ) -> bool:
         if set(fact) != {"operation_id", "feed_id", "producer_version", "content_digest"}:
             raise ValueError("Invalid persisted snapshot fact")
         row = (
@@ -136,30 +138,31 @@ class DurableEvidence:
             .mappings()
             .one()
         )
-        producer = decode_object(stored["producer_bytes"], stored["content_digest"])
-        content = decode_object(stored["snapshot_bytes"], stored["snapshot_digest"])
+        subject = connection.execute(
+            select(feeds.c.subject).where(feeds.c.feed_id == stored["feed_id"])
+        ).scalar_one()
+        if subject != retained.intent.retry_key.subject:
+            raise ValueError("Snapshot feed ownership differs")
+        removed = decode_tombstone(
+            stored["snapshot_bytes"],
+            stored["snapshot_digest"],
+            "snapshot",
+            self.database.deployment,
+            {**stored, "subject": subject},
+        )
         preconditions = retained.intent.expected_versions
         if len(preconditions) != 1 or preconditions[0].resource not in retained.intent.resources:
             raise ValueError("Snapshot original precondition differs")
         previous = preconditions[0].version
         revision = 1 if previous == "absent" else int(previous) + 1
         if (
-            {
-                key: value
-                for key, value in content.items()
-                if key not in ("received_at", "accepted_at", "content_digest")
-            }
-            != producer
-            or fact
+            fact
             != {
                 "operation_id": reference.operation_id,
                 "feed_id": stored["feed_id"],
                 "producer_version": str(stored["producer_version"]),
                 "content_digest": stored["content_digest"],
             }
-            or content["content_digest"] != stored["content_digest"]
-            or content["feed_id"] != stored["feed_id"]
-            or content["producer_version"] != str(stored["producer_version"])
             or tuple(pin.resource for pin in reference.resource_versions)
             != retained.intent.resources
             or len(reference.resource_versions) != 1
@@ -168,3 +171,43 @@ class DurableEvidence:
             or reference.resource_versions[0].resource.identity != stored["feed_id"]
         ):
             raise ValueError("Snapshot fact content/pins differ")
+        if removed:
+            if stored["producer_bytes"] != stored["snapshot_bytes"]:
+                raise ValueError("One-sided snapshot removal")
+            return True
+        producer = decode_object(stored["producer_bytes"], stored["content_digest"])
+        content = decode_object(stored["snapshot_bytes"], stored["snapshot_digest"])
+        if {
+            key: value
+            for key, value in content.items()
+            if key not in ("received_at", "accepted_at", "content_digest")
+        } != producer or (
+            content["content_digest"],
+            content["feed_id"],
+            content["producer_version"],
+        ) != (stored["content_digest"], stored["feed_id"], str(stored["producer_version"])):
+            raise ValueError("Snapshot content differs")
+        return False
+
+
+def snapshot_evidence(
+    connection: Connection, database: Database, operation_id: str
+) -> EvidenceStatus:
+    rows = (
+        connection.execute(select(evidence).where(evidence.c.operation_id == operation_id).limit(3))
+        .mappings()
+        .all()
+    )
+    refs = tuple(decode_evidence(row["reference_bytes"], row["reference_digest"]) for row in rows)
+    if any(
+        ref.identity != row["identity"] or ref.operation_id != operation_id
+        for ref, row in zip(refs, rows, strict=True)
+    ):
+        raise ValueError("Snapshot evidence identity differs")
+    matches = tuple(ref for ref in refs if ref.scope == "snapshot_persisted")
+    if len(matches) != 1:
+        raise ValueError("Original snapshot evidence missing or duplicated")
+    status = DurableEvidence(database).inspect_one(connection, matches[0])
+    if status.availability not in (Availability.AVAILABLE, Availability.MISSING):
+        raise ValueError("Original snapshot evidence unavailable")
+    return status

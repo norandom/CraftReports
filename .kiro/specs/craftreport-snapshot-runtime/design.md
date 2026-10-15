@@ -285,3 +285,50 @@ Existing callers are renamed; bounded health sampling reuses its actual retained
 owner/journal/reference validation within the same transaction. This adds only
 the narrow existing storage/results.py integration seam, not a new endpoint or
 authority. Independent implementation re-review remains mandatory.
+
+
+### Accepted task 3.5 stopped-host retention integration
+
+Task3.5 follows [retention-amendment.md](retention-amendment.md), independently
+approved by `/root/review_services_plan` at SHA256
+`56253BE19D2A40D2200514A8997CFBF2BF39A79D08E4579B40004A22420FF5F9`.
+A subsequent editorial correction says payload *and their checksum* columns,
+matching the already reviewed exact representation. Closed prefixed canonical
+tombstones retain original checksums and identities with a verifiable current
+checksum, using existing serialization and v5 columns. The bounded privileged
+operator API requires an existing current-schema file without migration, holds
+the existing OS lifetime lock, preflights lengths before materializing bytes,
+and drains cancellation before cleanup. It removes only explicitly selected
+payloads; unselected copies and backups are outside this operation. Feed order,
+retry identities and historical receipts remain unchanged; current supporting
+content may be Missing without manufacturing a new passed observation.
+The narrow read-path reconciliation includes storage/evidence.py and
+serialization.py in addition to the originally planned database, snapshots,
+results and providers files. Implementation waits for accepted task3.4 and its
+final measured storage budget; no new module or cap increase is approved.
+
+
+### Accepted task 3.5 offline module boundary
+
+The independently approved retention-module-amendment.md at SHA256
+D152DF4B50450724A64CC54AA947704EA44A77BA8456F7E54267709208DFFE74
+places the complete offline selection/preflight/purge/drain operation in
+storage/retention.py. It stays in snapshot-storage and its unchanged aggregate
+budget. Existing reader/tombstone/lifetime responsibilities remain in their
+current files; no reexport shim or semantic expansion is introduced. Measured
+initial1373/1500 exceeds the earlier growth estimate; remaining capacity does
+not establish fit for later tasks. Actual final gates remain mandatory.
+
+
+### Accepted task 3.5 typed retained-content validation
+
+Follow retention-validation-amendment.md, independently approved by
+/root/review_services_plan at SHA256
+468BA2B709AEE1BA9C704B8F0AE28422FBACD6A19AB56661019ECD55CFE06EB0.
+The offline operator requires an explicitly injected existing Codec[Snapshot].
+Storage imports only the inward codec/value contracts; normal live read and
+purge share the extracted existing typed/canonical snapshot validation. Full
+selection length preflight, tombstone/evidence branches and all-before-write
+validation remain intact. The preserved invalid-timestamp/rewritten-checksum
+probe must reject without removing content. No alternative decoder, default
+codec, boundary exception or cap increase is introduced.

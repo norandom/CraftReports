@@ -3,19 +3,93 @@
 import hashlib
 import json
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Literal, cast
 
 from pydantic import TypeAdapter, ValidationError
 
 from craftreport.adapters.canonical import canonical_bytes
+from craftreport.adapters.storage.schema import Deployment
 from craftreport.application.dispatch_ports import RecordedHandoff
 from craftreport.contracts import CommandIntent, EvidenceRef, JsonObject, Receipt
-from craftreport.contracts.values import freeze_object, require_immutable
+from craftreport.contracts.values import JsonValue, freeze_object, require_immutable
 
 _receipt = TypeAdapter(Receipt)
 _intent = TypeAdapter(CommandIntent)
 _handoff = TypeAdapter(RecordedHandoff)
+PURGED = b"\x00CRAFTREPORT-PURGED-CONTENT-V1\n"
+type ContentKind = Literal["snapshot", "result"]
+
+
+class TombstoneLimit(ValueError):
+    """Selected valid identity cannot fit the bounded removal envelope."""
+
+
+def _tombstone_fields(
+    kind: ContentKind, deployment: Deployment, row: Mapping[str, object]
+) -> JsonObject:
+    names = (
+        ("feed_id", "producer_version", "subject", "operation_id", "content_digest")
+        if kind == "snapshot"
+        else ("identity", "operation_id", "command_operation_id", "deployment_scope", "subject")
+    )
+    result: dict[str, JsonValue] = {
+        "kind": kind,
+        "schema_version": "1",
+        "deployment_identity": deployment.identity,
+        "deployment_epoch": deployment.epoch,
+    }
+    for name in names:
+        value = row[name]
+        if name == "producer_version":
+            if type(value) is not int or not 0 < value < 2**63:
+                raise ValueError("Invalid retained producer version")
+            value = str(value)
+        if value is None and name == "command_operation_id":
+            result[name] = None
+        elif isinstance(value, str) and value.strip():
+            result[name] = value
+        else:
+            raise ValueError("Invalid retained removal identity")
+    return result
+
+
+def encode_tombstone(
+    kind: ContentKind, deployment: Deployment, row: Mapping[str, object]
+) -> tuple[bytes, str]:
+    original = row[kind + "_digest"]
+    if not isinstance(original, str) or re.fullmatch(r"[0-9a-f]{64}", original) is None:
+        raise ValueError("Invalid original checksum")
+    body, _ = encode_object(
+        {**_tombstone_fields(kind, deployment, row), kind + "_digest": original}
+    )
+    if len(body) > 4096:
+        raise TombstoneLimit("Removal envelope exceeds 4KiB")
+    payload = PURGED + body
+    return payload, hashlib.sha256(payload).hexdigest()
+
+
+def decode_tombstone(
+    payload: bytes,
+    digest: str,
+    kind: ContentKind,
+    deployment: Deployment,
+    row: Mapping[str, object],
+) -> bool:
+    if not payload.startswith(PURGED):
+        return False
+    _check(payload, digest)
+    body = payload[len(PURGED) :]
+    value = decode_object(body, hashlib.sha256(body).hexdigest(), max_bytes=4096)
+    original = value.get(kind + "_digest")
+    if (
+        not isinstance(original, str)
+        or re.fullmatch(r"[0-9a-f]{64}", original) is None
+        or value != {**_tombstone_fields(kind, deployment, row), kind + "_digest": original}
+    ):
+        raise ValueError("Removal envelope identity differs")
+    return True
 
 
 def encode_handoff(value: RecordedHandoff) -> tuple[bytes, str]:

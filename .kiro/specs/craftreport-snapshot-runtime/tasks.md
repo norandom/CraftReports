@@ -74,11 +74,14 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   - _Boundary: DurableProviders handoffs/capabilities/health_
   - _Depends: 3.2, 3.3_
   - _Requirements: 5.1, 5.5, 5.7, 6.1, 6.2_
-- [ ] 3.5 Implement explicit stopped-host retention maintenance
+- [x] 3.5 Implement explicit stopped-host retention maintenance
+  - Apply independently reviewed retention-validation-amendment.md: require the existing snapshot codec through an inward injection and reuse normal retained-content validation for offline removal; preserve the typed-corruption negative regression, all-selection preflight and unchanged lifetime/evidence checks.
+  - Apply independently reviewed retention-module-amendment.md: move the complete offline operator into storage/retention.py under the same owner and unchanged cap; canonical imports use that module directly, with no reexport shim or semantic expansion.
+  - Apply independently reviewed retention-amendment.md: exact checksummed tombstones in current v5 columns, bounded privileged async operator API, current-schema nonmigrating open, length preflight before BLOB loading and cancellation-safe lock lifetime. Preserve authoritative purged feed identities, reject rehydration through old identities, and distinguish current missing support from immutable historical receipts. Include narrow storage/evidence.py and serialization.py read-path changes; implementation awaits accepted3.4 and its final measured budget.
   - Implement the design's offline purge in the existing storage provider files, using the database lifetime lock to reject maintenance while a host owns the database; require explicit operator-selected references and return the affected-reference list.
   - Preserve snapshot/retry identity tombstones, feed high-water, deployment epoch and journal evidence; remove only selected retained content without making an old retry eligible for execution. Keep missing content distinguishable from provider unavailability after reopen.
   - Done when a real retained file can be purged only with the host stopped, the returned references match the removed bytes and a reopened provider reports missing content while retaining retry identity, high-water and epoch.
-  - _Boundary: DurableProviders retention; src/craftreport/adapters/storage/database.py, snapshots.py, results.py and providers.py under snapshot-storage ownership_
+  - _Boundary: DurableProviders retention; src/craftreport/adapters/storage/database.py, snapshots.py, results.py, providers.py, evidence.py and serialization.py under snapshot-storage ownership_
   - _Depends: 3.4_
   - _Requirements: 5.1, 5.5, 5.7, 6.2_
 
@@ -228,3 +231,13 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   uses the single installed activation with mandatory one-shot provider binding.
   Historical handoffs do not confer current lease authority. Remaining full
   storage scope is estimated1467-1602; fit is not established and no cap rises.
+
+- Task 3.5: independently approved on matching frozen source. The offline
+  operator uses current-schema opening, metadata-only selection preflight,
+  existing typed snapshot validation, atomic checksummed tombstones and drained
+  cancellation/close handling. Fresh468 worker tests,99 independent tests and
+  four adversarial real-file probes passed with scoped static gates. Evidence:
+  artifacts/snapshot-runtime/task-3.5/. Storage1393/1500, net+241;107 remains.
+  Historical identity/receipts remain retained; current removed content is
+  Missing. This is selected-content removal, not secure erasure of every copy.
+  Remaining estimated storage work does not have an established full fit.

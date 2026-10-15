@@ -8,12 +8,12 @@ from pathlib import Path
 from threading import Lock
 from typing import BinaryIO
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, select
 from sqlalchemy.engine import URL, Connection
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.pool import ConnectionPoolEntry, NullPool
 
-from craftreport.adapters.storage.schema import initialize
+from craftreport.adapters.storage.schema import deployment, initialize
 
 
 class StorageUnavailable(RuntimeError):
@@ -87,7 +87,7 @@ class Database:
     Network filesystems and multi-process hosts are unsupported.
     """
 
-    def __init__(self, path: Path, deployment_id: str) -> None:
+    def __init__(self, path: Path, deployment_id: str, *, maintenance: bool = False) -> None:
         self._mutex = Lock()
         self._closed = False
         if not deployment_id:
@@ -95,6 +95,9 @@ class Database:
         try:
             self.path = _local_path(path)
             self._lock = _lock_file(self.path)
+            if maintenance and not self.path.is_file():
+                self._lock.close()
+                raise StorageUnavailable("Maintenance requires an existing retained file")
         except (OSError, ValueError) as error:
             raise StorageUnavailable("Local storage is unavailable or already owned") from error
         self._engine = create_engine(
@@ -106,6 +109,8 @@ class Database:
         try:
             existed = self.path.exists()
             with self._engine.begin() as connection:
+                if maintenance and connection.scalar(select(deployment.c.schema_version)) != 5:
+                    raise ValueError("Maintenance requires the current retained schema")
                 self.deployment = initialize(connection, deployment_id, existed)
         except (SQLAlchemyError, OSError, ValueError) as error:
             self._close()

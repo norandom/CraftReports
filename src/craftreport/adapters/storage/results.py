@@ -11,6 +11,7 @@ from craftreport.adapters.storage.journal import DurableJournal
 from craftreport.adapters.storage.schema import commands, evidence, results
 from craftreport.adapters.storage.serialization import (
     decode_object,
+    decode_tombstone,
     encode_evidence,
     encode_object,
     validate_preparation,
@@ -131,6 +132,10 @@ class DurableResults:
                 raise ValueError("Receipt result reference differs")
         elif command is not None:
             raise ValueError("Unlinked retained result")
+        if decode_tombstone(
+            row["result_bytes"], row["result_digest"], "result", self.database.deployment, dict(row)
+        ):
+            return RetainedResult(reference, Availability.MISSING)
         value = decode_object(row["result_bytes"], row["result_digest"], max_bytes=_RESULT_LIMIT)
         return RetainedResult(reference, Availability.AVAILABLE, value)
 

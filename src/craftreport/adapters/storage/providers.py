@@ -9,7 +9,10 @@ from sqlalchemy import insert, select
 from sqlalchemy.engine import Connection
 
 from craftreport.adapters.storage.database import Database, StorageUnavailable
-from craftreport.adapters.storage.evidence import STORAGE_FAILURES, DurableEvidence
+from craftreport.adapters.storage.evidence import (
+    STORAGE_FAILURES,
+    DurableEvidence,
+)
 from craftreport.adapters.storage.guard import DurableGuard, DurableLease
 from craftreport.adapters.storage.journal import DurableJournal
 from craftreport.adapters.storage.results import DurableResults
@@ -319,19 +322,15 @@ class DurableHealth:
             return
         if name == "results":
             principal = Principal(row["deployment_scope"], row["subject"], frozenset())
-            if (
-                DurableResults(self.database)
-                .read_retained(connection, principal, row["operation_id"], row["identity"])
-                .availability
-                is not Availability.AVAILABLE
-            ):
+            if DurableResults(self.database).read_retained(
+                connection, principal, row["operation_id"], row["identity"]
+            ).availability not in (Availability.AVAILABLE, Availability.MISSING):
                 raise ValueError("Retained result ownership/link unavailable")
         elif name == "evidence":
             reference = decode_evidence(row["reference_bytes"], row["reference_digest"])
-            if (
-                DurableEvidence(self.database).inspect_one(connection, reference).availability
-                is not Availability.AVAILABLE
-            ):
+            if DurableEvidence(self.database).inspect_one(
+                connection, reference
+            ).availability not in (Availability.AVAILABLE, Availability.MISSING):
                 raise ValueError("Retained evidence unavailable")
         elif name == "handoffs":
             record = decode_handoff(row["handoff_bytes"], row["handoff_digest"])

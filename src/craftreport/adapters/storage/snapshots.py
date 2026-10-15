@@ -8,9 +8,11 @@ from sqlalchemy import insert, select, update
 from sqlalchemy.engine import Connection, RowMapping
 
 from craftreport.adapters.storage.database import Database, StorageUnavailable
+from craftreport.adapters.storage.evidence import snapshot_evidence
 from craftreport.adapters.storage.journal import DurableJournal
 from craftreport.adapters.storage.schema import commands, evidence, feeds, snapshots
 from craftreport.adapters.storage.serialization import (
+    PURGED,
     decode_evidence,
     decode_object,
     encode_evidence,
@@ -19,6 +21,7 @@ from craftreport.adapters.storage.serialization import (
 from craftreport.application import ports
 from craftreport.application.registry import Codec
 from craftreport.contracts import (
+    Availability,
     EffectDisposition,
     EvidenceRef,
     ExpectedVersion,
@@ -49,53 +52,71 @@ def snapshot_resource(snapshot: Snapshot) -> ResourceRef:
     return ResourceRef("snapshot", snapshot.feed_id + ":" + str(snapshot.producer_version))
 
 
+def prepare_publication(codec: Codec[Snapshot], change: JsonObject) -> Publication:
+    if set(change) != {"operation_id", "snapshot"}:
+        raise ValueError("Unknown publication change")
+    operation_id, raw = change["operation_id"], change["snapshot"]
+    if (
+        not isinstance(operation_id, str)
+        or not operation_id.strip()
+        or not isinstance(raw, Mapping)
+    ):
+        raise ValueError("Invalid publication change")
+    snapshot = codec.decode(raw)
+    content = codec.encode(snapshot)
+    producer = {
+        key: value
+        for key, value in content.items()
+        if key not in ("content_digest", "received_at", "accepted_at")
+    }
+    producer_bytes, digest = encode_object(producer)
+    if digest != snapshot.content_digest:
+        raise ValueError("Producer identity mismatch")
+    payload, payload_digest = encode_object(content)
+    return Publication(
+        operation_id, snapshot, content, producer, producer_bytes, payload, payload_digest
+    )
+
+
+def read_retained_snapshot(codec: Codec[Snapshot], row: RowMapping) -> ports.ResourceSnapshot:
+    content = decode_object(row["snapshot_bytes"], row["snapshot_digest"])
+    stored = prepare_publication(codec, {"operation_id": row["operation_id"], "snapshot": content})
+    if (
+        stored.snapshot.feed_id != row["feed_id"]
+        or stored.snapshot.producer_version != row["producer_version"]
+        or stored.snapshot.content_digest != row["content_digest"]
+        or stored.producer_bytes != row["producer_bytes"]
+        or stored.snapshot_bytes != row["snapshot_bytes"]
+    ):
+        raise ValueError("Retained snapshot mismatch")
+    return ports.ResourceSnapshot(
+        ExpectedVersion(snapshot_resource(stored.snapshot), stored.snapshot.content_digest),
+        content,
+    )
+
+
 class SnapshotStore:
     def __init__(
         self, database: Database, codec: Codec[Snapshot], fingerprint: Fingerprint, policy: str
     ) -> None:
+        self.database = database
         self.codec, self.fingerprint, self.policy = codec, fingerprint, policy
         self.journal = DurableJournal(database)
 
     def prepare(self, change: JsonObject) -> Publication:
-        if set(change) != {"operation_id", "snapshot"}:
-            raise ValueError("Unknown publication change")
-        operation_id, raw = change["operation_id"], change["snapshot"]
-        if (
-            not isinstance(operation_id, str)
-            or not operation_id.strip()
-            or not isinstance(raw, Mapping)
-        ):
-            raise ValueError("Invalid publication change")
-        snapshot = self.codec.decode(raw)
-        content = self.codec.encode(snapshot)
-        producer = {
-            key: value
-            for key, value in content.items()
-            if key not in ("content_digest", "received_at", "accepted_at")
-        }
-        producer_bytes, digest = encode_object(producer)
-        if digest != snapshot.content_digest:
-            raise ValueError("Producer identity mismatch")
-        payload, payload_digest = encode_object(content)
-        return Publication(
-            operation_id, snapshot, content, producer, producer_bytes, payload, payload_digest
-        )
+        return prepare_publication(self.codec, change)
 
-    def _content(self, row: RowMapping) -> ports.ResourceSnapshot:
-        content = decode_object(row["snapshot_bytes"], row["snapshot_digest"])
-        stored = self.prepare({"operation_id": row["operation_id"], "snapshot": content})
-        if (
-            stored.snapshot.feed_id != row["feed_id"]
-            or stored.snapshot.producer_version != row["producer_version"]
-            or stored.snapshot.content_digest != row["content_digest"]
-            or stored.producer_bytes != row["producer_bytes"]
-            or stored.snapshot_bytes != row["snapshot_bytes"]
-        ):
-            raise ValueError("Retained snapshot mismatch")
-        return ports.ResourceSnapshot(
-            ExpectedVersion(snapshot_resource(stored.snapshot), stored.snapshot.content_digest),
-            content,
-        )
+    def _content(
+        self, connection: Connection, row: RowMapping
+    ) -> ports.ResourceSnapshot | ports.Missing:
+        if row["snapshot_bytes"].startswith(PURGED):
+            if (
+                snapshot_evidence(connection, self.database, row["operation_id"]).availability
+                is not Availability.MISSING
+            ):
+                raise ValueError("Invalid snapshot removal")
+            return ports.Missing()
+        return read_retained_snapshot(self.codec, row)
 
     def _snapshot(
         self, connection: Connection, feed: str, version: int
@@ -110,7 +131,26 @@ class SnapshotStore:
             .mappings()
             .one_or_none()
         )
-        return ports.Missing() if row is None else self._content(row)
+        return ports.Missing() if row is None else self._content(connection, row)
+
+    def identity(
+        self, connection: Connection, feed: str, version: int
+    ) -> ExpectedVersion | ports.Missing:
+        row = (
+            connection.execute(
+                select(snapshots).where(
+                    snapshots.c.feed_id == feed, snapshots.c.producer_version == version
+                )
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if row is None:
+            return ports.Missing()
+        self._content(connection, row)
+        return ExpectedVersion(
+            ResourceRef("snapshot", feed + ":" + str(version)), row["content_digest"]
+        )
 
     def read(
         self, connection: Connection, resource: ResourceRef
@@ -138,7 +178,7 @@ class SnapshotStore:
             return ports.Missing()
         if any(type(row[name]) is not int or row[name] <= 0 for name in ("revision", "high_water")):
             raise ValueError("Invalid retained feed revision")
-        latest = self._snapshot(connection, resource.identity, row["high_water"])
+        latest = self.identity(connection, resource.identity, row["high_water"])
         if (
             isinstance(latest, ports.Missing)
             or not isinstance(row["subject"], str)
@@ -150,8 +190,8 @@ class SnapshotStore:
             {
                 "high_water": str(row["high_water"]),
                 "subject": row["subject"],
-                "snapshot": latest.version.resource.identity,
-                "content_digest": latest.version.version,
+                "snapshot": latest.resource.identity,
+                "content_digest": latest.version,
             },
         )
 
@@ -202,17 +242,17 @@ class SnapshotStore:
         subject = retained.intent.retry_key.subject
         if feed is not None and feed["subject"] != subject:
             raise ValueError("Publication does not own feed")
-        existing = self._snapshot(connection, snapshot.feed_id, snapshot.producer_version)
+        existing = self.identity(connection, snapshot.feed_id, snapshot.producer_version)
         expected = ExpectedVersion(snapshot_resource(snapshot), snapshot.content_digest)
-        if isinstance(existing, ports.ResourceSnapshot):
-            if existing.version != expected:
-                return ports.VersionConflict((expected,), (existing.version,))
+        if isinstance(existing, ExpectedVersion):
+            if existing != expected:
+                return ports.VersionConflict((expected,), (existing,))
             return ports.ResourceEffect(EffectDisposition.NONE, versions, ())
         if feed is not None and snapshot.producer_version < feed["high_water"]:
-            latest = self._snapshot(connection, snapshot.feed_id, feed["high_water"])
+            latest = self.identity(connection, snapshot.feed_id, feed["high_water"])
             if isinstance(latest, ports.Missing):
                 raise ValueError("Missing feed high water")
-            return ports.VersionConflict((expected,), (latest.version,))
+            return ports.VersionConflict((expected,), (latest,))
         revision = 1 if feed is None else feed["revision"] + 1
         self._advance(connection, publication, feed, subject, revision)
         pins = (ExpectedVersion(ResourceRef("feed", snapshot.feed_id), str(revision)),)

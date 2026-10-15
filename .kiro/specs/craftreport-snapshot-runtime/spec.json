@@ -95,5 +95,29 @@
     "reviewed_sha256": "5AB8BAA8D9867B6E8051554D397D4A3EB99078B3E55D61250254C37B3B3C39C5",
     "authorization": "owner-directed-bounded-fast-track",
     "repair_passes": 1
+  },
+  "retention_amendment": {
+    "reference": "retention-amendment.md",
+    "reviewer": "/root/review_services_plan",
+    "verdict": "PASS",
+    "reviewed_sha256": "56253BE19D2A40D2200514A8997CFBF2BF39A79D08E4579B40004A22420FF5F9",
+    "post_review_change": "editorial: selected payload and their checksum columns, matching reviewed representation",
+    "authorization": "owner-directed-bounded-fast-track",
+    "repair_passes": 1,
+    "implementation_prerequisite": "task-3.4-accepted and final budget reconciled"
+  },
+  "retention_module_amendment": {
+    "reference": "retention-module-amendment.md",
+    "reviewer": "/root/review_services_plan",
+    "verdict": "PASS",
+    "reviewed_sha256": "D152DF4B50450724A64CC54AA947704EA44A77BA8456F7E54267709208DFFE74",
+    "authorization": "owner-directed-bounded-fast-track"
+  },
+  "retention_validation_amendment": {
+    "reference": "retention-validation-amendment.md",
+    "reviewer": "/root/review_services_plan",
+    "verdict": "PASS",
+    "reviewed_sha256": "468BA2B709AEE1BA9C704B8F0AE28422FBACD6A19AB56661019ECD55CFE06EB0",
+    "authorization": "owner-directed-bounded-fast-track"
   }
 }
