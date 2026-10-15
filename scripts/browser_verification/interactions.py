@@ -408,11 +408,7 @@ class BrowserDriver:
                     raise TargetMismatch("document-title-mismatch")
                 self.guard(edit.target)
                 self.edit_attempted = True
-                await click(self.page, 350, 179)
-                await key(self.page, "Control+a")
-                await self.page.keyboard.insert_text(displayed(edit.after))
-                await frame(self.page)
-                await key(self.page, "Enter")
+                await self.dispatch_edit(edit)
                 observed = await self.observe(self.checks(edit.target, "after"))
                 self.document_title = await title(self.page)
                 self.guard(edit.target)
@@ -422,3 +418,10 @@ class BrowserDriver:
             return Succeeded[ActionReceipt](payload=self.receipts[-1])
         except (Error, OSError, ValueError, TimeoutError) as error:
             return await self.rejected("edit", error)
+
+    async def dispatch_edit(self, edit: CellEdit) -> None:
+        await click(self.page, 350, 179)
+        await key(self.page, "Control+a")
+        await self.page.keyboard.insert_text(displayed(edit.after))
+        await frame(self.page)
+        await key(self.page, "Enter")

@@ -169,7 +169,7 @@ The existing probe on 8871 is preserved.
   - _Depends: 1.4, 3.2_
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 5.2_
 
-- [ ] 3.4 Prove route sensitivity and retain the first bounded feasibility result
+- [x] 3.4 Prove route sensitivity and retain the first bounded feasibility result
   - Suppress only edit dispatch in a disposable test variant; fresh readback must
     detect unchanged B3 and produce a failed attempt with review evidence.
   - Restore real dispatch in a distinct run and repeat the complete round trip.
@@ -344,3 +344,8 @@ Deployments here are disposable verification infrastructure, not product release
 
 - 3.3 accepted after resume: independent review verified all 32 frozen source hashes and 1,234 indexed hash/size references, re-inspected the actual 6,475-byte XLSX (all 22 findings), re-evaluated before/after/reopen chart checks and all eleven cells, and confirmed distinct context/page identities with generation 2 to 3. Fresh independent canonical fast passed 812 tests/88 subtests. Four healthy/fault videos were independently decoded headlessly; browser/deployment cleanup was graceful. Actual conflict preserved existing content with zero Save dispatches; actual no-file retained one unresolved receipt and no output. Evidence `artifacts/browser-verification/task-3.3/review-index.json`; source 2,494/2,800 LLOC. Windows headless download-fallback scope only; sensitivity, final packet/lifecycle, other profiles and adopter/hosted browser delivery remain open.
 - Reopen learning: GridCraft preserves the saved active cell (D3), and chooser completion can precede the end of the backstage import screen. Wait within the action bound for the observed Book1-to-imported title transition before real Name Box navigation to A1, then verify the marker and all eleven cells. One Open dispatch only. Journey passes an inspection result bound to artifact hash/size, fixture hash and edited phase; BrowserDriver owns all UI, including the bounded reopen screenshot. Keep failed import attempts distinct and never rewrite exported bytes to match expectations.
+
+- Hosted revalidation confirmed for 3.3: [run 38730830406](https://github.com/norandom/CraftReports/actions/runs/38730830406) at commit `4aa8cf7` passed fast checks and installed-wheel synthetic conformance. Dedicated browser CI remains pending.
+
+- 3.4 accepted: independent review matched 467 evidence files and 34 current source hashes, confirmed actual suppressed dispatch leaves all eleven observed cells unchanged (B3=20) and rejects the edit before Save, and verified a distinct restored full round trip with all 22 saved-byte findings and fresh-context chart/cell checks. Four retained videos independently decoded headlessly; owned cleanup was graceful. Fresh independent canonical fast passed 813 tests/88 subtests. Evidence `artifacts/browser-verification/task-3.4/review-index.json`; source 2,496/2,800 LLOC. Original challenge assertion typo remains retained; exact source equivalence establishes unchanged production/recovery code after its correction. This accepts only the Windows headless download-fallback checkpoint.
+- Expansion hold after 3.4: required headed/Linux profiles remain unverified, and the owner prohibits automated foreground windows. The task stop-expansion rule remains in force before 4.1/4.2. The separately proposed `headless-continuation-amendment.md` passed independent review but requires explicit owner approval; no acceptance criteria or budgets are waived. Remaining source forecast is uncertain, not proof the cap cannot fit.
