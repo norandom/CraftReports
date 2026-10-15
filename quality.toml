@@ -1,6 +1,6 @@
 # Kernel engineering policy approved with its Design and implemented by foundation tasks 1.1-1.4.
 # Mandatory direction: typed Python, Ruff lint/format, pre-commit and CI parity.
-# Numeric approval covers listed kernel, browser and snapshot-runtime scopes; future budgets require review.
+# Numeric approval covers listed kernel, browser, snapshot-runtime and report-model scopes.
 
 [meta]
 schema_version = 1
@@ -8,7 +8,7 @@ drafted = "2026-10-13"
 status = "approved-scope-policy-enforced"
 numeric_limits_approved = true
 approval_reference = ".kiro/specs/craftreport-operation-kernel/design-review.md"
-approved_capability_ids = ["contracts", "application", "adapters", "interfaces", "composition", "development-gates", "browser-verification", "data", "runtime", "snapshot-storage"]
+approved_capability_ids = ["contracts", "application", "adapters", "interfaces", "composition", "development-gates", "browser-verification", "data", "runtime", "snapshot-storage", "reporting", "themes", "policies", "public-packs"]
 tool_versions_pinned = true
 enforcement_implemented = true
 hooks_installed = true
@@ -55,7 +55,7 @@ apply_before_associated_implementation_lands = true
 calibrate_against_first_vertical_slice = true
 
 [budgets]
-capability_ids = ["contracts", "domain", "data", "compute", "reporting", "themes", "policies", "application", "runtime", "adapters", "transports", "interfaces", "composition", "gridcraft", "development-gates", "browser-verification", "snapshot-storage"]
+capability_ids = ["contracts", "domain", "data", "compute", "reporting", "themes", "policies", "application", "runtime", "adapters", "transports", "interfaces", "composition", "gridcraft", "development-gates", "browser-verification", "snapshot-storage", "public-packs"]
 scope_source = "breadth.toml capability owner paths"
 limit_state = "approved-for-meta-approved_capability_ids-only"
 more_specific_extension_owns_its_files = true
@@ -94,6 +94,22 @@ content_paths = ["examples/data/snapshot_runtime.json"]
 documentation_owner = "documentation"
 documentation_paths = ["docs/quickstarts/Quickstart_How_to_publish_and_recover_a_snapshot.md", "docs/quickstarts/index.md"]
 implementation_authorization_source = ".kiro/specs/craftreport-snapshot-runtime/spec.json"
+
+[scope_approval.report-model-packs]
+approved = true
+approved_at = "2026-10-15"
+approval_reference = ".kiro/specs/craftreport-report-model-packs/design-review.md"
+capability_ids = ["reporting", "themes", "policies", "public-packs"]
+limits = "existing defaults: 50 function / 300 module / 1500 capability LLOC and McCabe 10; no raises"
+supporting_capability_ids = ["adapters", "composition", "development-gates", "documentation"]
+source_paths = ["src/craftreport/reporting/definitions.py", "src/craftreport/reporting/prepared.py", "src/craftreport/reporting/prepare.py", "src/craftreport/reporting/ports.py", "src/craftreport/reporting/operations.py", "src/craftreport/themes/values.py", "src/craftreport/themes/resolve.py", "src/craftreport/policies/values.py", "src/craftreport/policies/evaluate.py", "src/craftreport/adapters/report_models.py", "src/craftreport/adapters/report_codecs.py", "src/craftreport/adapters/pack_reader.py", "src/craftreport/adapters/report_resources.py", "src/craftreport/composition/reporting.py"]
+executable_owner = "development-gates"
+executable_paths = ["scripts/examples/prepare_reusable_report.py"]
+content_owner = "public-packs"
+content_paths = ["examples/reports/supplied_portfolio.json", "examples/templates/public_report/manifest.json", "examples/themes/house.json"]
+documentation_owner = "documentation"
+documentation_paths = ["docs/quickstarts/Quickstart_How_to_prepare_a_reusable_report.md", "docs/quickstarts/index.md"]
+implementation_authorization_source = ".kiro/specs/craftreport-report-model-packs/spec.json"
 
 [future_gate_families]
 required = ["ruff-lint", "ruff-format", "strict-typecheck", "lloc-budgets", "branching-budgets", "breadth-ledger", "dependency-boundaries"]

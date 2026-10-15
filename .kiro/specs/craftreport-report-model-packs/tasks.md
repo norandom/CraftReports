@@ -4,7 +4,7 @@ All tasks are unchecked. Each executable task is a bounded 1–3 hour unit and r
 
 ## Foundation
 
-- [ ] 1. Activate the bounded preparation owners and imports
+- [x] 1. Activate the bounded preparation owners and imports
   - Apply the unchanged 50 function / 300 module / 1,500 capability / complexity 10 defaults to reporting, themes, policies and public-packs; record exact reviewed source/content paths and this spec approval in breadth/quality policy before source expansion.
   - Keep existing application unchanged at measured 1,449/1,500; put feature operations/ports under reporting. Include supporting existing adapters/composition and development-gates recipe paths in their existing budgets; do not add executable content below data-only examples or raise any existing limit.
   - Narrowly extend import checks for the Design's dependency direction and add positive/negative boundary fixtures, retaining SDK/ORM/runtime prohibitions. Serialize shared edits with snapshot-runtime and root.
@@ -137,3 +137,12 @@ Task 2.1 requires accepted craftreport-snapshot-runtime task 2.1 shared pins; ta
 
 No `(P)` marker is used: the first preparation slice reuses shared value contracts sequentially; root may delegate disjoint read-only audits without changing task acceptance order. No required acceptance test is optional. Mandatory guide/example tasks follow the explicit project documentation rule, which takes precedence over the generic task rule excluding documentation.
 
+
+## Implementation Notes
+
+- Task 1: independently approved by `/root/review_report_model_activation_1`;
+  24 focused tests/106 subtests, scoped Ruff/format/Pyright and actual gates
+  passed, plus 16 independent import probes. Evidence:
+  `artifacts/report-model-packs/task-1/`. Scanner +18 LLOC; tests +24;
+  development-gates1067/1500 and application1449/1500 unchanged. Exact public
+  content remains nonexecutable; snapshot fixture/recipe approvals preserved.

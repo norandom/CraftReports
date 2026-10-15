@@ -276,7 +276,7 @@ class BoundaryGateTests(unittest.TestCase):
     def test_unknown_unapproved_and_most_specific_parked_owners(self) -> None:
         for path, diagnostic in (
             ("src/craftreport/mystery/code.py", "unknown ownership"),
-            ("src/craftreport/reporting/code.py", "unapproved ownership: reporting"),
+            ("deploy/service.yaml", "unapproved ownership: deployment"),
             ("packages/craftreport-wordcraft/README.md", "parked ownership: wordcraft"),
         ):
             with self.subTest(path=path):
@@ -482,6 +482,105 @@ class BoundaryGateTests(unittest.TestCase):
                 if path.startswith("adapters/storage/"):
                     self.assertIn("snapshot-storage ->", report)
                 (self.root / fixture).unlink()
+
+    def test_report_model_allowed_dependencies(self) -> None:
+        cases = {
+            "themes/values.py": "from ..contracts.pins import VersionPin\n",
+            "themes/resolve.py": "from .values import SemanticRole\nimport dataclasses\n",
+            "policies/values.py": "from ..contracts import ExpectedVersion\n",
+            "policies/evaluate.py": "from .values import CheckScope\n",
+            "reporting/definitions.py": (
+                "from ..data.requirements import InputRequirements\n"
+                "from ..themes.values import SemanticRole\n"
+                "from ..policies.values import ReleasePolicy\n"
+            ),
+            "reporting/prepare.py": (
+                "from ..data.values import Snapshot\nfrom .prepared import PreparedReport\n"
+                "from ..themes.resolve import resolve\nfrom ..policies.evaluate import evaluate\n"
+            ),
+            "reporting/ports.py": (
+                "from ..application.service_values import ServiceUnavailable\n"
+                "from ..contracts import EvidenceRef\nfrom .prepared import PreparedReport\n"
+            ),
+            "reporting/operations.py": (
+                "from ..application.registry import OperationBinding, CommandBehavior\n"
+                "from ..application.registry import QueryBehavior\n"
+                "from ..application.ports import CommandContext, ReadContext\n"
+                "from ..application.service_values import Missing, VersionConflict\n"
+                "from ..application.service_values import ServiceUnavailable\n"
+                "from ..contracts.outcomes import OutcomeProposal\n"
+                "from ..data.ports import SnapshotReader\nfrom .ports import PackReader\n"
+            ),
+            "adapters/report_models.py": "from ..reporting import definitions\nimport pydantic\n",
+            "adapters/pack_reader.py": "from ..themes import values\nimport packaging\n",
+            "adapters/report_resources.py": "from ..policies import values\n",
+            "composition/reporting.py": "from ..reporting import operations\n",
+        }
+        for path, source in cases.items():
+            self.write(f"src/craftreport/{path}", source)
+        self.run_gate("imports", cli=True)
+
+    def test_report_model_forbidden_dependencies(self) -> None:
+        cases = (
+            ("themes/values.py", "from ..reporting import definitions"),
+            ("themes/resolve.py", "from ..data.values import Snapshot"),
+            ("themes/values.py", "from ..policies import values"),
+            ("policies/values.py", "from ..reporting.prepared import PreparedReport"),
+            ("policies/evaluate.py", "from ..themes import values"),
+            ("policies/values.py", "from ..data.values import Snapshot"),
+            ("reporting/prepare.py", "from ..runtime import publication"),
+            ("reporting/definitions.py", "from ..application.ports import CommandContext"),
+            ("reporting/prepare.py", "from .operations import prepare"),
+            ("reporting/prepare.py", "from . import ports"),
+            ("reporting/prepared.py", "import craftreport.reporting.operations as ops"),
+            ("reporting/prepare.py", "from ..data.ports import SnapshotReader"),
+            ("reporting/operations.py", "from ..application import dispatch"),
+            (
+                "reporting/operations.py",
+                "from ..application.registry import ImmutableOperationRegistry",
+            ),
+            ("reporting/operations.py", "from ..application.ports import ResourceReader"),
+            ("reporting/ports.py", "from ..application.service_values import ResourceSnapshot"),
+            ("reporting/ports.py", "from ..application.service_values import *"),
+            ("reporting/operations.py", "import craftreport.application.registry as registry"),
+            ("reporting/operations/helpers.py", "from ...application.ports import CommandContext"),
+            ("reporting/operations.py", "from ..adapters.pack_reader import ConfiguredPackReader"),
+            ("reporting/operations.py", "from ..runtime import values"),
+            ("application/run.py", "from ..reporting import operations"),
+            ("interfaces/http.py", "from ..reporting import operations"),
+        )
+        external = (
+            "pydantic",
+            "packaging",
+            "sqlalchemy",
+            "sqlite3",
+            "fastapi",
+            "mcp",
+            "playwright",
+        )
+        for path, source in (
+            *cases,
+            *(
+                (f"{owner}/values.py", f"import {name}")
+                for owner in ("themes", "policies", "reporting")
+                for name in external
+            ),
+        ):
+            with self.subTest(path=path, source=source):
+                fixture = f"src/craftreport/{path}"
+                self.write(fixture, source + "\n")
+                report = str(self.run_gate("imports", 1))
+                self.assertIn(f"{fixture}:1: forbidden import:", report)
+                (self.root / fixture).unlink()
+
+    def test_public_pack_content_cannot_hide_python(self) -> None:
+        for suffix in ("py", "pyi"):
+            with self.subTest(suffix=suffix):
+                path = f"examples/templates/public_report/execute.{suffix}"
+                self.write(path, "import os\n")
+                report = str(self.run_gate("imports", 1))
+                self.assertIn(f"unapproved import layer: public-packs: {path}", report)
+                (self.root / path).unlink()
 
     def test_invalid_syntax_and_unresolved_relative_imports(self) -> None:
         for source in ("from ....adapters import bad\n", "def broken(:\n"):

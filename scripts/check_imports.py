@@ -18,14 +18,29 @@ LAYERS = {
     "data",
     "runtime",
     "snapshot-storage",
+    "reporting",
+    "themes",
+    "policies",
 }
 ALLOWED = {
     "contracts": {"contracts"},
     "data": {"contracts", "data"},
+    "reporting": {"contracts", "data", "themes", "policies", "reporting"},
+    "themes": {"contracts", "themes"},
+    "policies": {"contracts", "policies"},
     "runtime": {"contracts", "data", "runtime"},
     "snapshot-storage": {"contracts", "application", "data", "runtime", "snapshot-storage"},
     "application": {"contracts", "application"},
-    "adapters": {"contracts", "application", "data", "runtime", "adapters"},
+    "adapters": {
+        "contracts",
+        "application",
+        "data",
+        "runtime",
+        "adapters",
+        "reporting",
+        "themes",
+        "policies",
+    },
     "interfaces": {"contracts", "application", "interfaces"},
     "composition": LAYERS,
 }
@@ -47,6 +62,34 @@ RUNTIME_APPLICATION_MODULES = {
     "outcomes",
 }
 SNAPSHOT_READ_RESULTS = {"Missing", "VersionConflict", "ServiceUnavailable"}
+REPORTING_INTEGRATION = {"craftreport.reporting.operations", "craftreport.reporting.ports"}
+REPORTING_KERNEL_VALUES = {
+    "registry": {"OperationBinding", "CommandBehavior", "QueryBehavior"},
+    "ports": {"CommandContext", "ReadContext"},
+    "service_values": SNAPSHOT_READ_RESULTS,
+}
+
+
+def reporting_forbidden(target: str, module: str) -> bool | None:
+    integration = module in REPORTING_INTEGRATION
+    layer = target_layer(target)
+    if layer == "application":
+        return not integration or target not in {
+            f"craftreport.application.{name}.{value}"
+            for name, values in REPORTING_KERNEL_VALUES.items()
+            for value in values
+        }
+    if layer == "data":
+        allowed = {"values", "requirements"} | ({"ports"} if integration else set[str]())
+        return not any(
+            target == f"craftreport.data.{name}" or target.startswith(f"craftreport.data.{name}.")
+            for name in allowed
+        )
+    if not integration and any(
+        target == name or target.startswith(f"{name}.") for name in REPORTING_INTEGRATION
+    ):
+        return True
+    return None
 
 
 def module_name(path: Path, root: Path) -> str:
@@ -93,6 +136,8 @@ def forbidden(owner: str, target: str, package_modules: Ownership, module: str) 
     module_path = PurePosixPath(*target.split("."))
     if any(module_path.is_relative_to(prefix) for _, prefix in package_modules.entries):
         return package_modules.resolve(module_path.as_posix()) != owner
+    if owner == "reporting" and (decision := reporting_forbidden(target, module)) is not None:
+        return decision
     if (
         owner == "data"
         and module == "craftreport.data.ports"
@@ -118,7 +163,16 @@ def forbidden(owner: str, target: str, package_modules: Ownership, module: str) 
         return layer != "contracts" and not port
     if layer is not None:
         return layer not in ALLOWED[owner]
-    if owner in {"contracts", "application", "data", "runtime", "snapshot-storage"}:
+    if owner in {
+        "contracts",
+        "application",
+        "data",
+        "runtime",
+        "snapshot-storage",
+        "reporting",
+        "themes",
+        "policies",
+    }:
         concrete = {"sqlalchemy", "sqlite3"} if owner == "snapshot-storage" else set[str]()
         return external not in (sys.stdlib_module_names - STORAGE) | concrete
     return False
@@ -158,6 +212,8 @@ def source_paths(root: Path) -> list[Path]:
             paths.append(path)
     paths.extend(sorted((root / "scripts/browser_verification").rglob("*.py")))
     paths.extend(sorted((root / "scripts/browser_verification").rglob("*.pyi")))
+    for suffix in ("*.py", "*.pyi"):
+        paths.extend(sorted((root / "examples").rglob(suffix)))
     recipe = root / "scripts/examples/verify_gridcraft_browser.py"
     if recipe.is_file():
         paths.append(recipe)
