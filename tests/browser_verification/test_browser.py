@@ -2,9 +2,11 @@
 
 import asyncio
 import base64
+import ctypes
 import hashlib
 import io
 import json
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 from typing import cast
@@ -22,8 +24,19 @@ from scripts.browser_verification.evidence import (
     WARNING_PROFILE,
     WARNINGS,
     Diagnostics,
+    native_window,
     verify_loaded,
 )
+
+
+@pytest.mark.parametrize("platform", ["linux", "darwin"])
+def test_native_window_without_windows_apis_is_unverified(
+    platform: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(sys, "platform", platform)
+    monkeypatch.delattr(ctypes, "windll", raising=False)
+    monkeypatch.delattr(ctypes, "WINFUNCTYPE", raising=False)
+    assert native_window(1234) is None
 
 
 def assets() -> tuple[ContentIdentity, ...]:

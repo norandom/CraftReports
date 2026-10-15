@@ -6,6 +6,7 @@ import base64
 import ctypes
 import hashlib
 import json
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal, Protocol, cast
@@ -96,6 +97,8 @@ class VideoEvidence(Value):
 
 def native_window(process_id: int) -> int | None:
     """Windows visibility evidence bound to Chromium's directly observed process ID."""
+    if sys.platform != "win32":
+        return None
     windows: list[int] = []
     user32 = ctypes.windll.user32
 

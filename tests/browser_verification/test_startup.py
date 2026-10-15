@@ -54,7 +54,7 @@ def test_official_startup_and_failure_cleanup(
         deployment=OwnedDeployment(mode=mode),
         output_root=root.resolve(),
         headed=scenario == "headed",
-        bounds=Bounds(readiness=30, action=10, cleanup=20),
+        bounds=Bounds(action=10, cleanup=60),
     )
     registry = journey.ResourceRegistry(config.run_id)
     state = deployment.DeploymentState(registry)

@@ -39,6 +39,13 @@ Mock only at the boundary needed to simulate an external failure. Do not mock aw
 
 ## Per-Project Browser and Compose Isolation
 
+Owner instruction on 2026-10-15: run automated tests and diagnostics headlessly
+so browser windows never come into the foreground. Do not launch headed windows
+or activate native windows during unattended development. Retain existing headed
+evidence with its original scope; any new visible review requires an explicit
+owner request. This overrides the earlier local headed default for agent-run
+checks, while preserving the separate headed capability and its honest coverage.
+
 Use project/run-specific Compose identity, configured endpoints, synthetic fixtures, output/download directories and browser profile/context. Record the selected browser/page/session identity before operating it. Do not attach verification to the user's ordinary browser profile.
 
 Craft web builds can be served from separate app services where supported. Pin app bundle/build and browser versions. A web bundle's engine lives in its browser session; native TCP control and a headless MCP engine are different sessions unless a verified bridge explicitly connects them.
