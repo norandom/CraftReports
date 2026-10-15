@@ -231,7 +231,7 @@ line = "quality-verification"
 owner = ["scripts", ".pre-commit-config.yaml", "breadth.toml", "quality.toml", "pyproject.toml", "uv.lock", "tests", ".github/workflows", ".gitignore"]
 path_state = "mixed-existing-draft-and-planned-tooling"
 feature_keys = ["development.verification", "development.breadth", "engineering.gates"]
-closes = "n/a (active; gate scripts and hook/CI integration implemented; hosted CI execution unverified)"
+closes = "n/a (active; gate scripts and hook/CI integration implemented; hosted fast and synthetic integration passed run 38617747132 at 44d3101; browser CI pending)"
 closure_required = false
 close_targets = []
 

@@ -1,6 +1,6 @@
 # Breadth and Lifecycle Control
 
-Updated: 2026-10-13. The ledger has scoped kernel Design approval. Task 1.3 verified its standalone enforcing gate; task 1.4 verified local hook integration and configured CI, while hosted CI execution remains unverified and the complete future map remains unapproved.
+Updated: 2026-10-15. The ledger has scoped kernel Design approval. Task 1.3 verified its standalone enforcing gate; task 1.4 verified local hook integration and configured CI. [Hosted run 38617747132](https://github.com/norandom/CraftReports/actions/runs/38617747132) passed fast checks and retirement aging plus installed-wheel synthetic conformance on 2026-10-14 at commit 44d3101 (verified 2026-10-15). Browser CI remains pending and the complete future map remains unapproved.
 
 ## Sources of Truth
 

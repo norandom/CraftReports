@@ -1,6 +1,6 @@
 # Technology Stack
 
-Updated: 2026-10-14. This file records confirmed direction and distinguishes design proposals from installed/implemented infrastructure.
+Updated: 2026-10-15. This file records confirmed direction and distinguishes design proposals from installed/implemented infrastructure.
 
 ## Architecture
 
@@ -33,7 +33,7 @@ Real adapter/session behavior, actual saved bytes and reopen checks are mandator
 
 ## Development Environment
 
-The repository has a Python kernel package and resolved dependency lock. Task 1.4 verified the complete local fast pipeline and installed project hook, including an isolated candidate checkout. CI is configured with the same command; hosted CI is unverified. Tasks 8.1–8.4 implemented and individually verified isolated installed-wheel REST/MCP clients, synthetic target readback, failure/concurrency journeys and scoped conformance packets. Task 9 passed independent final feature validation within the synthetic kernel scope; see the implementation-validation assessment and task checklist. These temporary test providers establish no production durability or reporting acceptance. The Windows `python` command resolves to the Store alias on this workstation; use `uv.exe` and the project environment.
+The repository has a Python kernel package and resolved dependency lock. Task 1.4 verified the complete local fast pipeline and installed project hook, including an isolated candidate checkout. CI uses the same command; [hosted run 38617747132](https://github.com/norandom/CraftReports/actions/runs/38617747132) passed fast checks and installed-wheel synthetic conformance on 2026-10-14 at commit 44d3101 (verified 2026-10-15). Browser CI remains pending. Tasks 8.1–8.4 implemented and individually verified isolated installed-wheel REST/MCP clients, synthetic target readback, failure/concurrency journeys and scoped conformance packets. Task 9 passed independent final feature validation within the synthetic kernel scope; see the implementation-validation assessment and task checklist. These temporary test providers establish no production durability or reporting acceptance. The Windows `python` command resolves to the Store alias on this workstation; use `uv.exe` and the project environment.
 
 Observed on 2026-10-13: Windows `docker` is a PowerShell function invoking WSL; Debian WSL's daemon returned Docker 29.7.2 on Debian GNU/Linux 13 and Compose 5.4.0. Use explicit Debian WSL commands/paths and published browser origins, or operator-provided remote instances. This probe establishes Docker availability, not a tested Craft deployment.
 

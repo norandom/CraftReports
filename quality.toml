@@ -15,7 +15,7 @@ hooks_installed = true
 fast_checks_passing = true
 installed_hook_passing = true
 ci_configured = true
-ci_run_verified = false
+ci_run_verified = true
 integration_available = true
 capability_source = "breadth.toml"
 
@@ -75,7 +75,7 @@ approval_reference = ".kiro/specs/craftreport-browser-verification/design-review
 capability_id = "browser-verification"
 limits = "approved 50 function / 300 module / 2800 browser capability LLOC and McCabe 10"
 budget_amendment_reference = ".kiro/specs/craftreport-browser-verification/budget-amendment.md"
-budget_gate_state = "implemented-task-2.3; exact-browser-2800-enforced; task-review-pending"
+budget_gate_state = "implemented-task-2.3; exact-browser-2800-enforced; task-review-accepted"
 implementation_authorization_source = ".kiro/specs/craftreport-browser-verification/spec.json"
 
 [future_gate_families]
