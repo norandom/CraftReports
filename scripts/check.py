@@ -24,7 +24,22 @@ def fast_steps(root: Path) -> list[tuple[str, list[str]]]:
         ("Size and branching budgets", [python, "scripts/check_quality.py"]),
         ("Breadth and retirement aging", [python, "scripts/check_breadth.py"]),
         ("Import boundaries", [python, "scripts/check_imports.py"]),
-        ("Focused tests", [python, "-m", "pytest", "-q", "-m", "not integration", *test_scope]),
+        (
+            "Focused tests",
+            [
+                python,
+                "-m",
+                "pytest",
+                "-q",
+                "-n",
+                "3",
+                "--dist",
+                "loadfile",
+                "-m",
+                "not integration",
+                *test_scope,
+            ],
+        ),
     ]
 
 

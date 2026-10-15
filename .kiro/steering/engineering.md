@@ -61,8 +61,13 @@ authorized for this purpose; use fresh contexts and focused task inputs.
 Assign nonoverlapping file or responsibility ownership. Run read-only contract
 and evidence audits alongside implementation so findings arrive before expensive
 runtime verification. Freeze source after known fixes, then collect matching
-runtime evidence. Serialize heavy browser, platform and canonical checks when
-shared resources would cause contention. All automated browser work remains
+runtime evidence. Owner-authorized test concurrency is up to three independent
+groups when their processes, deployments and evidence directories are isolated.
+Prefer overlapping lightweight contract/artifact tests with one browser run.
+Serialize heavy browser, platform and canonical checks when shared resources
+would cause contention; do not run duplicate whole suites alongside browser
+timing checks merely to fill slots. Record each group's command and exit code.
+All automated browser work remains
 headless under the owner's current instruction.
 
 Keep Kiro task acceptance sequential: independent final review, fresh evidence,

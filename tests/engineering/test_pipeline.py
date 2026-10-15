@@ -2,10 +2,11 @@
 
 import sys
 import tempfile
+import tomllib
 import unittest
 from pathlib import Path
 
-from check import run_steps
+from check import fast_steps, integration_steps, run_steps
 
 
 class PipelineTests(unittest.TestCase):
@@ -16,6 +17,45 @@ class PipelineTests(unittest.TestCase):
 
     def command(self, source: str) -> list[str]:
         return [sys.executable, "-c", source]
+
+    def test_fast_tests_use_three_file_grouped_workers(self) -> None:
+        for packages in (False, True):
+            with self.subTest(packages=packages):
+                if packages:
+                    (self.root / "packages").mkdir()
+                command = fast_steps(self.root)[-1][1]
+                scope = ["tests", "packages"] if packages else ["tests"]
+                self.assertEqual(
+                    command,
+                    [
+                        sys.executable,
+                        "-m",
+                        "pytest",
+                        "-q",
+                        "-n",
+                        "3",
+                        "--dist",
+                        "loadfile",
+                        "-m",
+                        "not integration",
+                        *scope,
+                    ],
+                )
+
+    def test_integration_keeps_serial_packet_ownership(self) -> None:
+        command = integration_steps(self.root, self.root / "evidence")[0][1]
+        self.assertNotIn("-n", command)
+        self.assertNotIn("--numprocesses", command)
+        self.assertNotIn("--dist", command)
+        self.assertNotIn("-m", command[3:])
+        self.assertEqual(
+            command[command.index("--kernel-run-dir") + 1], str(self.root / "evidence")
+        )
+        root = Path(__file__).resolve().parents[2]
+        config = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
+        self.assertEqual(
+            config["tool"]["pytest"]["ini_options"]["addopts"], "--strict-config --strict-markers"
+        )
 
     def test_success_runs_in_project_root(self) -> None:
         result = run_steps(
