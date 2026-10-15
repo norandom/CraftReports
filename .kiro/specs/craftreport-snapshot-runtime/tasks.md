@@ -44,6 +44,7 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
 
 - [ ] 3. Supply concrete retained kernel guarantees
 - [ ] 3.1 Implement atomic retry admission and append-only receipt observations
+  - Follow journal-reuse-amendment.md: derive exact Receipt/CommandIntent serialization using TypeAdapter with narrowly tested import allowances; retain constrained command/query headers in one journal; implement and fault-test only the known transactional deployment-only v1 to journal-v2 transition, preserving identity/settings and rejecting unknown schema unchanged.
   - Persist trusted scoped intent/retry keys, initial receipt, CAS revisions and query observations; use existing outcome/transition rules and safe immutable serialization.
   - Done when real concurrent equal retries return one operation, changed content/preconditions conflict, losing CAS cannot erase history and reopen returns exact receipts rather than reconstructed success.
   - _Boundary: DurableJournal_
@@ -192,4 +193,3 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   Evidence: `artifacts/snapshot-runtime/task-2.3/`; adapters873/data436 LLOC.
   Shared scalar encoding, immutable reader/finalizer ports and canonical bytes
   are accepted; runtime publication, persistence and app effects remain open.
-

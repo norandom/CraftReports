@@ -440,6 +440,10 @@ class BoundaryGateTests(unittest.TestCase):
                 "from craftreport.application.dispatch_ports import RetainedResult\n"
                 "from .database import Database\n"
             ),
+            "adapters/storage/serialization.py": (
+                "from pydantic import TypeAdapter as Adapter, ValidationError\n"
+                "from ..canonical import canonical_bytes\n"
+            ),
             "adapters/snapshot_wire.py": "from ..data import values\nfrom ..runtime import ports\n",
             "composition/snapshot_host.py": "from ..adapters.storage import providers\n",
         }
@@ -472,6 +476,18 @@ class BoundaryGateTests(unittest.TestCase):
             ("adapters/storage/schema.py", "from .. import snapshot_wire"),
             ("adapters/storage/schema.py", "import fastapi"),
             ("adapters/storage/schema.py", "import duckdb"),
+            ("adapters/storage/serialization.py", "import pydantic"),
+            ("adapters/storage/serialization.py", "from pydantic import BaseModel"),
+            ("adapters/storage/serialization.py", "from pydantic import *"),
+            ("adapters/storage/serialization.py", "from .. import canonical"),
+            ("adapters/storage/serialization.py", "from ..canonical import fingerprint"),
+            ("adapters/storage/serialization.py", "from ..canonical import *"),
+            ("adapters/storage/serialization.py", "from ..transport_wire import receipt_to_wire"),
+            ("adapters/storage/journal.py", "from pydantic import TypeAdapter"),
+            ("adapters/storage/schema.py", "from pydantic import ValidationError"),
+            ("adapters/storage/journal.py", "from ..canonical import canonical_bytes"),
+            ("runtime/publication.py", "from pydantic import TypeAdapter"),
+            ("data/values.py", "from pydantic import ValidationError"),
         )
         for path, source in cases:
             with self.subTest(path=path, source=source):

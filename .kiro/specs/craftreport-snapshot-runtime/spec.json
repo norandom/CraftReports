@@ -1,7 +1,7 @@
 {
   "feature_name": "craftreport-snapshot-runtime",
   "created_at": "2026-10-15T19:42:20.182967+02:00",
-  "updated_at": "2026-10-15T21:22:49.5416073+02:00",
+  "updated_at": "2026-10-15T19:22:49.5416073+00:00",
   "language": "en",
   "phase": "tasks-generated",
   "approvals": {
@@ -50,5 +50,15 @@
     "repair_passes": 1,
     "reviewed_sha256": "A067182CA47FA99DDCE9C49ABFB6DB2F12B7CE944BD639B37A5F39199C25B407",
     "authorization": "owner-directed-bounded-fast-track"
+  },
+  "journal_reuse_amendment": {
+    "reference": "journal-reuse-amendment.md",
+    "mode": "independent",
+    "reviewer": "/root/review_journal_reuse_plan",
+    "verdict": "PASS",
+    "repair_passes": 0,
+    "reviewed_sha256": "10C7AF16CB7799599DA8106D1AF92F43FAD7642B7BF7E4395EDFE12AA0092F1E",
+    "authorization": "owner-directed-bounded-fast-track",
+    "implementation_prerequisite": "task-2.3-accepted"
   }
 }

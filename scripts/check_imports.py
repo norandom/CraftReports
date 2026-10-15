@@ -62,6 +62,16 @@ RUNTIME_APPLICATION_MODULES = {
     "outcomes",
 }
 SNAPSHOT_READ_RESULTS = {"Missing", "VersionConflict", "ServiceUnavailable"}
+EXACT_CONTRACT_IMPORTS = {
+    ("data", "craftreport.data.ports"): {
+        f"craftreport.application.service_values.{value}" for value in SNAPSHOT_READ_RESULTS
+    },
+    ("snapshot-storage", "craftreport.adapters.storage.serialization"): {
+        "pydantic.TypeAdapter",
+        "pydantic.ValidationError",
+        "craftreport.adapters.canonical.canonical_bytes",
+    },
+}
 REPORTING_INTEGRATION = {"craftreport.reporting.operations", "craftreport.reporting.ports"}
 REPORTING_KERNEL_VALUES = {
     "registry": {"OperationBinding", "CommandBehavior", "QueryBehavior"},
@@ -138,12 +148,7 @@ def forbidden(owner: str, target: str, package_modules: Ownership, module: str) 
         return package_modules.resolve(module_path.as_posix()) != owner
     if owner == "reporting" and (decision := reporting_forbidden(target, module)) is not None:
         return decision
-    if (
-        owner == "data"
-        and module == "craftreport.data.ports"
-        and target
-        in {f"craftreport.application.service_values.{value}" for value in SNAPSHOT_READ_RESULTS}
-    ):
+    if target in EXACT_CONTRACT_IMPORTS.get((owner, module), set[str]()):
         return False
     if owner in {"runtime", "snapshot-storage"} and layer == "application":
         modules = RUNTIME_APPLICATION_MODULES | (

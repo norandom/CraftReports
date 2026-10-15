@@ -154,8 +154,8 @@ One OS lock beside the configured database rejects a second host for the lifetim
 
 | Table | Key / retained purpose |
 | --- | --- |
-| `deployment` | fixed identity, schema_version=1, retention profile/epoch, configured limits |
-| `commands` | operation_id PK; unique deployment/subject/operation/version/retry_key; canonical intent, current revision/receipt |
+| `deployment` | fixed identity, deployment-only schema_version=1; reviewed journal transition to version 2; retention profile/epoch, configured limits |
+| `commands` | operation_id PK; closed command/query kind; unique deployment/subject/operation/version/retry_key for commands; canonical command intent or query ownership, current revision/receipt |
 | `observations` | operation_id+revision PK; append-only approved stage/evidence/receipt update |
 | `results` | opaque ref PK, deployment/subject/operation_id, exact canonical result bytes/digest |
 | `evidence` | opaque identity PK, exact EvidenceRef and verified committed fact bytes |
@@ -166,6 +166,8 @@ One OS lock beside the configured database rejects a second host for the lifetim
 | `runs` | run_id PK, immutable pins, binding/generation and append-only observed effect references |
 
 Foreign keys connect observations/results/handoffs to commands and runs to snapshots/bindings; no cascading deletion erases evidence. The default retention profile retains all committed content and retry identities until an explicit operator offline purge. Purge operates with host stopped, preserves identity/high-water tombstones and epoch, lists affected references and never makes an old retry safe to re-execute. Online arbitrary TTL deletion is excluded. Inspection distinguishes tombstoned Missing from I/O Unavailable. Capacity exhaustion reports unavailable/limit exceeded before replacing retained content.
+
+Task 3.1 follows the independently reviewed [journal reuse and schema amendment](journal-reuse-amendment.md): concrete Pydantic TypeAdapters derive retained Receipt/CommandIntent serialization from existing contracts through exact module/symbol imports, without duplicate schemas. Commands and queries share one journal with constrained nullable retry/intent fields and actual query ownership. Only the recognized deployment-only v1 schema migrates transactionally to journal v2, preserving identity/epoch/settings; unknown or partial schemas fail untouched. SQLAlchemy catalog expressions supplement Inspector for trigger/expression-index inventory, without a SQL parser. Later provider table additions require reviewed version transitions; no generic migration framework is introduced.
 
 | Existing provider | Concrete obligation |
 | --- | --- |
@@ -236,4 +238,3 @@ Gate task applies default1,500 LLOC to data/runtime and a most-specific snapshot
 | 4.1, 4.2, 4.3, 4.4, 4.5, 4.6 | Cadence and lifecycle | BindingRuntime scheduler | runtime.control | pause/latest resume/stop |
 | 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7 | Persistence and honest recovery | DurableProviders, RecoveryUseCase | read/inspect/reconcile | startup and cutpoint recovery |
 | 6.1, 6.2, 6.3, 6.4, 6.5, 6.6 | Shared access and adopter proof | DurableHost, workflow | REST/MCP existing facade | installed guide/example |
-
