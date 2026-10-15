@@ -1,6 +1,6 @@
 # Implementation Plan
 
-All executable units target 1–3 hours and remain unchecked until fresh task-local verification and independent review. Implement sequentially unless an explicit (P) marker permits otherwise; no marker is currently justified because shared schemas/provider assembly create dependencies. The first useful slice ends at 4.2; later tasks remain required for feature acceptance. Parent alone integrates shared edits, stages, commits with installed hooks and pushes.
+All executable units target 1â€“3 hours and remain unchecked until fresh task-local verification and independent review. Implement sequentially unless an explicit (P) marker permits otherwise; no marker is currently justified because shared schemas/provider assembly create dependencies. The first useful slice ends at 4.2; later tasks remain required for feature acceptance. Parent alone integrates shared edits, stages, commits with installed hooks and pushes.
 
 Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_runtime/<affected-file>`, then `uv.exe run --frozen python scripts/check.py --fast` through installed hooks; integration tasks run the affected installed-wheel journey and final `--integration`. Record actual commands/exit codes/source/evidence. Root coordinates shared gate changes with report-model before new source. Per-task tests verify domain effects rather than mirror implementation.
 
@@ -43,7 +43,7 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 6.1_
 
 - [ ] 3. Supply concrete retained kernel guarantees
-- [ ] 3.1 Implement atomic retry admission and append-only receipt observations
+- [x] 3.1 Implement atomic retry admission and append-only receipt observations
   - Follow journal-reuse-amendment.md: derive exact Receipt/CommandIntent serialization using TypeAdapter with narrowly tested import allowances; retain constrained command/query headers in one journal; implement and fault-test only the known transactional deployment-only v1 to journal-v2 transition, preserving identity/settings and rejecting unknown schema unchanged.
   - Persist trusted scoped intent/retry keys, initial receipt, CAS revisions and query observations; use existing outcome/transition rules and safe immutable serialization.
   - Done when real concurrent equal retries return one operation, changed content/preconditions conflict, losing CAS cannot erase history and reopen returns exact receipts rather than reconstructed success.
@@ -193,3 +193,9 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   Evidence: `artifacts/snapshot-runtime/task-2.3/`; adapters873/data436 LLOC.
   Shared scalar encoding, immutable reader/finalizer ports and canonical bytes
   are accepted; runtime publication, persistence and app effects remain open.
+
+- Task 3.1: independently approved by `/root/review_snapshot_journal_3_1`;
+  fresh 59 journal/database and 63 kernel tests, scoped static checks and gates
+  passed. File-backed admission/CAS races, transactional rollback and actual
+  close/reopen artifact readback verified. Evidence: `artifacts/snapshot-runtime/task-3.1/`.
+  Storage365/1500 LLOC; journal does not establish later provider/host readiness.

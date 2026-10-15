@@ -10,8 +10,19 @@ from pathlib import Path
 from threading import Event, get_ident
 
 import pytest
-from sqlalchemy import Column, ForeignKey, Integer, LargeBinary, MetaData, Table, insert, select
-from sqlalchemy.engine import Connection
+from sqlalchemy import (
+    Column,
+    ForeignKey,
+    Integer,
+    LargeBinary,
+    MetaData,
+    Table,
+    create_engine,
+    event,
+    insert,
+    select,
+)
+from sqlalchemy.engine import Connection, Engine
 
 from craftreport.adapters.storage.database import Database, StorageUnavailable
 from craftreport.adapters.storage.schema import deployment
@@ -63,21 +74,21 @@ def test_commit_rollback_and_exact_reopen(tmp_path: Path, content: Table) -> Non
             lambda connection: connection.execute(select(content.c.payload)).scalars().all()
         ) == [payload]
         await database.close()
+        with sqlite3.connect(path) as independent:
+            assert independent.execute("SELECT payload FROM content").fetchall() == [(payload,)]
+        # User tables are not part of the recognized deployment/journal schema.
+        # Remove these transaction fixtures before strict supported-schema reopen.
+        cleanup = create_engine("sqlite+pysqlite:///" + str(path))
+        with cleanup.begin() as connection:
+            content.metadata.drop_all(connection)
+        cleanup.dispose()
         reopened = Database(path, "deployment-a")
         assert reopened.deployment.epoch == epoch
         assert reopened.deployment.retention_profile == "retain-all"
-        assert (
-            await reopened.transaction(
-                lambda connection: connection.execute(select(content.c.payload)).scalar_one()
-            )
-            == payload
-        )
         await reopened.close()
         return epoch
 
     assert asyncio.run(exercise())
-    with sqlite3.connect(path) as independent:
-        assert independent.execute("SELECT payload FROM content").fetchall() == [(payload,)]
 
 
 def test_per_connection_configuration(tmp_path: Path) -> None:
@@ -159,11 +170,215 @@ def test_future_schema_version_rejects_and_releases_lock(tmp_path: Path) -> None
         # Repair is operator/test-owned, proving the failed open relinquished
         # the OS lock without silently migrating or replacing retained state.
         with sqlite3.connect(path) as independent:
-            independent.execute("UPDATE deployment SET schema_version = 1")
+            independent.execute("UPDATE deployment SET schema_version = 2")
         reopened = Database(path, "deployment-a")
         await reopened.close()
 
     asyncio.run(exercise())
+
+
+def legacy_database(
+    path: Path, settings: bytes = b'{ "bounded": 7, "nested": [true, null] }'
+) -> None:
+    engine = create_engine("sqlite+pysqlite:///" + str(path))
+    with engine.begin() as connection:
+        deployment.create(connection)
+        connection.execute(
+            insert(deployment).values(
+                singleton=1,
+                schema_version=1,
+                identity="deployment-a",
+                epoch="legacy-epoch",
+                retention_profile="retain-all",
+                configured_limits=settings,
+            )
+        )
+    engine.dispose()
+
+
+def logical_contents(path: Path) -> str:
+    with sqlite3.connect(path) as independent:
+        return "\n".join(independent.iterdump())
+
+
+def test_known_v1_migrates_once_preserving_exact_retained_settings(tmp_path: Path) -> None:
+    path = tmp_path / "legacy.sqlite3"
+    settings = b'{ "bounded": 7, "nested": [true, null] }'
+    legacy_database(path, settings)
+
+    async def exercise() -> None:
+        for _ in range(2):
+            database = Database(path, "deployment-a")
+            assert database.deployment.epoch == "legacy-epoch"
+            assert database.deployment.configured_limits == settings
+            await database.close()
+
+    asyncio.run(exercise())
+    with sqlite3.connect(path) as independent:
+        assert independent.execute("SELECT * FROM deployment").fetchall() == [
+            (1, 2, "deployment-a", "legacy-epoch", "retain-all", settings)
+        ]
+        assert independent.execute(
+            "SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name"
+        ).fetchall() == [("commands",), ("deployment",), ("observations",)]
+
+
+@pytest.mark.parametrize("cutpoint", ["first_table", "version_update"])
+def test_v1_migration_ddl_and_version_rollback(tmp_path: Path, cutpoint: str) -> None:
+    from craftreport.adapters.storage.schema import commands
+
+    path = tmp_path / "rollback-migration.sqlite3"
+    legacy_database(path)
+    before = logical_contents(path)
+
+    def fail_table(target: Table, connection: Connection, **kwargs: object) -> None:
+        raise ValueError("fault after first journal table")
+
+    def fail_version(
+        connection: Connection,
+        cursor: object,
+        statement: str,
+        parameters: object,
+        context: object,
+        executemany: bool,
+    ) -> None:
+        if statement.startswith("UPDATE deployment SET schema_version="):
+            raise ValueError("fault after version update")
+
+    target, name, callback = (
+        (commands, "after_create", fail_table)
+        if cutpoint == "first_table"
+        else (Engine, "after_cursor_execute", fail_version)
+    )
+    event.listen(target, name, callback)
+    try:
+        with pytest.raises(StorageUnavailable):
+            Database(path, "deployment-a")
+    finally:
+        event.remove(target, name, callback)
+    assert logical_contents(path) == before
+    with sqlite3.connect(path) as independent:
+        assert independent.execute("SELECT schema_version FROM deployment").fetchone() == (1,)
+        assert independent.execute(
+            "SELECT name FROM sqlite_schema WHERE type='table'"
+        ).fetchall() == [("deployment",)]
+    database = Database(path, "deployment-a")
+    asyncio.run(database.close())
+
+
+@pytest.mark.parametrize(
+    "damage",
+    [
+        "extra_table",
+        "extra_column",
+        "index",
+        "expression_index",
+        "view",
+        "trigger",
+        "partial",
+        "version",
+        "singleton",
+        "empty_epoch",
+        "profile",
+        "identity",
+        "array_settings",
+        "nan_settings",
+        "inf_settings",
+    ],
+)
+def test_unknown_or_partial_v1_schema_fails_untouched(tmp_path: Path, damage: str) -> None:
+    path = tmp_path / "unknown-schema.sqlite3"
+    legacy_database(path)
+    changes = {
+        "extra_table": "CREATE TABLE extra (id INTEGER)",
+        "extra_column": "ALTER TABLE deployment ADD COLUMN extra INTEGER",
+        "index": "CREATE INDEX unexpected ON deployment(identity)",
+        "expression_index": "CREATE INDEX unexpected ON deployment(lower(identity))",
+        "view": "CREATE VIEW unexpected AS SELECT identity FROM deployment",
+        "trigger": "CREATE TRIGGER unexpected AFTER UPDATE ON deployment BEGIN SELECT 1; END",
+        "partial": "CREATE TABLE commands (operation_id TEXT PRIMARY KEY)",
+        "version": "UPDATE deployment SET schema_version=99",
+        "singleton": "DELETE FROM deployment",
+        "empty_epoch": "UPDATE deployment SET epoch=''",
+        "profile": "UPDATE deployment SET retention_profile='expire'",
+        "identity": "UPDATE deployment SET identity='different'",
+        "array_settings": "UPDATE deployment SET configured_limits=x'5b5d'",
+        "nan_settings": "UPDATE deployment SET configured_limits=CAST('{\"limit\":NaN}' AS BLOB)",
+        "inf_settings": "UPDATE deployment SET configured_limits=CAST('{\"limit\":1e999}' AS BLOB)",
+    }
+    with sqlite3.connect(path) as independent:
+        independent.execute(changes[damage])
+    before = logical_contents(path)
+    with pytest.raises(StorageUnavailable):
+        Database(path, "deployment-a")
+    assert logical_contents(path) == before
+
+
+@pytest.mark.parametrize("damage", ["missing_table", "extra_index", "trigger", "constraint"])
+def test_incompatible_v2_schema_is_never_repaired(tmp_path: Path, damage: str) -> None:
+    path = tmp_path / "v2-unknown.sqlite3"
+    database = Database(path, "deployment-a")
+    asyncio.run(database.close())
+    with sqlite3.connect(path) as independent:
+        if damage == "missing_table":
+            independent.execute("DROP TABLE observations")
+        elif damage == "extra_index":
+            independent.execute("CREATE INDEX unexpected ON commands(lower(subject))")
+        elif damage == "trigger":
+            independent.execute(
+                "CREATE TRIGGER unexpected AFTER UPDATE ON commands BEGIN SELECT 1; END"
+            )
+        else:
+            independent.execute("DROP TABLE observations")
+            independent.execute(
+                "CREATE TABLE observations (operation_id VARCHAR NOT NULL, "
+                "revision INTEGER NOT NULL, receipt_bytes BLOB NOT NULL, "
+                "receipt_digest VARCHAR NOT NULL, handoff_ref VARCHAR, "
+                "PRIMARY KEY(operation_id, revision))"
+            )
+    before = logical_contents(path)
+    with pytest.raises(StorageUnavailable):
+        Database(path, "deployment-a")
+    assert logical_contents(path) == before
+
+
+@pytest.mark.parametrize("change", ["collation", "table_flags"])
+def test_nonreflected_schema_changes_reject_untouched(tmp_path: Path, change: str) -> None:
+    path = tmp_path / "nonreflected.sqlite3"
+    legacy_database(path)
+    with sqlite3.connect(path) as independent:
+        ddl = independent.execute(
+            "SELECT sql FROM sqlite_schema WHERE name='deployment'"
+        ).fetchone()
+        rows = independent.execute("SELECT * FROM deployment").fetchall()
+        assert ddl is not None
+        changed = (
+            ddl[0].replace("identity VARCHAR", "identity VARCHAR COLLATE NOCASE")
+            if change == "collation"
+            else ddl[0] + " WITHOUT ROWID"
+        )
+        assert changed != ddl[0]
+        independent.execute("DROP TABLE deployment")
+        independent.execute(changed)
+        independent.executemany("INSERT INTO deployment VALUES (?, ?, ?, ?, ?, ?)", rows)
+    before = logical_contents(path)
+    with pytest.raises(StorageUnavailable):
+        Database(path, "deployment-a")
+    assert logical_contents(path) == before
+
+
+def test_whitespace_deployment_identity_is_rejected(tmp_path: Path) -> None:
+    with pytest.raises(StorageUnavailable):
+        Database(tmp_path / "whitespace.sqlite3", "   ")
+
+
+def test_deep_retained_settings_fail_closed_without_changes(tmp_path: Path) -> None:
+    path = tmp_path / "deep-settings.sqlite3"
+    legacy_database(path, b'{"nested":' + b"[" * 20000 + b"0" + b"]" * 20000 + b"}")
+    before = logical_contents(path)
+    with pytest.raises(StorageUnavailable):
+        Database(path, "deployment-a")
+    assert logical_contents(path) == before
 
 
 def test_actual_process_lock_and_release_after_exit(tmp_path: Path) -> None:
