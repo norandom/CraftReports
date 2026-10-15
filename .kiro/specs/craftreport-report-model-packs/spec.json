@@ -1,17 +1,17 @@
 {
   "feature_name": "craftreport-report-model-packs",
   "created_at": "2026-10-15T19:42:20.182967+02:00",
-  "updated_at": "2026-10-15T17:54:56.9601844+00:00",
+  "updated_at": "2026-10-15T18:05:33.5105812+00:00",
   "language": "en",
-  "phase": "requirements-generated",
+  "phase": "design-generated",
   "approvals": {
     "requirements": {
       "generated": true,
       "approved": true
     },
     "design": {
-      "generated": false,
-      "approved": false
+      "generated": true,
+      "approved": true
     },
     "tasks": {
       "generated": false,
@@ -31,6 +31,12 @@
       "verdict": "PASS",
       "reference": "requirements-review.md",
       "reviewer": "/root/review_downstream_requirements"
+    },
+    "design": {
+      "mode": "independent",
+      "verdict": "PASS",
+      "reference": "design-review.md",
+      "reviewer": "/root/review_upstream_designs"
     }
   }
 }
