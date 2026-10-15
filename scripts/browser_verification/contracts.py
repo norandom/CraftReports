@@ -131,6 +131,26 @@ class ActionReceipt(Value):
         return self
 
 
+class CellCheck(Value):
+    address: Annotated[str, StringConstraints(pattern=r"^[A-Z]+[1-9][0-9]*$")]
+    value: str
+
+
+class ObservationSpec(Value):
+    target: TargetIdentity
+    cells: Annotated[tuple[CellCheck, ...], Field(min_length=1)]
+    checkpoint: Annotated[str, StringConstraints(pattern=r"^[a-z][a-z0-9-]*$")]
+    chart_identity: Text
+    visual_profile: Text
+
+    @model_validator(mode="after")
+    def distinct_cells_and_marker(self) -> ObservationSpec:
+        cells = {cell.address: cell.value for cell in self.cells}
+        if len(cells) != len(self.cells) or cells.get("D1") != self.target.fixture_marker:
+            raise ValueError("observation requires distinct cells and matching fixture marker")
+        return self
+
+
 class Succeeded[T: Value](Value):
     status: Literal["succeeded"] = "succeeded"
     payload: T

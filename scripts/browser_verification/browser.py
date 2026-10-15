@@ -121,6 +121,7 @@ class BrowserState:
     context_id: UUID = field(default_factory=uuid4)
     page_id: UUID = field(default_factory=uuid4)
     video: VideoEvidence | None = None
+    interaction_started: bool = False
     checkpoint: Literal[
         "launch",
         "navigation",

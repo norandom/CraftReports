@@ -44,11 +44,19 @@ WARNINGS = {
         "[eframe::web::app_runner] eframe-0.36.2/src/web/app_runner.rs:337: Unhandled egui "
         'viewport command: Title("Book1") - not implemented in web backend'
     ): "native-window-title-unsupported; target-identity-independent",
+    (
+        "[eframe::web::app_runner] eframe-0.36.2/src/web/app_runner.rs:337: Unhandled egui "
+        'viewport command: Title("reference.xlsx") - not implemented in web backend'
+    ): "synthetic-fixture-native-title-unsupported; fresh-marker-and-page-identity-required",
+    (
+        "[eframe::web::app_runner] eframe-0.36.2/src/web/app_runner.rs:337: Unhandled egui "
+        'viewport command: Title("reference.xlsx \u2014 Edited") - not implemented in web backend'
+    ): "synthetic-edit-native-title-unsupported; fresh-cell-effect-required",
 }
 
 
 class Diagnostic(Value):
-    stage: Literal["readiness"] = "readiness"
+    stage: Literal["readiness", "open", "edit"] = "readiness"
     category: Literal["console", "page", "request", "asset", "evidence"]
     code: str
     asset: str | None = None
@@ -122,6 +130,7 @@ class Diagnostics:
     responses: list[ContentIdentity] = field(default_factory=lambda: list[ContentIdentity]())
     picker: PickerState | None = None
     warning_profile: tuple[str, str] | None = None
+    stage: Literal["readiness", "open", "edit"] = "readiness"
 
     def asset(self, url: str) -> str | None:
         parsed = urlsplit(url)
@@ -136,7 +145,9 @@ class Diagnostics:
             try:
                 self.picker = PickerState.model_validate_json(message.text[len(prefix) :])
             except ValueError:
-                self.events.append(Diagnostic(category="page", code="invalid-picker-proof"))
+                self.events.append(
+                    Diagnostic(stage=self.stage, category="page", code="invalid-picker-proof")
+                )
         elif message.type in ("error", "warning"):
             allowance = (
                 WARNINGS.get(message.text)
@@ -145,6 +156,7 @@ class Diagnostics:
             )
             self.events.append(
                 Diagnostic(
+                    stage=self.stage,
                     category="console",
                     code=message.type,
                     fatal=allowance is None,
@@ -156,14 +168,22 @@ class Diagnostics:
         asset = self.asset(request.url)
         critical = asset is not None or request.resource_type in ("document", "script", "fetch")
         self.events.append(
-            Diagnostic(category="request", code="request-failed", asset=asset, fatal=critical)
+            Diagnostic(
+                stage=self.stage,
+                category="request",
+                code="request-failed",
+                asset=asset,
+                fatal=critical,
+            )
         )
 
     def attach(self, page: Page) -> None:
         page.on("console", self.console)
         page.on(
             "pageerror",
-            lambda _: self.events.append(Diagnostic(category="page", code="uncaught-exception")),
+            lambda _: self.events.append(
+                Diagnostic(stage=self.stage, category="page", code="uncaught-exception")
+            ),
         )
         page.on("requestfailed", self.failed_request)
 
@@ -189,7 +209,9 @@ class Diagnostics:
                 )
         except (Error, ValueError):
             self.events.append(
-                Diagnostic(category="asset", code="asset-response-rejected", asset=asset)
+                Diagnostic(
+                    stage=self.stage, category="asset", code="asset-response-rejected", asset=asset
+                )
             )
         finally:
             await session.send("Fetch.continueRequest", {"requestId": response.requestId})
