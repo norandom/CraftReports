@@ -1,17 +1,17 @@
 {
   "feature_name": "craftreport-snapshot-runtime",
   "created_at": "2026-10-15T19:42:20.182967+02:00",
-  "updated_at": "2026-10-15T17:55:13.5799185+00:00",
+  "updated_at": "2026-10-15T18:01:12.6822823+00:00",
   "language": "en",
-  "phase": "requirements-generated",
+  "phase": "design-generated",
   "approvals": {
     "requirements": {
       "generated": true,
       "approved": true
     },
     "design": {
-      "generated": false,
-      "approved": false
+      "generated": true,
+      "approved": true
     },
     "tasks": {
       "generated": false,
