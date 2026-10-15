@@ -1,0 +1,21 @@
+# Explicit trusted deployment inputs; use a unique caller-owned Compose project.
+# WSL hosts static nginx only. The facade runs separately on its configured host.
+services:
+  web:
+    image: nginx@sha256:df221db836e1754089190208cee7eeda94f233197056426eda74a43ab1abeac2
+    ports:
+      - "${CRAFT_HTTP_BIND:-127.0.0.1}:${CRAFT_HTTP_PORT:?Set an isolated port}:80"
+    environment:
+      CRAFT_FACADE_ORIGIN: "${CRAFT_FACADE_ORIGIN:?Set the trusted facade origin without a trailing slash}"
+      NGINX_ENVSUBST_FILTER: "^CRAFT_FACADE_ORIGIN$$"
+    volumes:
+      - "${CRAFT_PARENT_ROOT:?Set the parent shell directory}:/usr/share/nginx/html:ro"
+      - "${CRAFT_WEB_ROOT:?Set the verified released app directory}:/usr/share/nginx/html/app:ro"
+      - "./nginx.conf:/etc/nginx/templates/default.conf.template:ro"
+    read_only: true
+    tmpfs:
+      - /etc/nginx/conf.d
+      - /var/cache/nginx
+      - /var/run
+      - /tmp
+    restart: "no"
