@@ -72,5 +72,19 @@
     "repair_passes": 1,
     "reviewed_sha256": "DC6323435EC16BA2082F2F3EAA0A4F36CBA99771EF58912BA1452E1D47A56117",
     "authorization": "owner-directed-bounded-fast-track"
+  },
+  "prepared_content_amendment": {
+    "reference": "prepared-content-amendment.md",
+    "reviewer": "/root/review_prepared_content_plan",
+    "verdict": "PASS",
+    "reviewed_sha256": "395C8F3A64594AD8817862B122316CFF2B71CC6F9D037002452BDC94AAD73FBD",
+    "authorization": "owner-directed-bounded-fast-track"
+  },
+  "scalar_validation_reuse_amendment": {
+    "reference": "scalar-validation-reuse-amendment.md",
+    "reviewer": "/root/review_report_projection_4",
+    "verdict": "APPROVED",
+    "plan_reviewed_sha256": "29EBCD6828C221B41D4893020BB2D2FC2BCC90A8D479E9CBC07A6660B9F5DEA2",
+    "authorization": "owner-directed-bounded-fast-track"
   }
 }

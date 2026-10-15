@@ -9,19 +9,35 @@ from craftreport.data.requirements import (
     FieldRequirement,
     InputRequirements,
     MetricRequirement,
+    check_completeness,
 )
-from craftreport.data.values import Scalar
+from craftreport.data.values import Field, ImportedMetric, Scalar, Snapshot, SnapshotRef
 from craftreport.reporting.definitions import (
     DatasetRef,
+    DefinitionError,
+    DefinitionIssue,
+    LineChartDefinition,
     Location,
+    MetricRef,
     ParameterRef,
     ParameterValue,
     ReportDefinition,
+    TableDefinition,
     check_parameter,
     frozen,
     require,
     text,
 )
+from craftreport.reporting.prepared import (
+    PreparationFailure,
+    PreparedColumn,
+    PreparedLineChart,
+    PreparedReport,
+    PreparedSeries,
+    PreparedTable,
+    ResolvedPack,
+)
+from craftreport.themes.values import ResolvedTheme
 
 
 def _reference(
@@ -155,3 +171,112 @@ def validate_template(
         ("template",),
     )
     return definition
+
+
+type SourceColumns = dict[str, tuple[Field, tuple[Scalar, ...]]]
+
+
+def _source_columns(
+    source: DatasetRef | MetricRef,
+    parameters: dict[str, Scalar],
+    snapshot: Snapshot,
+) -> tuple[SourceColumns, ImportedMetric | None]:
+    if isinstance(source, DatasetRef):
+        name = _reference(source.name, parameters, ("source",))
+        dataset = next(d for d in snapshot.datasets if d.name == name)
+        return {
+            field.name: (field, tuple(row[i] for row in dataset.rows))
+            for i, field in enumerate(dataset.fields)
+        }, None
+    name = _reference(source.identity, parameters, ("source",))
+    metric = next(m for m in snapshot.metrics if m.identity == name)
+    labels = (metric.identity,) if metric.shape == "scalar" else metric.labels
+    return {
+        "label": (Field("label", "Label", "text", False), labels),
+        "value": (metric.value_schema, metric.values),
+    }, metric
+
+
+def _table(table: TableDefinition, columns: SourceColumns, theme: ResolvedTheme) -> PreparedTable:
+    selected = tuple(columns[c.field] for c in table.columns)
+    rows = tuple(zip(*(values for _, values in selected), strict=True))
+    return PreparedTable(
+        table.identity,
+        tuple(
+            PreparedColumn(
+                field,
+                selection.display_label if selection.display_label is not None else field.label,
+                selection.role,
+                selection.format,
+            )
+            for selection, (field, _) in zip(table.columns, selected, strict=True)
+        ),
+        rows,
+        None if rows else theme.empty_note,
+        table.null_text,
+        table.long_labels,
+    )
+
+
+def _chart(chart: LineChartDefinition, columns: SourceColumns) -> PreparedLineChart:
+    category, values = columns[chart.category_field]
+    series = tuple(
+        PreparedSeries(
+            s.identity, s.label, columns[s.field][0], columns[s.field][1], s.role, s.format
+        )
+        for s in chart.series
+    )
+    return PreparedLineChart(chart.identity, category, values, series, chart.null_behavior)
+
+
+def prepare(
+    definition: ReportDefinition,
+    parameters: tuple[ParameterValue, ...],
+    snapshot: Snapshot,
+    pack: ResolvedPack,
+    theme: ResolvedTheme,
+    identify: Callable[[PreparedReport], str],
+) -> PreparedReport | PreparationFailure:
+    if definition != pack.definition:
+        return PreparationFailure(
+            "invalid_definition", (DefinitionIssue(("definition",), "template_mismatch"),)
+        )
+    if theme.version_pin != pack.theme.version_pin:
+        return PreparationFailure(
+            "invalid_definition", (DefinitionIssue(("theme",), "template_mismatch"),)
+        )
+    try:
+        resolved = resolve_parameters(definition, parameters)
+    except DefinitionError as error:
+        return PreparationFailure("invalid_parameter", (error.issue,))
+    try:
+        requirements = requirements_for(definition, resolved)
+    except DefinitionError as error:
+        return PreparationFailure("invalid_definition", (error.issue,))
+    issues = check_completeness(snapshot, requirements)
+    if issues:
+        return PreparationFailure("incomplete_binding", issues)
+    table_columns, table_metric = _source_columns(definition.table.source, dict(resolved), snapshot)
+    chart_columns, chart_metric = _source_columns(definition.chart.source, dict(resolved), snapshot)
+    metrics = {m.identity: m for m in (table_metric, chart_metric) if m is not None}
+    report = PreparedReport(
+        "1",
+        definition.report_id,
+        _reference(definition.title, dict(resolved), ("title",), 512),
+        pack.definition_pin,
+        pack.template,
+        theme.version_pin,
+        pack.pin,
+        SnapshotRef(snapshot.feed_id, snapshot.producer_version, snapshot.content_digest),
+        resolved,
+        (_table(definition.table, table_columns, theme),),
+        (_chart(definition.chart, chart_columns),),
+        theme,
+        definition.required_capabilities,
+        tuple(metrics.values()),
+        definition.compliance_statement,
+        definition.release_policy,
+        "",
+        _identify=identify,
+    )
+    return report

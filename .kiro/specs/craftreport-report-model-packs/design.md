@@ -138,6 +138,11 @@ Snapshot-runtime owns `data.values.SnapshotRef(feed_id, producer_version, conten
 
 #### Prepared content seam
 
+The accepted [prepared content clarification](prepared-content-amendment.md) fixes
+the concrete ResolvedPack, exact first-slice definition/template pins, retained
+per-table null/wrapping behavior and typed preparation failure contract. Task 4
+and consumer tasks 6–8 must preserve these fields and checks.
+
 ```python
 @dataclass(frozen=True)
 class PreparedTable:
@@ -305,3 +310,7 @@ No existing business data migration is required. Activate the provider with expl
 
 The app must prove released GridCraft mappings and output checks; this feature deliberately returns unevaluated findings while those effects are absent. Public fixture availability does not establish production persistence. If a target cannot preserve decimal/text/date precision or a required style it must reject/report the fidelity gap, not coerce values. Source and artifact visibility must remain separate when integrating export. New check kinds or report content require bounded schema/version review rather than executable extensions.
 
+
+The accepted [scalar validation reuse](scalar-validation-reuse-amendment.md) permits
+only reporting.prepared to import data.validation.validate_scalar. All other
+validation-module imports remain forbidden by the tested exact-member gate.

@@ -202,6 +202,11 @@ def reporting_forbidden(target: str, module: str) -> bool | None:
             for value in values
         }
     if layer == "data":
+        if (
+            module == "craftreport.reporting.prepared"
+            and target == "craftreport.data.validation.validate_scalar"
+        ):
+            return False
         allowed = {"values", "requirements"} | ({"ports"} if integration else set[str]())
         return not any(
             target == f"craftreport.data.{name}" or target.startswith(f"craftreport.data.{name}.")

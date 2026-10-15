@@ -527,6 +527,7 @@ class BoundaryGateTests(unittest.TestCase):
                 "from ..themes.values import SemanticRole\n"
                 "from ..policies.values import ReleasePolicy\n"
             ),
+            "reporting/prepared.py": "from ..data.validation import validate_scalar\n",
             "reporting/prepare.py": (
                 "from ..data.values import Snapshot\nfrom .prepared import PreparedReport\n"
                 "from ..themes.resolve import resolve\nfrom ..policies.evaluate import evaluate\n"
@@ -561,6 +562,11 @@ class BoundaryGateTests(unittest.TestCase):
             ("policies/values.py", "from ..reporting.prepared import PreparedReport"),
             ("policies/evaluate.py", "from ..themes import values"),
             ("policies/values.py", "from ..data.values import Snapshot"),
+            ("reporting/prepared.py", "from ..data.validation import *"),
+            ("reporting/prepared.py", "from ..data import validation"),
+            ("reporting/prepared.py", "import craftreport.data.validation as validation"),
+            ("reporting/prepared.py", "from ..data.validation import validate_dataset"),
+            ("reporting/prepare.py", "from ..data.validation import validate_scalar"),
             ("reporting/prepare.py", "from ..runtime import publication"),
             ("reporting/definitions.py", "from ..application.ports import CommandContext"),
             ("reporting/prepare.py", "from .operations import prepare"),
