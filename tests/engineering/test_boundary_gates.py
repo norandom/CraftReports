@@ -205,9 +205,13 @@ class BoundaryGateTests(unittest.TestCase):
         return data
 
     def test_registered_generated_tasks_can_await_human_review(self) -> None:
+        baseline = cast(dict[str, int], self.direct_gate("breadth")["counts"])
         self.pending_task_spec()
         report = self.run_gate("breadth")
-        self.assertEqual(cast(dict[str, int], report["counts"])["generated_task_sets"], 2)
+        self.assertEqual(
+            cast(dict[str, int], report["counts"])["generated_task_sets"],
+            baseline["generated_task_sets"],
+        )
         self.assertEqual(
             cast(dict[str, str], report["phases"])["craftreport-browser-verification"],
             "tasks-generated",
