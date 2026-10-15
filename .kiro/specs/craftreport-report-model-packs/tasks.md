@@ -54,7 +54,8 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
   - _Depends: 2.2, 3_
   - _Requirements: 1.4, 1.5, 1.6, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 3.3, 3.4_
 
-- [ ] 5. Evaluate separate findings and draft/release eligibility
+- [x] 5. Evaluate separate findings and draft/release eligibility
+  - Implement the independently reviewed preparation-scope-amendment.md: required trusted preparation_scope, only three-check source reuse, unchanged original finding scopes/refs, exact-current app checks. Test the actual three-source-to-app transition and all missing/changed pins.
   - Evaluate the existing closed check scope, observations, five quality dimensions and release-policy membership contracts established in 2.1 without generic predicates or executable rule extensions. Emit one aggregate finding per closed check, at most nine whole bounded findings; reject contradictory duplicate observations without unbounded output.
   - Mark missing/unexecuted and changed-scope observations unevaluated; validate/copy the optional closed ExternalStatement scope/issuer/evidence and retain external metric/compliance claims as external without upgrading methodology or standards assurance.
   - Require internally passed declared checks for scoped validated eligibility; provide draft designation and visible failed/unevaluated summary after valid input/access. Accept target evidence only through matching trusted app observations.
@@ -76,6 +77,7 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
   - _Requirements: 1.3, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 6.2_
 
 - [ ] 7. Encode the preparation contracts with exact public wire values
+  - Carry mixed original/current finding scopes unchanged; encode the exact version1 ReleasePolicy scope envelope with existing canonical bytes and prove digest change sensitivity.
   - Roundtrip the prepared-content-amendment.md explicit pins, per-table null_text/long_labels and virtual metric field metadata; use the existing canonical identifier and reject invalid final digests.
   - Own theme-support-amendment.md's strict descriptor schemas in adapters/report_models.py and report_codecs.py, including closed properties, exact common scope pins and malformed-version rejection behavior through the boundary compatibility callable.
   - Complete declaration-boundary-clarification.md's raw-input boundary: explicitly test rejection of unknown and executable JSON fields and unsupported content before public operation activation. Task 2.2's typed declaration validation does not replace these acceptance cases.
@@ -88,6 +90,7 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
   - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 3.1, 3.2, 3.5, 6.3, 6.4_
 
 - [ ] 8. Register guarded validation, discovery and preparation operations
+  - Apply preparation-scope-amendment.md producer obligations: exact three-source scope from guarded inputs, verified full original receipt stage refs, closed six-field facts and same preselected policy. Stage observation is distinct from release eligibility; no public trusted-fact submission.
   - Honor prepared-content-amendment.md typed failure and validated selection contracts; operation evidence remains separate from deterministic prepared-content identity.
   - Follow theme-support-amendment.md: composition/reporting.py injects the packaging-based compatibility callable through preparation into theme resolution. InvalidVersion becomes False/incompatible_version, never an exception through pure themes. Operation tests must reject incompatible and untested supplied support without granting mapping or release assurance.
   - Inject the accepted upstream data.ports SnapshotReader and existing journal/result services plus reporting PackReader/PreparationFactWriter into feature-owned reporting.operations handlers and the composition provider; keep kernel application and HTTP/MCP transport files unchanged. Implement the typed fact conversion and immutable pack ResourceReader/delegating ExecutionGuard in adapters/report_resources.py; storage owns the restricted retention method from upstream 3.3 and imports no reporting types.
@@ -190,3 +193,10 @@ No `(P)` marker is used: the first preparation slice reuses shared value contrac
   approved after the real import gate caught an omitted permission. RED1failure;
   GREEN2tests/49subtests;11 independent import probes and actualgate passed.
   See scalar-validation-reuse-amendment.md and task4 independent-review.md.
+
+- Task 5: independently approved by `/root/review_quality_5` after the reviewed
+  preparation-scope repair. Fresh115 focused tests, adversarial source/app pin
+  transitions and scoped static/import/breadth/quality checks passed. Evaluator
+  68LLOC; policies267/1500. Evidence: `artifacts/report-model-packs/task-5/`.
+  Original source findings retain provenance; app observations remain exact
+  current scope. Actual receipt/result/fact producers remain task8/app gates.

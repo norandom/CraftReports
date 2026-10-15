@@ -86,5 +86,13 @@
     "verdict": "APPROVED",
     "plan_reviewed_sha256": "29EBCD6828C221B41D4893020BB2D2FC2BCC90A8D479E9CBC07A6660B9F5DEA2",
     "authorization": "owner-directed-bounded-fast-track"
+  },
+  "preparation_scope_amendment": {
+    "reference": "preparation-scope-amendment.md",
+    "reviewer": "/root/review_preparation_scope",
+    "verdict": "PASS",
+    "reviewed_sha256": "12A88B1ACFADCD718791B44E6F0EDE097641F6AE9B553F97F77A9A7BBA536300",
+    "authorization": "owner-directed-bounded-fast-track",
+    "storage_seam": "independently approved by /root/review_results_staging; exact envelope and full original pins"
   }
 }

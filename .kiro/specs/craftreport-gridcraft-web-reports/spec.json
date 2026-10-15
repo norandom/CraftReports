@@ -57,5 +57,13 @@
     "verdict": "PASS",
     "repair_passes": 1,
     "authorization": "owner-directed-bounded-fast-track"
+  },
+  "preparation_scope_amendment": {
+    "reference": "../craftreport-report-model-packs/preparation-scope-amendment.md",
+    "reviewer": "/root/review_preparation_scope",
+    "verdict": "PASS",
+    "reviewed_sha256": "12A88B1ACFADCD718791B44E6F0EDE097641F6AE9B553F97F77A9A7BBA536300",
+    "authorization": "owner-directed-bounded-fast-track",
+    "storage_seam": "independently approved by /root/review_results_staging; exact envelope and full original pins"
   }
 }

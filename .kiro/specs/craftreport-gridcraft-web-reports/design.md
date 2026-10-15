@@ -234,3 +234,19 @@ Canonical checks remain `uv.exe run --frozen python scripts/check.py --fast` and
 The guide targets an integrator obtaining a live workbook and independently inspected frozen output. It leads with the observable result, gives one small public synthetic dataset/pack, explicit installed/auth/deployment prerequisites and a literal command, then verification, one failure/recovery and owned cleanup. The reusable Python caller uses existing public interfaces; launcher/demo fixtures are separate. Direct app MCP remains suitable for individual edits; the guide explains the facade's reusable prepared report, ordered pins, lifecycle and retained evidence without claiming protocol-level accuracy.
 
 Package support docs report only observed release/profile properties. Before all dependencies and browser gates pass, keep guide paths planned and claims unavailable rather than publish an optimistic how-to. Root applies ledger/default-budget/import activation first, including exact executable/demo and deployment ownership. Existing prototypes remain untouched; no migration or deletion is authorized by this Design.
+
+### Preparation evidence reused by app evaluation
+
+Apply the independently reviewed report-model preparation-scope-amendment.md
+(hash12A88B1ACFADCD718791B44E6F0EDE097641F6AE9B553F97F77A9A7BBA536300).
+Before internal observations, authorize/read the original complete prepare
+receipt and result, recompute prepared identity, independently inspect its
+prepared-stage refs and require their entire agreeing tuple to match original
+receipt.resources and the extracted snapshot/two-pack identities. Honor optional
+preconditions without mistaking them for complete observations. Supply that
+verified original preparation_scope to evaluate; preserve original preparation
+finding scopes/refs. App observations remain exact-current-scope; app completion
+refs bind its own operation and full current pins, with old refs only historical
+dependencies. Use the exact policy selected before prepare and its canonical
+validation-scope digest; changing artifact-required membership requires prepare
+again. Actual producer tests remain app tasks6/9/12/14, not proved by pure policy.

@@ -214,7 +214,7 @@ Kernel access checks and PackReader both filter by source scope before listing/r
 ### QualityEvaluation
 
 **Contracts: Service.** The policies module does not import PreparedReport.
-`evaluate(scope:CheckScope, policy:ReleasePolicy, checks:tuple[CheckObservation,...])->QualityEvaluation`.
+`evaluate(scope:CheckScope, policy:ReleasePolicy, checks:tuple[CheckObservation,...], *, preparation_scope:CheckScope)->QualityEvaluation`.
 
 - `CheckScope(content_digest, resource_versions:tuple[ExpectedVersion,...], target:ExpectedVersion|None, artifact_digest:str|None, validation_scope_digest)` is frozen; reporting converts snapshot/definition/pack identities to kernel ExpectedVersion pins and the content digest binds their exact bytes. Policies do not import data or reporting types.
 - `CheckId` is closed: definition, bindings, semantic_resolution, layout_fit, target_consistency, artifact_consistency, artifact_reopen, metric_methodology, compliance_statement.
@@ -224,6 +224,25 @@ Kernel access checks and PackReader both filter by source scope before listing/r
 - `CheckObservation` names check, scope, status, evidence and trusted origin. Only preparer-owned checks or trusted app-owned observation ports create internal observations. A public request cannot submit passed observations. Missing/mismatched pins, unavailable evidence or changed target/artifact invalidate affected observations to unevaluated.
 - `QualityEvaluation(findings,draft_eligible,validated_release_eligible,blocking_checks,scope_label,draft_designation,validation_summary)`. Exactly one aggregate Finding per CheckId is emitted, at most nine total; contradictory duplicate observations fail or become unevaluated, never create unbounded findings. All required checks must be internal passed; missing, failed, unevaluated or inapplicable required checks block release. A schema/binding/access error blocks preparation/draft entirely. A valid report with absent app checks is draft-eligible with visible designation `DRAFT` and failed/unevaluated required-check summary. The app must render and verify these values before claiming draft output.
 - Evaluation always emits findings in every dimension. Passing template preparation does not imply physical layout, consistency, numeric accuracy or compliance. No method evaluator or standard pack exists here. The fixed profile preserves imported statement scope verbatim and labels its external origin.
+
+The independently reviewed `preparation-scope-amendment.md` defines the exact
+trusted preparation_scope input and six-field preparation-fact envelope. Only
+three preparation checks may reuse their original source scope when all original
+source pins and content/validation digests remain unchanged; preserve original
+Finding scopes and refs. App checks require exact current scope. Derive the
+original complete observed tuple from independently verified prepared-stage
+EvidenceRefs in the original complete receipt, requiring exact receipt.resources
+and extracted snapshot/two-pack resource identities; optional expected_versions
+are preconditions, not the authoritative observed tuple. Old refs remain linked
+historical dependencies and cannot serve as new app completion evidence.
+
+Validation scope identity is SHA-256 of existing canonical JSON bytes for exactly
+schema_version="1", required_checks in retained ReleasePolicy order, and exact
+scope_label. Requested designation is excluded. Select one policy before prepare
+and use that same policy for app evaluation, including artifact-required checks;
+a changed policy requires preparation again. The existing adapter/composition
+owns encoding, with no policy import of adapters or duplicate hash implementation.
+Task 7 verifies identity/codec; task 8 and app gates prove real producer provenance.
 
 The app compares actual values/chart series/styles under declared rules and supplies observed evidence; it cannot set release eligibility itself. Evidence references use kernel `EvidenceRef` and exact resource versions. No alternate receipt or output journal exists.
 
