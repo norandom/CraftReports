@@ -333,3 +333,26 @@ The app must prove released GridCraft mappings and output checks; this feature d
 The accepted [scalar validation reuse](scalar-validation-reuse-amendment.md) permits
 only reporting.prepared to import data.validation.validate_scalar. All other
 validation-module imports remain forbidden by the tested exact-member gate.
+
+### Reviewed asset-codec reuse and pack identities
+
+Apply `pack-input-reuse-amendment.md`, independently approved at SHA256
+684335e16561ec8208ccbb30fbe14492fe90a84dc0bebad83e112550b673863f.
+Task6 brings forward only production asset codecs and canonical definition
+identity into existing planned report_models.py/report_codecs.py; task7 reuses
+and completes them. Derive compatible nested contracts using installed Pydantic
+TypeAdapter strict JSON with extra fields forbidden; reuse existing exact tagged
+scalar conversion for the thin parameter wire envelope. Runtime recursive closure
+and scalar behavior must be tested before acceptance, not inferred from the API.
+
+The amendment defines exact manifest/reference fields and hash projections.
+Each explicitly configured root contains manifest.json; no directory search.
+Retain and hash bytes from the same containment-verified opened file. Asset refs
+bind raw SHA256; definition/template pins bind the same normalized declaration
+and must agree. Theme's semantic hash excludes only its own content_digest;
+pack hash binds the complete validated manifest with raw asset refs and no self-pin.
+Trusted configured scopes must match manifest scopes. All existing file/shape,
+privacy, immutable activation, path containment and compatibility checks remain.
+No new dependency/ownership/cap is approved. The full remaining adapter forecast
+is1488/1500 including future7/8; refresh actual measurements after task6 and
+simplify before any excess rather than moving ownership or omitting obligations.

@@ -94,5 +94,13 @@
     "reviewed_sha256": "12A88B1ACFADCD718791B44E6F0EDE097641F6AE9B553F97F77A9A7BBA536300",
     "authorization": "owner-directed-bounded-fast-track",
     "storage_seam": "independently approved by /root/review_results_staging; exact envelope and full original pins"
+  },
+  "pack_input_reuse_amendment": {
+    "reference": "pack-input-reuse-amendment.md",
+    "reviewer": "/root/review_pack_input_plan",
+    "verdict": "PASS",
+    "reviewed_sha256": "684335e16561ec8208ccbb30fbe14492fe90a84dc0bebad83e112550b673863f",
+    "post_review_change": "status paragraph only: task5accepted and boundedplanapproved",
+    "authorization": "owner-directed-bounded-fast-track"
   }
 }

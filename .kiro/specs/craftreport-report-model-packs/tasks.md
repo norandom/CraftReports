@@ -66,7 +66,8 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
 
 ## Integration
 
-- [ ] 6. Load configured public and private declarative packs
+- [x] 6. Load configured public and private declarative packs
+  - Apply approved pack-input-reuse-amendment.md: bring forward the narrow production asset-codec subset and canonical declaration identifier into planned report_models.py/report_codecs.py; reuse upstream accepted snapshot2.3 exact scalar codecs. Prove real library-derived strict schema closure, same public/private validators, exact manifest/hash projections and opened-file containment. Measure combined remaining adapter budget.
   - Verify both manifest definition/template references independently and construct the accepted ResolvedPack from prepared-content-amendment.md; distinct unsupported declaration documents fail explicitly.
   - Add the feature-owned reporting PackReader protocol and concrete bounded configured-root reader; compose one immutable pack snapshot without ambient search, remote URLs, archive extraction or executable loading.
   - Resolve qualified exact versions with installed packaging; enforce manifest digests, declared compatibility and permitted path containment including symlink/junction escape, duplicate identities and missing assets.
@@ -77,6 +78,7 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
   - _Requirements: 1.3, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 6.2_
 
 - [ ] 7. Encode the preparation contracts with exact public wire values
+  - Reuse and complete task6 asset codecs/identifiers from pack-input-reuse-amendment.md; do not create a second pack-only schema or fingerprint convention.
   - Carry mixed original/current finding scopes unchanged; encode the exact version1 ReleasePolicy scope envelope with existing canonical bytes and prove digest change sensitivity.
   - Roundtrip the prepared-content-amendment.md explicit pins, per-table null_text/long_labels and virtual metric field metadata; use the existing canonical identifier and reject invalid final digests.
   - Own theme-support-amendment.md's strict descriptor schemas in adapters/report_models.py and report_codecs.py, including closed properties, exact common scope pins and malformed-version rejection behavior through the boundary compatibility callable.
@@ -200,3 +202,14 @@ No `(P)` marker is used: the first preparation slice reuses shared value contrac
   68LLOC; policies267/1500. Evidence: `artifacts/report-model-packs/task-5/`.
   Original source findings retain provenance; app observations remain exact
   current scope. Actual receipt/result/fact producers remain task8/app gates.
+
+- Task 6: independently approved by `/root/review_pack_6` after the real
+  Windows root-handle repair. Pydantic-derived closed asset schemas and exact
+  shared scalar codecs preserve raw/semantic pins; configured source reads
+  retain separate artifact policy. Fresh414 focused tests, recursive unknown/
+  null probes, actual junction/open-race/root-lifetime tests and scoped static
+  gates passed. Evidence: `artifacts/report-model-packs/task-6/`.
+  Adapters1200/1500 (net+327), reporting600 (+41); source368LLOC, tests334.
+  Remaining adapter forecast1490 is provisional, not a cap increase or proof
+  of future fit. Public operation activation, remaining codecs, installed
+  example and guide remain tasks7 onward; no live app effect is claimed.
