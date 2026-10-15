@@ -1,6 +1,6 @@
 # Implementation Plan
 
-All executable units target 1â€“3 hours and remain unchecked until fresh task-local verification and independent review. Implement sequentially unless an explicit (P) marker permits otherwise; no marker is currently justified because shared schemas/provider assembly create dependencies. The first useful slice ends at 4.2; later tasks remain required for feature acceptance. Parent alone integrates shared edits, stages, commits with installed hooks and pushes.
+All executable units target 1–3 hours and remain unchecked until fresh task-local verification and independent review. Implement sequentially unless an explicit (P) marker permits otherwise; no marker is currently justified because shared schemas/provider assembly create dependencies. The first useful slice ends at 4.2; later tasks remain required for feature acceptance. Parent alone integrates shared edits, stages, commits with installed hooks and pushes.
 
 Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_runtime/<affected-file>`, then `uv.exe run --frozen python scripts/check.py --fast` through installed hooks; integration tasks run the affected installed-wheel journey and final `--integration`. Record actual commands/exit codes/source/evidence. Root coordinates shared gate changes with report-model before new source. Per-task tests verify domain effects rather than mirror implementation.
 
@@ -50,7 +50,8 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   - _Boundary: DurableJournal_
   - _Depends: 1.2, 2.3_
   - _Requirements: 2.2, 2.3, 2.6, 5.1, 5.2, 5.6, 6.2, 6.3_
-- [ ] 3.2 Implement one-process version guards and operation-linked resource effects
+- [x] 3.2 Implement one-process version guards and operation-linked resource effects
+  - Apply accepted resource-effects-amendment.md, including the narrow journal integrity-reader reuse, exact v2-to-v3 migration and existing codec/fingerprint injection.
   - Implement sorted per-resource leases and authoritative version reads, with no SQL transaction held across awaits; assert current immediately before atomic effects.
   - Implement allowed feed/snapshot changes and committed operation/evidence facts for the first slice; add binding/run state effects with 5.1 after those typed values exist. Unknown change shapes fail closed. Leave app mutation to injected app operations.
   - Done when guard loss/cancellation blocks new work, locks release, stale/resource races cannot overwrite winners and postcommit inspection identifies exactly which operation changed state.
@@ -199,3 +200,11 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   passed. File-backed admission/CAS races, transactional rollback and actual
   close/reopen artifact readback verified. Evidence: `artifacts/snapshot-runtime/task-3.1/`.
   Storage365/1500 LLOC; journal does not establish later provider/host readiness.
+
+- Task 3.2: independently approved by `/root/review_snapshot_guards_3_2` after
+  immutable lease-issuance authority repair. Fresh 93 provider/database/journal
+  tests, four adversarial retarget/task-transfer regressions, scoped static and
+  actual import/breadth/quality gates passed on matching frozen source.
+  Evidence: `artifacts/snapshot-runtime/task-3.2/`. Storage697/1500 LLOC;
+  real file-backed effects, exact codec/fingerprint injection, schema-v3 rollback
+  and reopen verified. Results/evidence inspection remain task3.3; bindings5.1.

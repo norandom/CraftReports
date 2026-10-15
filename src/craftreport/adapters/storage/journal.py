@@ -70,7 +70,7 @@ class DurableJournal:
         if deployment_scope != self._database.deployment.identity:
             raise StorageUnavailable("Journal deployment mismatch")
 
-    def _retained(self, connection: Connection, row: RowMapping) -> ports.RetainedCommand | Receipt:
+    def retained(self, connection: Connection, row: RowMapping) -> ports.RetainedCommand | Receipt:
         try:
             receipt = decode_receipt(row["receipt_bytes"], row["receipt_digest"])
             self._scope(row["deployment_scope"])
@@ -140,7 +140,7 @@ class DurableJournal:
         )
         if row is None:
             return ports.Missing()
-        retained = self._retained(connection, row)
+        retained = self.retained(connection, row)
         if not isinstance(retained, ports.RetainedCommand):
             raise StorageUnavailable("Retained command kind mismatch")
         return retained
@@ -238,7 +238,7 @@ class DurableJournal:
             )
             if row is None:
                 return ports.Missing()
-            retained = self._retained(connection, row)
+            retained = self.retained(connection, row)
             return retained.receipt if isinstance(retained, ports.RetainedCommand) else retained
 
         return await self._transaction(read)
@@ -254,7 +254,7 @@ class DurableJournal:
             )
             if row is None:
                 raise ports.ReceiptMissingError(operation_id)
-            retained = self._retained(connection, row)
+            retained = self.retained(connection, row)
             current = retained.receipt if isinstance(retained, ports.RetainedCommand) else retained
             if current.revision != expected_revision:
                 return ports.RevisionConflict(current.revision)
@@ -291,7 +291,7 @@ class DurableJournal:
                 .mappings()
                 .one()
             )
-            observed = self._retained(connection, saved)
+            observed = self.retained(connection, saved)
             readback = observed.receipt if isinstance(observed, ports.RetainedCommand) else observed
             validate_recorded_update(current, readback, update)
             return readback

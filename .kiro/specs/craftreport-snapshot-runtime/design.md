@@ -238,3 +238,11 @@ Gate task applies default1,500 LLOC to data/runtime and a most-specific snapshot
 | 4.1, 4.2, 4.3, 4.4, 4.5, 4.6 | Cadence and lifecycle | BindingRuntime scheduler | runtime.control | pause/latest resume/stop |
 | 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7 | Persistence and honest recovery | DurableProviders, RecoveryUseCase | read/inspect/reconcile | startup and cutpoint recovery |
 | 6.1, 6.2, 6.3, 6.4, 6.5, 6.6 | Shared access and adopter proof | DurableHost, workflow | REST/MCP existing facade | installed guide/example |
+
+### Accepted resource-effects clarification
+
+Task 3.2 follows [resource-effects-amendment.md](resource-effects-amendment.md):
+sorted one-process leases, retained command authority, exact snapshot codec and
+canonical fingerprint injection, schema v3 feed/snapshot/evidence migration, and
+reuse of the existing synchronous journal integrity reader in one transaction.
+Task 3.3 reuses this evidence table; no second evidence authority is introduced.

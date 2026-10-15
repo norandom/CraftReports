@@ -1,4 +1,4 @@
-"""Exact SQLite deployment/journal schemas and the single reviewed v1 transition."""
+"""Exact deployment/journal/resource schemas and reviewed v1/v2 transitions."""
 
 import json
 from dataclasses import dataclass
@@ -92,6 +92,42 @@ observations = Table(
 observations.append_constraint(CheckConstraint(observations.c.revision > 0))
 
 
+feeds = Table(
+    "feeds",
+    metadata,
+    Column("feed_id", String, primary_key=True),
+    Column("subject", String, nullable=False),
+    Column("high_water", Integer, nullable=False),
+    Column("revision", Integer, nullable=False),
+)
+feeds.append_constraint(CheckConstraint(feeds.c.high_water > 0))
+feeds.append_constraint(CheckConstraint(feeds.c.revision > 0))
+snapshots = Table(
+    "snapshots",
+    metadata,
+    Column("feed_id", String, ForeignKey("feeds.feed_id"), primary_key=True),
+    Column("producer_version", Integer, primary_key=True),
+    Column(
+        "operation_id", String, ForeignKey("commands.operation_id"), nullable=False, unique=True
+    ),
+    Column("content_digest", String, nullable=False),
+    Column("producer_bytes", LargeBinary, nullable=False),
+    Column("snapshot_bytes", LargeBinary, nullable=False),
+    Column("snapshot_digest", String, nullable=False),
+)
+snapshots.append_constraint(CheckConstraint(snapshots.c.producer_version > 0))
+evidence = Table(
+    "evidence",
+    metadata,
+    Column("identity", String, primary_key=True),
+    Column("operation_id", String, ForeignKey("commands.operation_id"), nullable=False),
+    Column("reference_bytes", LargeBinary, nullable=False),
+    Column("reference_digest", String, nullable=False),
+    Column("fact_bytes", LargeBinary, nullable=False),
+    Column("fact_digest", String, nullable=False),
+)
+
+
 def _objects(connection: Connection) -> dict[tuple[str, str], str | None]:
     catalog = table(
         "sqlite_schema", column("name", String), column("type", String), column("sql", String)
@@ -172,6 +208,8 @@ def _validate_table(connection: Connection, expected: Table) -> None:
 
 def _validate_schema(connection: Connection, version: int) -> None:
     expected = (deployment,) if version == 1 else (deployment, commands, observations)
+    if version == 3:
+        expected += (feeds, snapshots, evidence)
     objects = _objects(connection)
     if set(objects) != {(item.name, "table") for item in expected}:
         raise ValueError("Unrecognized retained schema objects")
@@ -193,13 +231,13 @@ class Deployment:
 
 
 def initialize(connection: Connection, identity: str, existed: bool) -> Deployment:
-    """Validate before any writes; migrate only exact deployment-only v1."""
+    """Validate before writes; migrate only exact deployment v1 or journal v2."""
     if not existed and not _objects(connection):
         metadata.create_all(connection)
         connection.execute(
             insert(deployment).values(
                 singleton=1,
-                schema_version=2,
+                schema_version=3,
                 identity=identity,
                 epoch=uuid4().hex,
                 retention_profile="retain-all",
@@ -210,6 +248,7 @@ def initialize(connection: Connection, identity: str, existed: bool) -> Deployme
     if set(objects) not in (
         {("deployment", "table")},
         {("deployment", "table"), ("commands", "table"), ("observations", "table")},
+        {(item.name, "table") for item in metadata.tables.values()},
     ):
         raise ValueError("Unrecognized retained schema objects")
     _validate_table(connection, deployment)
@@ -219,7 +258,7 @@ def initialize(connection: Connection, identity: str, existed: bool) -> Deployme
     row = rows[0]
     if (
         row["singleton"] != 1
-        or row["schema_version"] not in (1, 2)
+        or row["schema_version"] not in (1, 2, 3)
         or row["identity"] != identity
         or not isinstance(row["identity"], str)
         or not row["identity"].strip()
@@ -242,6 +281,12 @@ def initialize(connection: Connection, identity: str, existed: bool) -> Deployme
         observations.create(connection)
         _validate_schema(connection, 2)
         connection.execute(update(deployment).values(schema_version=2))
+    if row["schema_version"] in (1, 2):
+        feeds.create(connection)
+        snapshots.create(connection)
+        evidence.create(connection)
+        _validate_schema(connection, 3)
+        connection.execute(update(deployment).values(schema_version=3))
     return Deployment(
         row["identity"], row["epoch"], row["retention_profile"], row["configured_limits"]
     )

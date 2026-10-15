@@ -60,5 +60,14 @@
     "reviewed_sha256": "10C7AF16CB7799599DA8106D1AF92F43FAD7642B7BF7E4395EDFE12AA0092F1E",
     "authorization": "owner-directed-bounded-fast-track",
     "implementation_prerequisite": "task-2.3-accepted"
+  },
+  "resource_effects_amendment": {
+    "reference": "resource-effects-amendment.md",
+    "reviewer": "/root/review_resource_effects_plan",
+    "verdict": "PASS",
+    "reviewed_sha256": "F873F5F7AA173493D1280D96454063F2F9309199BD19C01DFADBCD9FF9D30983",
+    "repair_passes": 1,
+    "authorization": "owner-directed-bounded-fast-track",
+    "post_review_change": "UTF-8 punctuation restored; no semantic changes"
   }
 }

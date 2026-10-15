@@ -21,6 +21,7 @@ from sqlalchemy import (
     event,
     insert,
     select,
+    update,
 )
 from sqlalchemy.engine import Connection, Engine
 
@@ -170,7 +171,7 @@ def test_future_schema_version_rejects_and_releases_lock(tmp_path: Path) -> None
         # Repair is operator/test-owned, proving the failed open relinquished
         # the OS lock without silently migrating or replacing retained state.
         with sqlite3.connect(path) as independent:
-            independent.execute("UPDATE deployment SET schema_version = 2")
+            independent.execute("UPDATE deployment SET schema_version = 3")
         reopened = Database(path, "deployment-a")
         await reopened.close()
 
@@ -216,11 +217,18 @@ def test_known_v1_migrates_once_preserving_exact_retained_settings(tmp_path: Pat
     asyncio.run(exercise())
     with sqlite3.connect(path) as independent:
         assert independent.execute("SELECT * FROM deployment").fetchall() == [
-            (1, 2, "deployment-a", "legacy-epoch", "retain-all", settings)
+            (1, 3, "deployment-a", "legacy-epoch", "retain-all", settings)
         ]
         assert independent.execute(
             "SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name"
-        ).fetchall() == [("commands",), ("deployment",), ("observations",)]
+        ).fetchall() == [
+            ("commands",),
+            ("deployment",),
+            ("evidence",),
+            ("feeds",),
+            ("observations",),
+            ("snapshots",),
+        ]
 
 
 @pytest.mark.parametrize("cutpoint", ["first_table", "version_update"])
@@ -482,3 +490,45 @@ def test_cancelled_awaiter_cannot_release_lock_before_worker_finishes(tmp_path: 
         await reopened.close()
 
     asyncio.run(exercise())
+
+
+@pytest.mark.parametrize("cutpoint", ["feeds", "snapshots", "evidence", "version"])
+def test_v2_resource_migration_rolls_back_every_cutpoint(tmp_path: Path, cutpoint: str) -> None:
+    from craftreport.adapters.storage import schema
+
+    path = tmp_path / "v2-fault.sqlite3"
+    legacy_database(path)
+    engine = create_engine("sqlite+pysqlite:///" + str(path))
+    with engine.begin() as connection:
+        schema.commands.create(connection)
+        schema.observations.create(connection)
+        connection.execute(update(deployment).values(schema_version=2))
+    engine.dispose()
+    before = logical_contents(path)
+
+    def fail(
+        connection: Connection,
+        cursor: object,
+        statement: str,
+        parameters: object,
+        context: object,
+        executemany: bool,
+    ) -> None:
+        if (
+            cutpoint != "version" and statement.lstrip().startswith("CREATE TABLE " + cutpoint)
+        ) or (
+            cutpoint == "version" and statement.startswith("UPDATE deployment SET schema_version=")
+        ):
+            raise ValueError("resource schema fault")
+
+    event.listen(Engine, "after_cursor_execute", fail)
+    try:
+        with pytest.raises(StorageUnavailable):
+            Database(path, "deployment-a")
+    finally:
+        event.remove(Engine, "after_cursor_execute", fail)
+    assert logical_contents(path) == before
+    database = Database(path, "deployment-a")
+    asyncio.run(database.close())
+    with sqlite3.connect(path) as independent:
+        assert independent.execute("SELECT schema_version FROM deployment").fetchone() == (3,)
