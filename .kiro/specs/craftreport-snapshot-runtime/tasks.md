@@ -33,7 +33,8 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   - _Boundary: SnapshotValues requirements_
   - _Depends: 2.1_
   - _Requirements: 3.1_
-- [ ] 2.3 Integrate exact boundary codecs and the snapshot read port
+- [x] 2.3 Integrate exact boundary codecs and the snapshot read port
+  - Follow the independently reviewed wire-codec-amendment.md: split closed transport schemas from conversion, preserve WireFailure diagnostics in the shared codec, and provide the inward SnapshotFinalizer callable returning finalized Snapshot plus canonical producer bytes. Composition injection and actual persistence remain tasks 4.1/4.2.
   - Reuse PydanticCodec for strict version 1 publication; implement shared scalar encoder/schema-driven decoder, tagged parameter scalars, canonical bytes and digest; expose data.ports.SnapshotReader with existing kernel Missing/VersionConflict/ServiceUnavailable results.
   - Encode all int64 cells/producer versions as decimal strings, decimal values at declared scale, dates/UTC explicitly; reject unknown fields, unsafe coercion and exceeded advertised byte/shape limits. Compute full snapshot.read result bound with maximum-length closed service fields before admission; oversize has no accepted command identity.
   - Done when safe-integer boundaries, digest equivalence/difference, text/int/decimal distinctions and exact output schema pass contract tests; report-model can use the port and scalar codec without its own snapshot serializer.
@@ -183,3 +184,12 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   requirements/checker adds 131 LLOC (data425/1500), with declared kind, shape,
   unit and nonnull semantics, no inference or snapshot mutation. RED evidence
   and fresh checks: `artifacts/snapshot-runtime/task-2.2/`.
+
+- Task 2.3: independently approved by `/root/review_snapshot_wire_2_3` after
+  checking complete normalized read-result string limits before admission.
+  Fresh 100 wire and 50 existing kernel validation tests, scoped Ruff/format/
+  Pyright and gates passed. RED repair: 3 failing lower-string-limit cases.
+  Evidence: `artifacts/snapshot-runtime/task-2.3/`; adapters873/data436 LLOC.
+  Shared scalar encoding, immutable reader/finalizer ports and canonical bytes
+  are accepted; runtime publication, persistence and app effects remain open.
+

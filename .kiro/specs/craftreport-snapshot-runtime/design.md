@@ -76,7 +76,7 @@ New files are proposals until gate task 1 passes. Files group by responsibility,
 | SnapshotValues | `src/craftreport/data/__init__.py`, `values.py`, `validation.py`, `requirements.py` | New; data |
 | SnapshotReadPort | `src/craftreport/data/ports.py` | New; data; exact Missing/VersionConflict/ServiceUnavailable kernel value imports only |
 | RecoveryUseCase | `src/craftreport/runtime/recovery.py` | New; runtime; existing outcome rules/CAS only |
-| SnapshotCodecs | `src/craftreport/adapters/snapshot_wire.py` | New; adapters; reuse existing PydanticCodec |
+| SnapshotCodecs | `src/craftreport/adapters/snapshot_models.py`, `snapshot_wire.py` | New; adapters; closed transport schemas and conversion respectively; reuse existing PydanticCodec |
 | DurableSchema | `src/craftreport/adapters/storage/__init__.py`, `database.py`, `schema.py`, `serialization.py` | New; proposed most-specific snapshot-storage owner |
 | DurableJournal | `src/craftreport/adapters/storage/journal.py` | New; snapshot-storage |
 | DurableProviders | `src/craftreport/adapters/storage/guard.py`, `providers.py`, `results.py` | New; snapshot-storage |
@@ -119,6 +119,8 @@ All values are recursively frozen dataclasses with tuple containers. `SnapshotRe
 `data.ports.SnapshotReader` declares `async read(ref: SnapshotRef) -> Snapshot | Missing | VersionConflict | ServiceUnavailable`; handlers authorize its snapshot resource before use. Exact digest mismatch returns existing kernel VersionConflict with requested/authoritative digest pins for the exact snapshot ResourceRef, never another version. The data.ports exception permits that existing value as well as Missing/ServiceUnavailable. The report-model capability injects this port and calls the pure completeness function; it defines no alternate snapshot value. `SnapshotReadPort` is a feature-owned integration boundary, not a new dependency of the stable application kernel.
 
 ### Wire validation and canonical identity
+
+Task 2.3 follows the independently reviewed [wire codec integration amendment](wire-codec-amendment.md). Publication decode returns normalized immutable producer JSON; `data.ports.SnapshotFinalizer = Callable[[JsonObject, datetime, datetime], tuple[Snapshot, bytes]]` is the inward finalization seam. `composition/snapshot_host.py` injects the adapter implementation into runtime at tasks 4.1/4.2. Real service times produce the existing Snapshot plus exact canonical producer bytes tied to its digest, reused by storage. Admission and finalization perform explicit bounded serialization through the same canonical profile; runtime never imports adapters. The shared PydanticCodec preserves raised WireFailure before generic ValueError handling. No new framework or budget exception is introduced.
 
 JSON schema version is `1`; unknown properties are rejected. All wire int64 values are canonical signed decimal strings in signed64 range with bool excluded; producer versions are positive decimal strings representing 1..2^63-1. Inward values are Python int. This preserves the kernel canonical wire profile, which rejects JSON integer magnitudes above2^53-1. Decimal values are finite fixed-scale strings, precision1..38 and scale0..precision; no float or implicit rounding. Dates use ISO calendar dates; datetimes are offset-aware ISO8601 normalized to UTC microseconds. Strings remain text even with `=`, `+`, `-` or `@` prefixes. Duplicate dataset/field/metric names and invalid/duplicate declared keys fail with row/field locations; empty typed datasets are valid. Supported declared value rules are exactly type, nullability, declared keys and shape; unknown arbitrary/executable constraint fields are rejected. No rules engine, undeclared schema inference or financial calculation occurs.
 
@@ -234,3 +236,4 @@ Gate task applies default1,500 LLOC to data/runtime and a most-specific snapshot
 | 4.1, 4.2, 4.3, 4.4, 4.5, 4.6 | Cadence and lifecycle | BindingRuntime scheduler | runtime.control | pause/latest resume/stop |
 | 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7 | Persistence and honest recovery | DurableProviders, RecoveryUseCase | read/inspect/reconcile | startup and cutpoint recovery |
 | 6.1, 6.2, 6.3, 6.4, 6.5, 6.6 | Shared access and adopter proof | DurableHost, workflow | REST/MCP existing facade | installed guide/example |
+

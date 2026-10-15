@@ -100,6 +100,8 @@ class PydanticCodec[T, M: StrictWireModel]:
                 for part in location
             )
             raise WireFailure("invalid_input", location=safe) from None
+        except WireFailure:
+            raise
         except (ValueError, TypeError):
             raise WireFailure("invalid_input") from None
 
