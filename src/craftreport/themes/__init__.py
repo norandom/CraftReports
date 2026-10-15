@@ -1,0 +1,1 @@
+"""Pure semantic presentation contracts."""

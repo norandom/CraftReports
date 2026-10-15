@@ -1,6 +1,6 @@
 # Implementation Plan
 
-All tasks are unchecked. Each executable task is a bounded 1–3 hour unit and requires fresh relevant evidence plus independent task review before root accepts/commits it. Overnight fast-track does not waive those gates. Root coordinates shared gate files and commits; no worker stages another owner's files.
+Each executable task is a bounded 1–3 hour unit and requires fresh relevant evidence plus independent task review before root accepts/commits it. Checked tasks record accepted implementation. Overnight fast-track does not waive those gates. Root coordinates shared gate files and commits; no worker stages another owner's files.
 
 ## Foundation
 
@@ -16,7 +16,7 @@ All tasks are unchecked. Each executable task is a bounded 1–3 hour unit and r
 
 - [ ] 2. Establish pure value contracts and reusable declarations
 
-- [ ] 2.1 Integrate the prerequisite theme and policy value contracts
+- [x] 2.1 Integrate the prerequisite theme and policy value contracts
   - Introduce the Design's pure themes.values SemanticRole, ValueFormat, theme/style values and PackPin using the accepted upstream shared VersionPin; introduce policies.values ReleasePolicy, ExternalStatement, CheckScope, observations, findings and release result values.
   - Keep these frozen value modules independent of report definitions, compilation, orchestration and concrete adapters. This explicit integration task crosses the theme/policy contract seam once; later resolution/evaluation tasks consume these existing contracts.
   - Done when the two pure value modules import independently through the approved inward boundaries and the exact types needed by ReportDefinition and PreparedReport exist before those modules are implemented.
@@ -146,3 +146,11 @@ No `(P)` marker is used: the first preparation slice reuses shared value contrac
   `artifacts/report-model-packs/task-1/`. Scanner +18 LLOC; tests +24;
   development-gates1067/1500 and application1449/1500 unchanged. Exact public
   content remains nonexecutable; snapshot fixture/recipe approvals preserved.
+
+- Task 2.1: independently approved by `/root/review_report_values_2_1` after
+  repairing the local theme/pack pin identifier bound. Fresh 42 focused tests,
+  scoped Ruff/format/Pyright and 24 independent oversized-pin probes passed;
+  all five frozen hashes matched. Evidence: `artifacts/report-model-packs/task-2.1/`.
+  Theme values 220 LLOC plus initializer 1; policy values 198 plus initializer 1.
+  Shared VersionPin remains unchanged. This accepts pure immutable contracts;
+  theme resolution, policy evaluation, report preparation and app effects remain open.

@@ -1,0 +1,1 @@
+"""Scoped reporting quality contracts."""

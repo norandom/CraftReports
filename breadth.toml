@@ -18,7 +18,7 @@ scope_approval_reference = ".kiro/specs/craftreport-operation-kernel/design-revi
 gate_implemented = true
 spec_count = 6
 generated_task_sets = 5
-actual_python_modules = 44
+actual_python_modules = 48
 actual_plugin_packages = 0
 planned_plugin_packages = 19
 plugin_root = "packages"
@@ -529,3 +529,4 @@ path_state = "existing-documents"
 closes = "n/a (active; bounded overnight fast-track, independent phase reviews required)"
 closure_required = false
 close_targets = []
+
