@@ -274,9 +274,16 @@ class BoundaryGateTests(unittest.TestCase):
         self.assertIn("spec.json", str(self.run_gate("breadth", 1, cli=True)))
 
     def test_unknown_unapproved_and_most_specific_parked_owners(self) -> None:
+        self.write(
+            "breadth.toml",
+            self.ledger + '\n[capability.unapproved]\nkind = "configuration"\n'
+            'status = "active"\nline = "craft-app-integration"\nowner = ["deploy/unapproved"]\n'
+            "closure_required = false\nclose_targets = []\n",
+        )
         for path, diagnostic in (
             ("src/craftreport/mystery/code.py", "unknown ownership"),
-            ("deploy/service.yaml", "unapproved ownership: deployment"),
+            ("deploy/unapproved/service.yaml", "unapproved ownership: unapproved"),
+            ("deploy/service.yaml", "unknown ownership"),
             ("packages/craftreport-wordcraft/README.md", "parked ownership: wordcraft"),
         ):
             with self.subTest(path=path):
@@ -292,6 +299,16 @@ class BoundaryGateTests(unittest.TestCase):
         )
         self.write("src/craftreport/application/hidden/feature.py", "x = 1\n")
         self.assertIn("parked ownership: hidden", str(self.run_gate("breadth", 1)))
+
+    def test_gridcraft_exact_ownership_is_active_without_scaffolding(self) -> None:
+        self.write(
+            "breadth.toml",
+            self.ledger.replace("actual_plugin_packages = 0", "actual_plugin_packages = 1"),
+        )
+        self.write("tests/gridcraft/test_future.py", "# test fixture\n")
+        self.write("deploy/gridcraft-report/compose.yaml", "# deployment fixture\n")
+        self.write("packages/craftreport-gridcraft/resources/report.html", "<!-- fixture -->\n")
+        self.run_gate("breadth")
 
     def test_unknown_states_lines_and_ambiguous_ownership(self) -> None:
         for old, new, diagnostic in (
@@ -623,3 +640,110 @@ class BoundaryGateTests(unittest.TestCase):
         report = str(self.run_gate("imports", 1))
         self.assertIn("packages/plugin-a/src/plugin_a/wire.py:1", report)
         self.assertIn("plugin_a -> plugin_b", report)
+
+    def test_gridcraft_allowed_dependencies(self) -> None:
+        cases = {
+            "values": "from craftreport.reporting.prepared import PreparedReport\n"
+            "from craftreport.runtime.values import RunPins\n",
+            "codecs": "from .values import Target\nfrom pydantic import Field\n"
+            "from craftreport.adapters.validation import PydanticCodec, StrictWireModel\n"
+            "from craftreport.adapters.snapshot_wire import encode_scalar, decode_scalar\n",
+            "workbook": "from .values import MappingPlan\nimport xlsxwriter\n",
+            "browser": "from .interactions import edit\nfrom playwright.async_api import Page\n",
+            "interactions": "from .values import Target\nfrom playwright.async_api import Page\n",
+            "artifacts": "from .browser import reopen\nfrom openpyxl import load_workbook\n",
+            "providers": "from .facts import FactStore\n"
+            "from craftreport.application.ports import GuardLease, ResourceReader\n"
+            "from craftreport.application.service_values import ResourceSnapshot\n",
+            "operations": "from .browser import apply\nfrom .codecs import request_codec\n"
+            "from craftreport.application.registry import OperationBinding\n"
+            "from craftreport.runtime.ports import AppOperationCaller\n"
+            "from craftreport.policies.evaluate import evaluate\n",
+            "capability": "from .operations import bindings\n"
+            "from craftreport.application.capabilities import CapabilityInstance\n",
+            "integration": "from craftreport.composition.app import open_application\n"
+            "from craftreport.composition.settings import GuaranteeProviders\n"
+            "from craftreport.adapters.storage.providers import providers\n",
+        }
+        for module, source in cases.items():
+            self.write(
+                f"packages/craftreport-gridcraft/src/craftreport_gridcraft/{module}.py", source
+            )
+        self.run_gate("imports", cli=True)
+
+    def test_gridcraft_forbidden_dependencies(self) -> None:
+        cases = (
+            ("values", "from .browser import Driver"),
+            ("values", "from craftreport_gridcraft import browser"),
+            ("values", "from . import capability"),
+            ("values", "from .codecs import decode"),
+            ("values", "from craftreport.runtime.ports import RuntimeStore"),
+            ("values", "from craftreport.reporting.operations import prepare"),
+            ("values", "from craftreport.application.ports import CommandContext"),
+            ("codecs", "from .browser import Driver"),
+            ("codecs", "from craftreport.adapters import validation"),
+            ("codecs", "from craftreport.adapters.validation import decode_envelope"),
+            ("codecs", "from craftreport.adapters.snapshot_wire import finalize_snapshot"),
+            (
+                "operations",
+                "from craftreport.application.registry import ImmutableOperationRegistry",
+            ),
+            ("operations", "import craftreport.application.registry as registry"),
+            ("providers", "from craftreport.adapters.storage.journal import DurableJournal"),
+            ("integration", "from craftreport.adapters.storage.schema import commands"),
+            ("integration", "from craftreport.application.dispatch import Inspection"),
+            ("helpers", "from playwright.async_api import Page"),
+            ("values", "from craftreport.data.validation import validate"),
+            ("workbook", "from .operations import apply"),
+        )
+        for module, source in (
+            *cases,
+            *(
+                (name, f"import {sdk}")
+                for name in ("values", "operations", "integration")
+                for sdk in ("playwright", "xlsxwriter", "openpyxl", "pydantic", "PIL", "sqlite3")
+            ),
+            *(
+                (name, "from scripts.browser_verification import browser")
+                for name in ("browser", "interactions", "integration")
+            ),
+            ("browser", "import xlsxwriter"),
+            ("workbook", "import openpyxl"),
+            ("artifacts", "import playwright"),
+        ):
+            with self.subTest(module=module, source=source):
+                fixture = f"packages/craftreport-gridcraft/src/craftreport_gridcraft/{module}.py"
+                self.write(fixture, source + "\n")
+                self.assertIn(
+                    f"{fixture}:1: forbidden import: gridcraft ->", str(self.run_gate("imports", 1))
+                )
+                (self.root / fixture).unlink()
+
+    def test_gridcraft_package_role_does_not_bypass_other_package_ownership(self) -> None:
+        self.write(
+            "breadth.toml",
+            self.ledger + '\n[capability.plugin_a]\nowner = ["packages/plugin-a"]\n',
+        )
+        self.write("packages/plugin-a/src/craftreport_gridcraft/values.py", "x = 1\n")
+        fixture = "packages/craftreport-gridcraft/src/craftreport_gridcraft/workbook.py"
+        self.write(fixture, "from .values import x\n")
+        self.assertIn("gridcraft -> craftreport_gridcraft.values", str(self.run_gate("imports", 1)))
+
+    def test_core_cannot_import_gridcraft_before_package_exists(self) -> None:
+        for owner in ("contracts", "data", "reporting", "themes", "policies", "application"):
+            fixture = f"src/craftreport/{owner}/values.py"
+            self.write(fixture, "from craftreport_gridcraft.values import Target\n")
+            self.assertIn(f"{fixture}:1: forbidden import:", str(self.run_gate("imports", 1)))
+            (self.root / fixture).unlink()
+
+    def test_only_exact_gridcraft_recipes_are_scanned_and_admitted(self) -> None:
+        self.write("packages/craftreport-gridcraft/src/craftreport_gridcraft/integration.py", "")
+        for name in ("run_live_gridcraft_report", "gridcraft_report_host"):
+            fixture = f"scripts/examples/{name}.py"
+            self.write(fixture, "from craftreport_gridcraft.integration import host\n")
+            self.run_gate("imports")
+            self.write(fixture, "def invalid(:\n")
+            self.assertIn(fixture, str(self.run_gate("imports", 1)))
+            (self.root / fixture).unlink()
+        self.write("scripts/examples/unrelated.py", "def invalid(:\n")
+        self.run_gate("imports")

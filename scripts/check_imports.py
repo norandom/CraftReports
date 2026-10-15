@@ -78,6 +78,118 @@ REPORTING_KERNEL_VALUES = {
     "ports": {"CommandContext", "ReadContext"},
     "service_values": SNAPSHOT_READ_RESULTS,
 }
+GRIDCRAFT_RECIPES = {
+    "scripts/examples/run_live_gridcraft_report.py",
+    "scripts/examples/gridcraft_report_host.py",
+}
+GRIDCRAFT_VALUES = {
+    "craftreport.contracts",
+    "craftreport.data.values",
+    "craftreport.reporting.prepared",
+    "craftreport.themes.values",
+    "craftreport.policies.values",
+    "craftreport.runtime.values",
+}
+GRIDCRAFT_MODULES = {
+    "values": {"values"},
+    "codecs": {"values", "codecs"},
+    "workbook": {"values", "workbook"},
+    "interactions": {"values", "interactions"},
+    "browser": {"values", "workbook", "interactions", "browser"},
+    "artifacts": {"values", "browser", "artifacts"},
+    "facts": {"values", "codecs", "facts"},
+    "providers": {"values", "facts", "providers"},
+    "operations": {
+        "values",
+        "codecs",
+        "workbook",
+        "browser",
+        "artifacts",
+        "facts",
+        "providers",
+        "operations",
+    },
+    "capability": {"values", "codecs", "operations", "providers", "capability"},
+    "craftreport_gridcraft": {"values", "capability"},
+}
+GRIDCRAFT_ORCHESTRATION = {"facts", "providers", "operations", "capability", "integration"}
+GRIDCRAFT_KERNEL = {
+    "registry": {"Codec", "OperationBinding", "CommandBehavior", "QueryBehavior", "BoundOperation"},
+    "ports": {
+        "Facade",
+        "CommandContext",
+        "ReadContext",
+        "GuardLease",
+        "ExecutionGuard",
+        "GuardAcquisitionError",
+        "EvidenceReader",
+        "ResourceReader",
+        "ResourceEffects",
+        "CapabilityResolver",
+        "AccessPolicy",
+    },
+    "service_values": SNAPSHOT_READ_RESULTS
+    | {"ResourceSnapshot", "ResourceEffect", "GuardCurrent", "GuardLost"},
+    "capabilities": {"CapabilityInstance", "CapabilityFactory"},
+}
+GRIDCRAFT_CODECS = {
+    "craftreport.adapters.validation.PydanticCodec",
+    "craftreport.adapters.validation.StrictWireModel",
+    *(
+        f"craftreport.adapters.snapshot_wire.{name}"
+        for name in ("encode_scalar", "decode_scalar", "encode_parameter", "decode_parameter")
+    ),
+}
+GRIDCRAFT_COMPOSITION = {
+    "craftreport.composition.settings",
+    "craftreport.composition.app.open_application",
+    "craftreport.composition.snapshot_host",
+    "craftreport.composition.reporting",
+    "craftreport.adapters.storage.providers",
+}
+
+
+def beneath(target: str, prefixes: set[str]) -> bool:
+    return any(target == prefix or target.startswith(f"{prefix}.") for prefix in prefixes)
+
+
+def gridcraft_forbidden(target: str, module: str) -> bool:
+    role = module.removeprefix("craftreport_gridcraft.")
+    if role not in GRIDCRAFT_MODULES and role != "integration":
+        return True
+    if target.split(".")[0] == "craftreport_gridcraft":
+        peers = set(GRIDCRAFT_MODULES) if role == "integration" else GRIDCRAFT_MODULES[role]
+        return not beneath(target, {f"craftreport_gridcraft.{name}" for name in peers})
+    if beneath(target, GRIDCRAFT_VALUES):
+        return False
+    if role in GRIDCRAFT_ORCHESTRATION and target in {
+        f"craftreport.application.{name}.{value}"
+        for name, values in GRIDCRAFT_KERNEL.items()
+        for value in values
+    }:
+        return False
+    if role in GRIDCRAFT_ORCHESTRATION and beneath(
+        target,
+        {
+            "craftreport.runtime.ports",
+            "craftreport.reporting.operations",
+            "craftreport.policies.evaluate",
+        },
+    ):
+        return False
+    if role == "integration" and beneath(target, GRIDCRAFT_COMPOSITION):
+        return False
+    if role == "codecs" and (target in GRIDCRAFT_CODECS or beneath(target, {"pydantic"})):
+        return False
+    sdk = {
+        "workbook": "xlsxwriter",
+        "browser": "playwright",
+        "interactions": "playwright",
+        "artifacts": "openpyxl",
+    }.get(role)
+    return target.split(".")[0] not in (sys.stdlib_module_names - STORAGE) | (
+        {sdk} if sdk else set[str]()
+    )
 
 
 def reporting_forbidden(target: str, module: str) -> bool | None:
@@ -137,15 +249,26 @@ def target_layer(target: str) -> str | None:
 
 
 def forbidden(owner: str, target: str, package_modules: Ownership, module: str) -> bool:
+    if module.replace(".", "/") + ".py" in GRIDCRAFT_RECIPES:
+        return False
+    module_path = PurePosixPath(*target.split("."))
+    if any(module_path.is_relative_to(prefix) for _, prefix in package_modules.entries):
+        if package_modules.resolve(module_path.as_posix()) != owner:
+            return True
+    if owner == "gridcraft":
+        return gridcraft_forbidden(target, module)
+    if owner in LAYERS - {"composition"} and beneath(target, {"craftreport_gridcraft"}):
+        return True
+    return kernel_forbidden(owner, target, package_modules, module)
+
+
+def kernel_forbidden(owner: str, target: str, package_modules: Ownership, module: str) -> bool:
     if owner != "browser-verification" and any(
         target == prefix or target.startswith(f"{prefix}.") for prefix in BROWSER_MODULES
     ):
         return True
     layer = target_layer(target)
     external = target.split(".")[0]
-    module_path = PurePosixPath(*target.split("."))
-    if any(module_path.is_relative_to(prefix) for _, prefix in package_modules.entries):
-        return package_modules.resolve(module_path.as_posix()) != owner
     if owner == "reporting" and (decision := reporting_forbidden(target, module)) is not None:
         return decision
     if target in EXACT_CONTRACT_IMPORTS.get((owner, module), set[str]()):
@@ -186,7 +309,11 @@ def forbidden(owner: str, target: str, package_modules: Ownership, module: str) 
 def file_errors(root: Path, path: Path, owners: Ownership, package_modules: Ownership) -> list[str]:
     relative = path.relative_to(root).as_posix()
     owner = owners.resolve(relative)
-    if owner not in LAYERS | {"browser-verification"} and not relative.startswith("packages/"):
+    if (
+        owner not in LAYERS | {"browser-verification"}
+        and relative not in GRIDCRAFT_RECIPES
+        and not relative.startswith("packages/")
+    ):
         raise ValueError(f"unapproved import layer: {owner}: {relative}")
     module = module_name(path, root)
     package = module if path.stem == "__init__" else module.rpartition(".")[0]
@@ -222,6 +349,7 @@ def source_paths(root: Path) -> list[Path]:
     recipe = root / "scripts/examples/verify_gridcraft_browser.py"
     if recipe.is_file():
         paths.append(recipe)
+    paths.extend(root / name for name in sorted(GRIDCRAFT_RECIPES) if (root / name).is_file())
     return paths
 
 

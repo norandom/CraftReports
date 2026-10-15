@@ -1,10 +1,10 @@
-# Implementation Plan — draft for independent task-graph review
+# Implementation Plan
 
-All tasks are unchecked. This file is a proposal, not `tasks.md` and not task approval. Independent graph sanity review must PASS before root finalizes the plan. Each executable item is a bounded 1–3 hour unit; a failed feasibility attempt is a stopping gate, not permission to build an alternative route. No `(P)` markers are justified because the app contracts, fact/provider state, driver lane and assembly share prerequisites. Parent alone integrates shared files, commits with installed hooks and pushes.
+Task completion below records independently reviewed implementation. This plan passed independent review as recorded in tasks-review.md and spec.json under the bounded overnight authorization. Each executable item is a bounded 1â€“3 hour unit; a failed feasibility attempt is a stopping gate, not permission to build an alternative route. No `(P)` markers are justified because the app contracts, fact/provider state, driver lane and assembly share prerequisites. Parent alone integrates shared files, commits with installed hooks and pushes.
 
 Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcraft/<affected-file>` after setup, canonical `uv.exe run --frozen python scripts/check.py --fast` through installed hooks, and affected installed `--integration`/real headless browser journeys for integration changes. Record exact invocation, exit code, source/wheel/dependency/release/profile and evidence directory. Reuse fresh matching checks rather than run duplicate suites alongside heavy browser timing. No task is complete without required fresh checks and independent task-local review.
 
-- [ ] 1. Activate exact app ownership, default budgets and dependency boundaries
+- [x] 1. Activate exact app ownership, default budgets and dependency boundaries
   - Root activates the reviewed gridcraft package, app tests, resources, exact executable caller/launcher, guide and deployment ownership before app source expansion. Apply existing 1,500 capability/50 function/300 module/McCabe10 defaults, with no increases; reconcile shared executable-owner totals with both upstream specs.
   - Extend typed/linted/build/import checks narrowly for the app package and example; pure core/app values cannot import concrete browser/workbook SDKs, application core receives no additions, and production app cannot import fixture-verification drivers. Keep allowed composition and exact SDK exceptions local; include positive/negative gate fixtures.
   - Done when ledger/budget/import/typed scope recognizes the exact owners, forbidden imports still fail and canonical fast checks pass. A configured gate is not described as enforced until actually run.
@@ -23,13 +23,13 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - Use a tiny literal test-only workbook to bootstrap once through the selected official bridge, observe marker/table/line chart/styles/outside sentinel, perform two real UI value edits in that same document and inspect actual chart/category/series effects. Include literal formula-marker text and a null gap in the minimum supported profile.
   - Invoke actual released Save, correlate the official outbound bytes under one armed lane, persist/read back private scratch, independently inspect and reopen those exact bytes in a separate GridCraft context. Deliberately modify owned content and prove the next mismatched update rejects before mutation. Resolve the recorded chart-before/category-copy problem against this route; no screenshot-only or source-equivalence pass.
   - Done when current real evidence proves every promised minimal effect and records the support subset, dimensions/types/styles/bounds, commands/exit code, screenshots/flushed video/diagnostics and observed owned cleanup. This test-only fixture does not require or pretend to implement upstream production providers.
-  - If any required effect is unproven, stop tasks4–16, record untested/unavailable status and return the route to independent Design review. No fallback engine, repeated-open refresh, custom unrestricted bridge or larger driver build is authorized.
+  - If any required effect is unproven, stop tasks4â€“16, record untested/unavailable status and return the route to independent Design review. No fallback engine, repeated-open refresh, custom unrestricted bridge or larger driver build is authorized.
   - _Boundary: Feasibility; isolated actual released-browser test only_
   - _Depends: 2_
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 2.2, 2.3, 2.4, 2.6, 2.7, 4.3, 4.4, 4.5, 6.4, 6.5, 6.6_
 
 - [ ] 4. Implement the admitted fixed-shape mapping and installed value contracts
-  - Wait for accepted snapshot-runtime2.1–2.3 and report-model2.1–4/7 value+codec tasks; consume their exact Snapshot/RunPins/PreparedReport/policy values without copying schemas or changing frozen upstream interfaces. Runtime values additionally require its5.1 before integration that uses RunPins.
+  - Wait for accepted snapshot-runtime2.1â€“2.3 and report-model2.1â€“4/7 value+codec tasks; consume their exact Snapshot/RunPins/PreparedReport/policy values without copying schemas or changing frozen upstream interfaces. Runtime values additionally require its5.1 before integration that uses RunPins.
   - Implement strict app settings/target/layout/observation/artifact values, admitted mapping plan, explicit text-safe one-time XlsxWriter bootstrap and support descriptor from task3's observed subset. Fix shape/types/series references at bind; reject dimension/precision/unsupported-style/empty-data changes before admission, with no coercion/truncation.
   - Build/install the actual app wheel/resources and verify public imports/descriptor packaging. Done when independently fixed literals compare exact mapped values/order/types/styles/markers, malicious formula/URL text stays text and installed package identity matches its manifest. Unsupported mappings remain explicit.
   - _Boundary: AppValues and WorkbookMapping integration; exact package files in Design_
@@ -45,7 +45,7 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Requirements: 5.1, 5.4, 5.5, 5.6, 5.7, 6.4_
 
 - [ ] 6. Compose exact app resources, evidence and guards with real upstream providers
-  - Wait for accepted snapshot-runtime3.1–3.4/4.2 real provider/host tasks. Route only app document/artifact kinds and evidence namespace; delegate upstream resources/effects/health without altering their authority. Preserve the sole kernel journal/results/handoffs.
+  - Wait for accepted snapshot-runtime3.1â€“3.4/4.2 real provider/host tasks. Route only app document/artifact kinds and evidence namespace; delegate upstream resources/effects/health without altering their authority. Preserve the sole kernel journal/results/handoffs.
   - Implement complete-set outer sorted locks then delegated non-app locks, reverse release/cancellation and actual-current checks. Every invocation enters the composed provider, never mixed raw guards; local stored versions are observations, not a fence on external users. Unknown app generic changes fail closed.
   - Done when real mixed-resource reverse requests, cancellation/stale CAS and principal isolation pass; every completion/stage/reconciliation evidence ref has the exact full declared completion pin set. Missing/altered upstream pins must make the kernel reject completion, while correct full-set evidence passes.
   - _Boundary: AppProviders integration with existing GuaranteeProviders_
@@ -69,7 +69,7 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 3.9, 5.1, 5.4, 5.5_
 
 - [ ] 9. Register guarded app operations and consume real preparation/runtime pins
-  - Wait for accepted report-model8/10 and snapshot-runtime5.1–5.4 real operations/lifecycle/recovery tasks. Register discovery/open/apply/verify/inspect with existing strict codecs, limits, resource guards, retry semantics and retained results; export remains explicitly unavailable until its implementation.
+  - Wait for accepted report-model8/10 and snapshot-runtime5.1â€“5.4 real operations/lifecycle/recovery tasks. Register discovery/open/apply/verify/inspect with existing strict codecs, limits, resource guards, retry semantics and retained results; export remains explicitly unavailable until its implementation.
   - Inject real RunPreparer calling public reports.prepare and exact retained readback; map only reviewed PreparedRunInputs. AppOperationCaller invokes public app operations and converts canonical receipts plus trusted full-pin evidence into exact EffectObservation/cancellation, without advancing bindings itself or nesting a held resource lease.
   - Done when installed ordinary REST/MCP clients discover and invoke the shared path, mismatched/missing prepared pins or public passed flags reject, duplicate retry does not reapply, and only exact verified run/target/generation evidence can advance runtime applied state.
   - _Boundary: AppOperations and AppComposition integration_
@@ -93,7 +93,7 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 5.1, 5.4, 6.4, 6.5_
 
 - [ ] 12. Publish only policy-permitted verified draft or final validated bytes
-  - Activate gridcraft.export through explicit integration of its strict request/result codecs, existing OperationBinding, exact document/run/artifact/destination resource declarations and descriptor limits/evidence policy. Admit only the authorized pinned current complete run, matching retained prepared/result pins and destination expected version/overwrite policy; use the existing shared kernel guards/retries/stage/result semantics. Transition descriptor availability from unavailable to supported only after tasks11–12's actual route and publication checks pass.
+  - Activate gridcraft.export through explicit integration of its strict request/result codecs, existing OperationBinding, exact document/run/artifact/destination resource declarations and descriptor limits/evidence policy. Admit only the authorized pinned current complete run, matching retained prepared/result pins and destination expected version/overwrite policy; use the existing shared kernel guards/retries/stage/result semantics. Transition descriptor availability from unavailable to supported only after tasks11â€“12's actual route and publication checks pass.
   - Use existing quality evaluate with trusted matching observations; render and verify DRAFT+summary for permitted draft. For validated requests, privately verify provisional eligibility, apply scoped designation, then capture/stage/inspect/reopen and re-evaluate against final target/artifact pins. External methodology/compliance claims cannot grant internal checks.
   - After final applicable checks, reassert destination guard/authorization/expected digest and exclusive-create or explicitly permitted atomic replace of the exact verified staged bytes; fsync/read back destination digest and retain final publication facts. Prepublication failure or conflict leaves existing/absent destination unchanged.
   - Done when blocked validated requests expose no published validated artifact, marked drafts preserve their findings, final published bytes equal final verified digest and continuing live input never changes the artifact. Postpublication lost acknowledgment/readback failure remains ambiguous/failed persistence with its possible real write, never absent-success or blind retry.
@@ -133,3 +133,12 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Boundary: Final app feature validation and umbrella status integration_
   - _Depends: 15_
   - _Requirements: 6.2, 6.3, 6.4, 6.5, 6.6_
+
+## Implementation Notes
+
+- Task 1: independently approved by `/root/review_gridcraft_activation_1`;
+  68 engineering tests/220 subtests and scoped static/gate checks passed.
+  Original RED excerpts retain their truncation/provenance; independent OFF
+  sensitivity proof is distinct. Evidence: `artifacts/gridcraft/task-1/`.
+  Development-gates1110/1500 LLOC, unchanged numeric limits. This activation
+  establishes ownership/import enforcement, not browser or report functionality.
