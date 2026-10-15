@@ -7,10 +7,11 @@ from pathlib import Path
 from check_quality import check
 
 ROOT = Path(__file__).resolve().parents[2]
-APPROVAL = ".kiro/specs/craftreport-browser-verification/budget-amendment.md"
+APPROVAL = ".kiro/specs/craftreport-browser-verification/lifecycle-evidence-budget-amendment.md"
+PREVIOUS_APPROVAL = ".kiro/specs/craftreport-browser-verification/budget-amendment.md"
 ENTRY = (
     '\n[[capability_limits.entries]]\ncapability_id = "browser-verification"\n'
-    'rule = "capability-lloc"\nvalue = 2800\napproved = true\nowner = "project-owner"\n'
+    'rule = "capability-lloc"\nvalue = 3400\napproved = true\nowner = "project-owner"\n'
     'rationale = "Reviewed browser calibration"\n'
     f'approval_reference = "{APPROVAL}"\n'
 )
@@ -45,12 +46,15 @@ class BrowserBudgetTests(unittest.TestCase):
             self.write(f"{prefix}/part{index}.py", "x = 1\n" * min(300, total - start))
 
     def test_browser_boundary_helpers_recipe_and_move_count_once(self) -> None:
-        self.source("scripts/browser_verification/helpers", 2799)
+        self.source("scripts/browser_verification/helpers", 3399)
+        report = check(self.root)
+        self.assertEqual(report.errors + report.violations, [])
+        self.assertEqual(report.production_capabilities, {"browser-verification": 3399})
         self.write("scripts/examples/verify_gridcraft_browser.py", "x = 1\n")
         self.write("tests/browser_verification/test_large.py", "x = 1\n" * 3000)
         report = check(self.root)
         self.assertEqual(report.errors + report.violations, [])
-        self.assertEqual(report.production_capabilities, {"browser-verification": 2800})
+        self.assertEqual(report.production_capabilities, {"browser-verification": 3400})
         self.assertEqual(report.test_capabilities, {"browser-verification": 3000})
         extra = self.write("scripts/browser_verification/extra.py", "x = 1\n")
         moved = self.root / "scripts/browser_verification/nested/tests/extra.py"
@@ -58,18 +62,35 @@ class BrowserBudgetTests(unittest.TestCase):
         extra.rename(moved)
         report = check(self.root)
         self.assertEqual(report.errors, [])
-        self.assertEqual(report.production_capabilities, {"browser-verification": 2801})
+        self.assertEqual(report.production_capabilities, {"browser-verification": 3401})
         self.assertEqual(
-            [(v.rule, v.message) for v in report.violations], [("capability-lloc", "2801 > 2800")]
+            [(v.rule, v.message) for v in report.violations], [("capability-lloc", "3401 > 3400")]
         )
         self.assertEqual(report.waived, [])
 
     def test_other_capability_keeps_default(self) -> None:
+        self.source("src", 1500)
+        report = check(self.root)
+        self.assertEqual(report.errors + report.violations, [])
+        self.assertEqual(report.production_capabilities, {"application": 1500})
         self.source("src", 1501)
         report = check(self.root)
         self.assertEqual(report.errors, [])
         self.assertEqual(
             [(v.owner, v.message) for v in report.violations], [("application", "1501 > 1500")]
+        )
+
+    def test_development_gates_keeps_default(self) -> None:
+        self.source("scripts/gates", 1500)
+        report = check(self.root)
+        self.assertEqual(report.errors + report.violations, [])
+        self.assertEqual(report.production_capabilities, {"development-gates": 1500})
+        self.source("scripts/gates", 1501)
+        report = check(self.root)
+        self.assertEqual(report.errors, [])
+        self.assertEqual(
+            [(v.owner, v.message) for v in report.violations],
+            [("development-gates", "1501 > 1500")],
         )
 
     def test_omitted_override_retains_default(self) -> None:
@@ -80,6 +101,14 @@ class BrowserBudgetTests(unittest.TestCase):
         self.assertEqual([v.message for v in report.violations], ["1501 > 1500"])
 
     def test_browser_local_limits_remain(self) -> None:
+        self.write("scripts/browser_verification/module.py", "x = 1\n" * 300)
+        self.write("scripts/browser_verification/function.py", "def work():\n" + "    x = 1\n" * 49)
+        self.write(
+            "scripts/browser_verification/branch.py",
+            "def work(x):\n" + "    if x:\n        x = 1\n" * 9,
+        )
+        report = check(self.root)
+        self.assertEqual(report.errors + report.violations, [])
         self.write("scripts/browser_verification/module.py", "x = 1\n" * 301)
         self.write("scripts/browser_verification/function.py", "def work():\n" + "    x = 1\n" * 50)
         self.write(
@@ -99,16 +128,18 @@ class BrowserBudgetTests(unittest.TestCase):
             ('capability_id = "browser-verification"', 'capability_id = "*"'),
             ('rule = "capability-lloc"', 'rule = "module-lloc"'),
             ('rule = "capability-lloc"', 'rule = "*"'),
-            ("value = 2800", "value = 0"),
-            ("value = 2800", "value = -1"),
-            ("value = 2800", "value = true"),
-            ("value = 2800", "value = 2800.0"),
-            ("value = 2800", 'value = "2800"'),
-            ("value = 2800", "value = 2801"),
+            ("value = 3400", "value = 0"),
+            ("value = 3400", "value = -1"),
+            ("value = 3400", "value = true"),
+            ("value = 3400", "value = 3400.0"),
+            ("value = 3400", 'value = "3400"'),
+            ("value = 3400", "value = 3401"),
+            ("value = 3400", "value = 2800"),
             ('owner = "project-owner"', 'owner = " "'),
             ('rationale = "Reviewed browser calibration"', 'rationale = ""'),
             (f'approval_reference = "{APPROVAL}"', 'approval_reference = ""'),
             (f'approval_reference = "{APPROVAL}"', 'approval_reference = "README.md"'),
+            (f'approval_reference = "{APPROVAL}"', f'approval_reference = "{PREVIOUS_APPROVAL}"'),
         )
         for old, new in replacements:
             with self.subTest(new=new):
@@ -127,6 +158,12 @@ class BrowserBudgetTests(unittest.TestCase):
             self.policy.replace("[[capability_limits.entries]]", "[capability_limits.entries]"),
             self.policy + 'exact_path_or_rule = "*"\n',
             self.policy.replace("approved = true\nowner", "approved = false\nowner"),
+            self.policy.replace(
+                f'budget_amendment_reference = "{APPROVAL}"',
+                f'budget_amendment_reference = "{PREVIOUS_APPROVAL}"',
+            ),
+            self.policy.replace('owner = "project-owner"\n', ""),
+            self.policy.replace('rationale = "Reviewed browser calibration"\n', ""),
         )
         for policy in policies:
             with self.subTest(policy=policy):

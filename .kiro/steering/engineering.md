@@ -1,6 +1,6 @@
 # Typed Python and Engineering Gates
 
-Updated: 2026-10-15. Kernel tool selections and numeric budgets are approved; browser-verification tooling has its own approved scope using 50/300/2,800/10 limits; its bounded aggregate amendment gate is implemented and independently verified in task 2.3, with implementation now authorized by Tasks approval. Tasks 1.1–1.2 installed the locked tools and verified the standalone size/branching gate; task 1.4 has passing fast-check, installed-hook and clean-checkout evidence. CI uses the same command; [hosted run 38617747132](https://github.com/norandom/CraftReports/actions/runs/38617747132) passed fast checks and installed-wheel synthetic conformance on 2026-10-14 at commit 44d3101 (verified 2026-10-15). Browser CI remains pending.
+Updated: 2026-10-15. Kernel tool selections and numeric budgets are approved; browser-verification tooling has its own approved scope using 50/300/3,400/10 limits; its bounded aggregate amendment gate is implemented and independently verified in task 4.0 (following historical task 2.3), with implementation now authorized by Tasks approval. Tasks 1.1–1.2 installed the locked tools and verified the standalone size/branching gate; task 1.4 has passing fast-check, installed-hook and clean-checkout evidence. CI uses the same command; [hosted run 38617747132](https://github.com/norandom/CraftReports/actions/runs/38617747132) passed fast checks and installed-wheel synthetic conformance on 2026-10-14 at commit 44d3101 (verified 2026-10-15). Browser CI remains pending.
 
 ## Typed Contracts and Boundaries
 
@@ -30,7 +30,21 @@ Feature/capability budgets reference stable IDs in `breadth.toml`. Module and fu
 
 Do not game caps by moving a feature across many tiny files. Extraction follows a responsibility seam, and the feature/capability aggregate still applies.
 
-`quality.toml` owns tool/measurement definitions, inclusion policy, numeric limits and narrowly scoped exceptions. Kernel Design approval adopted 50 function LLOC, 300 module LLOC, 1,500 capability LLOC and function McCabe complexity 10 for its listed capabilities. The standalone size/branching gate now enforces these limits; the installed local hook invokes the complete fast pipeline, and CI is configured with that same command. Hosted fast and synthetic integration execution is verified by the run above. Its approved extraction policy includes decorators through function end and checks nested functions without double-counting files in capability totals. Calibrate against the first vertical slice; changes require review. Browser-verification tooling adopted 50/300/1,500/10 through owner Design approval on 2026-10-14; a subsequently approved calibration amendment changes only its aggregate cap to 2,800. The exact numeric override is implemented in task 2.3, with other defaults unchanged. See `.kiro/specs/craftreport-browser-verification/budget-amendment.md`; task 2.3 accepted enforcement of that exact override while all other capabilities retain the global 1,500 default. Other future capability budgets require their own activation review. An omitted override in approved scope means the approved default, not unlimited or zero.
+`quality.toml` owns tool/measurement definitions, inclusion policy, numeric limits and narrowly scoped exceptions. Kernel Design approval adopted 50 function LLOC, 300 module LLOC, 1,500 capability LLOC and function McCabe complexity 10 for its listed capabilities. The standalone size/branching gate now enforces these limits; the installed local hook invokes the complete fast pipeline, and CI is configured with that same command. Hosted fast and synthetic integration execution is verified by the run above. Its approved extraction policy includes decorators through function end and checks nested functions without double-counting files in capability totals. Calibrate against the first vertical slice; changes require review. Browser-verification tooling adopted 50/300/1,500/10 through owner Design approval on 2026-10-14; a subsequently approved calibration amendment changes only its aggregate cap to 2,800. The exact numeric override is implemented in task 2.3, with other defaults unchanged. See `.kiro/specs/craftreport-browser-verification/budget-amendment.md`; task 2.3 accepted enforcement of that exact override while all other capabilities retain the global 1,500 default. On 2026-10-15 the owner explicitly approved the resource-specific lifecycle
+contract and browser-only 3,400 aggregate cap in
+`.kiro/specs/craftreport-browser-verification/lifecycle-evidence-budget-amendment.md`,
+following independent proposal review PASS. New Development-gates task 4.0 owns
+implementation and independent verification; it is now accepted, with exact
+3,400 enforcement and 848 tests/93 subtests passing independent canonical checks.
+Accepted task 4.1 source is now measured 2,798/3,400,
+leaving 602. The unchanged planning allocations forecast 3,403, 3 above the approved
+3,400 maximum; these are estimates, not caps or proof of infeasibility, and imply
+no further cap increase or hidden refactor savings. All other capabilities retain
+1,500 and local 50/300/10 limits remain unchanged. SDK closure is `sdk-closed`
+only for the identified public Playwright boundary; directly owned subprocess
+shutdown still requires observed non-forced exit. Observable cleanup failures
+remain acceptance-blocking and the immutable SDK observation limitation stays
+scoped to its boundary/version. Other future capability budgets require their own activation review. An omitted override in approved scope means the approved default, not unlimited or zero.
 
 Exceptions need an exact capability/path/rule, rationale, accountable owner, approval reference and expiry. Expired or overbroad exceptions fail; they do not silently renew. Core library/application code and externally maintained Craft/Rust code have separate ownership.
 

@@ -108,7 +108,9 @@ class Policy:
 def validate_limit_approval(
     fields: dict[str, object], config: dict[str, object], root: Path
 ) -> str:
-    reference = ".kiro/specs/craftreport-browser-verification/budget-amendment.md"
+    reference = (
+        ".kiro/specs/craftreport-browser-verification/lifecycle-evidence-budget-amendment.md"
+    )
     scope = table(table(config.get("scope_approval"))["browser-verification"])
     if (
         fields.get("approved") is not True
@@ -150,8 +152,8 @@ def validate_capability_limit(
         raise ValueError("capability limit has unknown ownership")
     if not isinstance(rule, str) or rule != "capability-lloc":
         raise ValueError("capability limit has unsupported rule")
-    if type(value) is not int or value != 2800:
-        raise ValueError("capability limit requires approved integer value 2800")
+    if type(value) is not int or value != 3400:
+        raise ValueError("capability limit requires approved integer value 3400")
     metadata: dict[str, str] = {}
     for key in ("owner", "rationale"):
         item = fields.get(key)

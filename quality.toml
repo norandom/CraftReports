@@ -73,9 +73,12 @@ approved = true
 approved_at = "2026-10-14"
 approval_reference = ".kiro/specs/craftreport-browser-verification/design-review.md"
 capability_id = "browser-verification"
-limits = "approved 50 function / 300 module / 2800 browser capability LLOC and McCabe 10"
-budget_amendment_reference = ".kiro/specs/craftreport-browser-verification/budget-amendment.md"
-budget_gate_state = "implemented-task-2.3; exact-browser-2800-enforced; task-review-accepted"
+limits = "approved 50 function / 300 module / 3400 browser capability LLOC and McCabe 10"
+budget_amendment_reference = ".kiro/specs/craftreport-browser-verification/lifecycle-evidence-budget-amendment.md"
+budget_amendment_approved_at = "2026-10-15"
+budget_gate_state = "implemented-task-4.0; exact-browser-3400-enforced; task-review-accepted"
+previous_budget_amendment_reference = ".kiro/specs/craftreport-browser-verification/budget-amendment.md"
+previous_budget_gate_state = "implemented-task-2.3; exact-browser-2800-enforced; task-review-accepted"
 implementation_authorization_source = ".kiro/specs/craftreport-browser-verification/spec.json"
 
 [future_gate_families]
@@ -95,8 +98,8 @@ uv = "0.13.0"
 [[capability_limits.entries]]
 capability_id = "browser-verification"
 rule = "capability-lloc"
-value = 2800
+value = 3400
 approved = true
 owner = "project-owner"
-rationale = "Owner-approved calibration retains all acceptance and local limits"
-approval_reference = ".kiro/specs/craftreport-browser-verification/budget-amendment.md"
+rationale = "Owner approved browser-only lifecycle evidence calibration on 2026-10-15; global and local limits remain unchanged"
+approval_reference = ".kiro/specs/craftreport-browser-verification/lifecycle-evidence-budget-amendment.md"

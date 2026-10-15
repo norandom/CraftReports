@@ -1,7 +1,7 @@
 {
   "feature_name": "craftreport-browser-verification",
   "created_at": "2026-10-14T15:37:37.420827Z",
-  "updated_at": "2026-10-15T12:53:09.929583+00:00",
+  "updated_at": "2026-10-15T14:23:24.127434+00:00",
   "language": "en",
   "phase": "implementation-in-progress",
   "approvals": {
@@ -70,6 +70,56 @@
     ],
     "stop_before": "5.1",
     "headless_only": true,
-    "acceptance_and_budgets_unchanged": true
+    "acceptance_and_budgets_unchanged": true,
+    "superseded_only_for": [
+      "unchanged lifecycle acceptance contract",
+      "browser maximum budget and prerequisite gate task 4.0"
+    ],
+    "superseded_by": "lifecycle-evidence-budget-amendment.md"
+  },
+  "lifecycle_evidence_budget_amendment": {
+    "approved": true,
+    "approved_at": "2026-10-15",
+    "reference": "lifecycle-evidence-budget-amendment.md",
+    "lifecycle_contract_approved": true,
+    "browser_budget_approved": true,
+    "independent_review": "PASS",
+    "independent_reviewer": "/root/review_lifecycle_amendment",
+    "applied_at": "2026-10-15",
+    "applied_after_accepted_task": "4.1",
+    "accepted_task_4_1_commit": "0c4dd15",
+    "capability": "browser-verification",
+    "max_capability_lloc": 3400,
+    "currently_enforced_max_capability_lloc": 3400,
+    "gate_task": "4.0",
+    "gate_implemented": true,
+    "gate_accepted": true,
+    "authorized_pending_tasks": [
+      "4.2"
+    ],
+    "stop_before": "5.1",
+    "headless_only": true,
+    "executable_tasks": 20,
+    "accepted_tasks": 14,
+    "pending_tasks": 6,
+    "major_groups": 7,
+    "accepted_source_lloc": 2798,
+    "current_enforced_headroom_lloc": 602,
+    "proposal_planning_baseline_lloc": 2744,
+    "historical_planning_total_lloc": 3349,
+    "updated_planning_total_lloc": 3403,
+    "updated_forecast_above_approved_cap_lloc": 3,
+    "planning_allocations_are_estimates": true,
+    "hash_normalization": "UTF-8 with LF line endings",
+    "original_review_records_retained": true,
+    "amended_requirements_sha256": "e56b5a01836ccdf6ae8ff8aff7425031134ff7d71eeb018f6a7417b059e9ce3e",
+    "amended_design_sha256": "0f0eb6de5b41f33a7550c2bde7448355f0ae60097c173a0c2739e65564f80a7f",
+    "amended_tasks_sha256": "641ab1703f8c62f3992ebee1d2137b1e4077f85750f084951b47a58e966e962d",
+    "gate_accepted_at": "2026-10-15",
+    "application_snapshot_hashes": {
+      "amended_requirements_sha256": "e56b5a01836ccdf6ae8ff8aff7425031134ff7d71eeb018f6a7417b059e9ce3e",
+      "amended_design_sha256": "d420e7916a19609ef6af00cbbaac82be4201b1013e82595d94dc8c26661cd88c",
+      "amended_tasks_sha256": "248f12b280deae7d7b6d40d6cf5bf1833ceaea6c3219c60bc7ae42334b44244c"
+    }
   }
 }

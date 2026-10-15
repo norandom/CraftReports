@@ -138,6 +138,9 @@ Modified paths:
 - `scripts/check_imports.py`, `tests/engineering/test_boundary_gates.py`: targeted
   harness import-direction and production isolation checks.
 - `breadth.toml`, `quality.toml`: reviewed owner activation and budget scope.
+- `scripts/quality_policy.py`, `scripts/check_quality.py`, `quality.toml` and focused
+  `tests/engineering` regressions: task 4.0 Development-gates budget integration;
+  these paths retain Development-gates ownership and its unchanged 1,500 cap.
 - `docs/examples.md`, `docs/quickstarts/index.md`, `docs/gridcraft-setup.md`,
   `docs/roadmap.md`: entry points, tested profile and readiness updates.
 - This spec's metadata, Tasks and validation record: phase/evidence authority.
@@ -153,10 +156,17 @@ changes; documentation owns guides. No movement of existing code resets a budget
 
 Apply 50 function LLOC, 300 module LLOC and McCabe 10. The owner approved a
 browser-only 2,800 aggregate source-LLOC cap on 2026-10-14 after independent
-calibration; all other capabilities retain their 1,500 default. Count every
+calibration; task 2.3 implemented that exact override. On 2026-10-15 the owner
+explicitly approved the browser-only 3,400 cap in
+[lifecycle-evidence-budget-amendment.md](lifecycle-evidence-budget-amendment.md),
+following independent proposal review PASS. Task 4.0 implemented and independently
+verified the exact 3,400 override on 2026-10-15. All other capabilities
+retain their 1,500 default; local 50/300/10 limits remain unchanged. Count every
 owned helper and recipe once in source; tests remain separately reported. No
-waiver or relocation resets ownership. The new gate task must enforce the exact
-numeric override before further browser expansion.
+waiver or relocation resets ownership.
+
+The following original calibration forecast is retained as approval history,
+not the current source measurement or remaining-work forecast.
 
 | Responsibility | Completed planning LLOC |
 | --- | ---: |
@@ -180,6 +190,18 @@ are uncertainties. Reuse existing values and the same observation/Journey paths
 without weakening mandatory checks. Any further cap change requires review.
 See [the approved calibration amendment](budget-amendment.md) for provenance,
 owner decision, typed enforcement and required boundary regressions.
+
+Those 2,493 target and 2,300–2,750 forecasts are historical. Accepted task 4.1
+source at commit `0c4dd15` was **2,798/2,800 LLOC**, leaving **2** under the
+then-enforced cap. Task 4.0 now enforces 3,400, leaving 602 at that source size. The approved lifecycle amendment preserves its original 2,744
+planning baseline and 3,349 total as history; the accepted measurement is 54
+higher. With the same estimates (4.2 280, CLI 75, profile/integration repairs 100,
+reserve 150), the updated forecast is **3,403**, **3 above the approved 3,400 cap**.
+These allocations are estimates, not separate caps or proof the work cannot fit.
+No hypothetical refactor savings or further cap increase is assumed; reassess
+if measured work cannot fit. The future CLI/profile allocations authorize no
+execution beyond 4.2. Task 4.0 is the ordered prerequisite; 4.2 depends on accepted
+3.4, 4.0 and 4.1. All automated checks remain headless; stop before 5.1.
 
 ## System Flows
 
@@ -378,7 +400,8 @@ made reliable, 3.4 remains blocked: saved OOXML alone cannot close the live chec
 Inbound Recipe/tests (P0); outbound all selected adapters (P0).
 
 `run(config: RunConfig) -> RunResult` uses one resource registry from before
-startup, registers each acquired resource immediately, and always finalizes.
+startup, registers acquisition tasks before awaiting them, retains exact returned
+resources including partial/late acquisitions, and always finalizes.
 Configured positive readiness/action/cleanup bounds are recorded; suggested CLI
 defaults are 90/20/30 seconds, overridable, not a performance claim. Per-stage
 deadlines include awaited effects; timeout after possible input is `unresolved`.
@@ -390,16 +413,54 @@ console errors and critical HTML/JS/WASM/file failures fail the affected stage.
 Any warning allowlist is exact, justified, version-scoped and recorded; do not
 ignore all WebGL or network findings. Only synthetic contexts are recorded.
 
-`finalize(result: RunResult, resources: ResourceRegistry) -> RunResult` closes
-contexts first, waits for video finalization, then closes browser/driver and owned
-deployment. Verify required videos are nonempty, hashable and decodable by the
-same pinned browser's video element in a separate unrecorded verification context;
-record metadata duration and an actual decoded frame. Close that context too.
-Retain primary failure and cleanup failure separately. Missing/undecodable video,
-forced termination or surviving owned resources prevents verified acceptance.
-Track directly owned process handles/container IDs, never kill by image name or
-stale PID. Windows child process-group and Linux session ownership must be proven
-in lifecycle tests; cancellation before/after acquisition follows the same path.
+`finalize(result: RunResult, resources: ResourceRegistry) -> RunResult` uses the
+approved resource-specific lifecycle contract:
+
+- Register the acquisition task before awaiting it. Retain the exact public
+  Playwright driver, browser and every context object returned, including main,
+  reopen and video-decoding contexts. Retain partial-start ownership even when
+  an operation fails or is cancelled. Never reconstruct ownership by discovery.
+- A bounded, cancellation-protected cleanup owner settles acquisition tasks and
+  accepts their late successful results into the same registry. A timeout or
+  cancellation must not discard an acquisition task that can still return a
+  resource. Unsettled acquisitions block acceptance; record their identities and
+  state even when the cleanup deadline expires.
+- Close owned main/reopen contexts first, then owned decoding contexts, then the
+  browser, then the public Playwright driver. Attempt remaining independent
+  cleanup after a failure within the recorded finite cleanup deadline. Retain
+  close task identity/state so repeated cancellation cannot silently abandon an
+  operation or convert it into success. Finalize the evidence packet only after
+  cleanup outcomes and required video checks have been collected.
+- Record `sdk-closed` only after the matching retained public close/stop operation
+  completes successfully. A context closed incidentally by browser shutdown does
+  not substitute for its own required context close and finalized recording.
+  Explicitly distinguish expected disconnect caused by owned browser close from
+  unexpected earlier disconnect; disconnection alone proves neither closure nor
+  native process exit.
+- Replace production Deployment's unretained `subprocess.run` boundary with
+  retained `Popen` handles, using a Windows process group and Linux session for
+  directly launched subprocesses. Record exact ownership, platform, shutdown
+  requests, bounded waits, exit observation and any escalation. A request alone
+  is not observed exit. Any requested or observed force blocks acceptance even
+  if later exit is observed. Verify the real platform behavior; command-shape
+  unit tests alone cannot establish it.
+- Retain exact owned container IDs and both existing project/run label checks
+  before mutation. Preserve externally owned deployments, unrelated resources,
+  the shared archive cache and retained evidence. Keep startup uncertainty and
+  late-acquisition failure visible; a stopped local Docker/WSL command does not
+  prove remote container quiescence.
+- The immutable declared capability limitation is
+  `playwright_internal_force_unobservable`. Attach it to the matching SDK
+  boundary and schema/SDK identity before execution; do not infer or toggle it
+  from a failed run. No SDK outcome is mapped back to `graceful` by compatibility
+  code, summaries or verdict reduction. Native browser PID/descendant-tree
+  termination guarantees are outside the amended claim.
+
+Retain primary failure and cleanup failure separately. Verify required videos
+are nonempty, hashable and decodable by the same pinned browser's video element
+in a separate unrecorded verification context; record metadata duration and an
+actual decoded frame. That context is owned and closed under the same contract.
+Missing/undecodable video blocks verified acceptance.
 
 `VERIFIED` requires every mandatory stage/check and cleanup to pass. Other
 verdicts are `FAILED`, `BLOCKED` or `UNRESOLVED`; none is a successful exit.
@@ -450,11 +511,24 @@ reporting facade's live dashboard or reporting export capability.
 | FixtureExpectation | FixtureManifest owns schema version, input hash, before/after typed cells, sentinels, literal chart identity/title/series, category/value references and presentation checks; immutable before execution |
 | VisualProfile | FixtureManifest owns app/browser/OS/graphics/viewport/scale identity, calibrated canvas control/cell bounds, crop and baseline hashes, masks and fixed comparison thresholds; unknown identity blocks comparison |
 | CheckSet | Values owns ordered expected/observed assertions, requirement IDs, evidence refs and pass/fail/unexecuted per assertion; aggregate passes only if every mandatory assertion passes |
-| ResourceRegistry | Journey owns ordered acquisition tokens, resource kind, owner run, exact handle or container/context identity, acquisition state and close state; register immediately, close reverse dependency order, retain partial-start resources |
+| ResourceRegistry | Ordered acquisition token, owner run, exact resource kind, public handle or direct subprocess/container identity, acquisition task and pending/succeeded/failed/unsettled state, close task and state, dependency order. Retain late/partial acquisitions. Live handles remain internal. |
+| Resource kind | Exact discriminants for Playwright driver, Playwright browser, Playwright context (including declared main/reopen/decode role), direct deployment subprocess and owned container. Unknown/unowned kinds cannot acquire an accepted closure result. |
 | ArtifactIdentity | exclusive destination, size, SHA256, run/target generation, download route |
 | StageFinding | stage, numeric requirement IDs, status pending/passed/failed/blocked/unresolved/unexecuted, expected/observed safe values, evidence refs |
-| CleanupFinding | resource identity and owner, graceful/forced/unexecuted, exit status, survivors, final video state |
-| RunResult | schema version 1, source revision plus dirty content manifest, dependency/app/profile identities, ordered findings, cleanup, verdict, predecessor run |
+| CleanupFinding | Owner/resource/acquisition identity, close mechanism, requested/observed force, bounded timestamps/deadline, acquisition settlement, public-close outcome or observed native exit status, unexpected disconnect, observed survivors, final video state, sanitized failure references and declared SDK limitation where applicable. |
+| Closure result | `sdk-closed` only for a matching retained Playwright SDK kind and successful public operation; `graceful` only for a directly observed non-forced shutdown at the native subprocess/container boundary; `forced`, `failed`, `timed-out`, `unresolved` and `unexecuted` remain rejecting when mandatory. No absent observation becomes success. |
+| RunResult | Existing source revision plus dirty content manifest, dependency/app/profile/fixture/target/artifact identities, ordered stage findings, verdict and predecessor run plus resource-specific cleanup, immutable declared capability limitations and an explicit lifecycle contract/schema version. Existing packets retain their historical semantics; versioned readers must not silently reinterpret old `graceful` records as new evidence. |
+
+Use typed records/enums validated at ingress; serialize identities and
+observations rather than live handles. The lifecycle contract/schema version is
+explicit; schema version 1 packets retain their historical semantics. Versioned
+readers must not silently reinterpret their old `graceful` records as new evidence.
+
+The reducer validates the resource kind and evidence before accepting closure.
+Any primary failure remains failed regardless of cleanup success. Any mandatory
+cleanup/video failure defeats otherwise passing content checks. A declared SDK
+limitation provides no fallback for an unknown resource, unresolved acquisition,
+close exception, close timeout, unexpected disconnect or observed survivor.
 
 Run directories are append-only identities under ignored
 `artifacts/browser-verification/<run-id>/`: `manifest.json`, `findings.json`,
@@ -485,10 +559,21 @@ failure and return for a scoped design/requirements decision, not a fake pass.
 - **Independent artifacts:** corrupt marker/type/sentinel/chart relation/formula
   and presentation in actual ZIP fixtures; prove inspector rejects each material
   mismatch. Reject missing chart and external relationships (4.5, 4.7).
-- **Lifecycle integration:** real owned subprocess startup failure/cancellation,
-  graceful versus forced cleanup, unrelated-service preservation, video truncation
-  and failed finalization; missing tools cannot skip into success (5.3, 6.6, 7.1,
-  7.2, 7.3).
+- **Lifecycle integration:** prove the resource-specific contract above with
+  wrong-kind `sdk-closed`, unknown/unowned resources, missing/duplicate identities,
+  failure precedence, requested/observed force, public close failure/timeout,
+  repeated cancellation, partial/late acquisition and unsettled-task rejection.
+  Retain exact acquisition/close identity and bounded state; close main/reopen
+  contexts, decoding contexts, browser and driver in order. Verify real headless
+  Playwright closure/finalized video and real retained `Popen` Windows process-group
+  and Linux-session startup/failure/cancellation/exit behavior, plus exact owned
+  container/dual-label checks and unrelated-resource preservation. `sdk-closed`
+  proves only matching public SDK completion; native closure requires observed
+  non-forced exit. Keep the immutable SDK observation limitation scoped to its
+  identified boundary/version. Unexpected disconnect, observed survivors, unfinished
+  video and failed finalization block acceptance. Missing actual platform evidence
+  stays open; mocked command-shape tests and missing tools cannot substitute for
+  success (5.3, 6.6, 7.1, 7.2, 7.3, 7.4, 7.5).
 - **Real browser:** complete headed and unattended reference journey; checkpoint
   screenshots, finalized success/failure video, saved byte inspection and exact
   fresh-page reopen. Known-before and changed-after values must differ (3.1,
@@ -525,8 +610,12 @@ the verdict. The highest-risk case is an apparently accepted edit or Save with n
 matching visible/file effect; the disconnected-action and missing-download cases
 must fail independently of receipts and screenshots.
 
-Design approval will approve this explicitly controlled fallback profile and the
-new 1,500-LLOC tooling capability, not native-picker support or implementation
-completion. Tasks approval remains separate. Existing fast/kernel checks are
-available; browser code, baselines, fixture, CI job, executable recipe and guide
-are planned and unimplemented at Design generation.
+Design approval approved the explicitly controlled fallback profile and tooling
+ownership. The original 1,500 capability budget, task-2.3 2,800 calibration and
+Design-generation unimplemented status are historical; the owner-approved current
+maximum is browser-only 3,400, implemented and independently verified in task 4.0.
+Every other capability retains 1,500. Tasks
+approval and implementation acceptance remain separate. Task 4.1 is accepted
+under its original contract; 4.0 is accepted and amended 4.2 remains open. Browser profiles,
+CI job, executable recipe, guide and full-feature acceptance remain pending their
+own tasks. Headless-only execution and the stop before 5.1 remain binding.

@@ -189,6 +189,33 @@ The existing probe on 8871 is preserved.
 
 ## 4. Complete evidence and lifecycle accountability after feasibility
 
+- [x] 4.0 Implement the approved browser-only 3,400-LLOC calibration gate
+  - Own only the Development-gates budget integration in
+    `scripts/quality_policy.py`, `scripts/check_quality.py`, `quality.toml` and
+    focused `tests/engineering` regressions. Amend the existing exact 2,800 browser
+    override to exact 3,400 with explicit owner decision/rationale/reference;
+    retain the parser's approval and narrow-scope validation.
+  - Reject unapproved, unknown, duplicate, wildcard or malformed overrides,
+    unsupported rules and missing approval metadata. Do not accept limits from
+    environment, command-line or browser run configuration. Preserve whole-scope
+    ownership accounting and separate test reporting.
+  - Prove browser 3,399 and 3,400 pass and 3,401 fails; another capability passes
+    1,500 and fails 1,501. Retain 50/300/10 boundary enforcement and existing
+    malformed/approval checks. Use the required bounded RED/GREEN/removal
+    sensitivity procedure for the changed gate behavior.
+  - Run focused engineering tests and canonical fast checks, obtain independent
+    task review, then use the parent-run installed hook and selective task commit
+    workflow. Remain within the Development-gates capability's unchanged 1,500 cap.
+  - Done only when the approved exact browser override is implemented and
+    independently verified. Until then the existing implemented **2,800** limit
+    governs browser source; approval text alone does not change enforcement.
+  - Requires explicit owner approval of both decisions in this amendment.
+  - Design references: Proposed Ownership and Budgets, File Structure Plan,
+    Allowed Dependencies.
+  - _Boundary: Development-gates budget enforcement integration_
+  - _Depends: 3.4_
+  - _Requirements: 2.6, 6.6, 8.1_
+
 - [x] 4.1 (P) Finalize inspectable evidence and scoped verdict reduction
   - Bind requirement/source/fixture/app/browser/page/artifact identities to stage
     findings; record dirty content hashes when a clean revision is unavailable.
@@ -203,24 +230,46 @@ The existing probe on 8871 is preserved.
   - _Depends: 3.4_
   - _Requirements: 5.1, 5.3, 5.4, 5.5, 5.6, 7.4, 7.5_
 
-- [ ] 4.2 (P) Complete bounded ownership cleanup and cancellation behavior
-  - Exercise partial acquisition, supported cancellation and reverse dependency
-    cleanup using directly owned handles/context/container IDs.
-  - Preserve primary and cleanup failures separately; detect forced termination,
-    unfinished contexts/recordings and surviving owned resources.
-  - Verify Windows process-group and Linux session behavior; preserve external
-    deployment, unrelated files/services, shared archive cache and failed evidence.
-  - Done when success/failure/cancellation cleanup is observable and a forced or
-    incomplete shutdown fails acceptance despite successful content assertions.
-  - Validation: real lifecycle fault tests, unrelated-resource preservation,
-    platform ownership evidence and canonical fast checks.
+- [ ] 4.2 Complete bounded ownership cleanup and cancellation behavior
+  - Register and retain exact public SDK objects/acquisition tasks, direct
+    deployment subprocess handles and exact container identities through partial
+    acquisition, late completion, success, failure and supported cancellation.
+  - Settle late acquisitions and use cancellation-protected bounded cleanup in
+    context → decode-context → browser → driver order. Preserve primary and
+    cleanup failures separately; close remaining owned resources after a failure
+    where the deadline permits. Never classify unresolved tasks as closed.
+  - Implement and prove the amended resource-specific closure records/reducer:
+    public SDK completion is `sdk-closed` only for exact Playwright SDK kinds;
+    native directly owned shutdown needs observed exit. Retain the immutable
+    SDK-internal-force limitation without weakening per-run failure checks.
+  - Replace Deployment's production subprocess boundary with retained `Popen`
+    ownership, Windows process groups/Linux sessions and bounded shutdown/exit
+    observations. Preserve exact container ID/dual-label checks, externally owned
+    targets, unrelated files/services, shared cache and retained failed evidence.
+  - Done when real success/failure/cancellation and partial/late acquisition
+    evidence establishes the declared boundary; requested/observed force, failed
+    or timed-out cleanup, unsettled acquisitions, unexpected disconnect, observed
+    survivors and unfinished video all prevent acceptance despite passing content.
+  - Validation: contract tests for wrong-kind `sdk-closed`, unknown/unowned
+    resources, missing/duplicate identities, failure precedence, forced outcomes,
+    close failure/timeout, repeated cancellation and late acquisition; real
+    headless Playwright closure/finalized-video checks; real Windows process-group
+    and Linux-session lifecycle faults and unrelated-resource preservation;
+    relevant canonical fast checks and independent task review. Missing actual
+    platform evidence stays open and cannot be replaced by mocked command tests.
+  - Public SDK closure remains at BrowserDriver/Evidence and typed records/reduction
+    at their existing owners. Requires accepted 4.0 and accepted 4.1
+    evidence/reducer integration before execution.
   - _Boundary: Journey and Deployment cleanup integration_
-  - _Depends: 3.4_
-  - _Requirements: 7.1, 7.2, 7.3_
+  - _Depends: 3.4, 4.0, 4.1_
+  - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
 ## 5. Integrate the complete mandatory regression journeys
 
 - [ ] 5.1 Integrate full headed and unattended acceptance on the same assertions
+  - Explicit stop: obtain the separate owner profile/verification decision before
+    starting this task; the headless continuation and lifecycle amendment do not
+    activate it. Missing headed/Linux coverage remains open.
   - Connect finalized evidence/cleanup to the existing real reference journey;
     keep reviewed profile identities and semantic checks identical across modes.
   - Run the actual owned WSL local headed path and owned Linux unattended path;
@@ -359,3 +408,23 @@ Deployments here are disposable verification infrastructure, not product release
 - Hosted revalidation confirmed for 3.4: [run 38735032116](https://github.com/norandom/CraftReports/actions/runs/38735032116) at `add0f10` succeeded. Dedicated browser CI remains pending.
 - 4.1 accepted after reference-completeness remediation: typed readiness/receipts/diagnostics and provenance bind stage findings; final manifest atomically publishes after cleanup with hashed findings and every declared observation reference. Independent review matched 2,020 evidence files and both 75-identity source/input/cache freezes, rechecked 22 actual XLSX findings and all chart/cell phases, and decoded three finalized videos headlessly. Missing actual Open, Reopen or cell screenshots and truncated recordings reject acceptance. Fresh independent canonical fast passed 847 tests/88 subtests. Evidence `artifacts/browser-verification/task-4.1/remediation-1/review-index.json`; source 2,798/2,800 LLOC. Prior incomplete-reference reproduction and intermediate attempts remain retained. Scoped Windows headless synthetic acceptance only; native lifecycle and full-feature/profile acceptance remain open.
 - Owner approved both changes in `lifecycle-evidence-budget-amendment.md` on 2026-10-15: explicit SDK/native closure evidence and browser-only 3,400 cap through new gate task 4.0. Apply the amended specification after this 4.1 acceptance; enforcement remains 2,800 until the gate is implemented and independently accepted. Stop before 5.1 remains. Final 4.1 baseline 2,798 is 54 above the proposal planning snapshot 2,744; preserve the approved 3,400 maximum and report the reduced headroom honestly.
+
+- Lifecycle amendment applied on 2026-10-15 after accepted task 4.1 at `0c4dd15`:
+  independent proposal review `/root/review_lifecycle_amendment` PASS and explicit
+  owner approval cover both the resource-specific closure contract and browser-only
+  3,400 cap. Added ordered Development-gates prerequisite 4.0; replaced 4.2 with
+  the approved wording and dependencies on 3.4, accepted 4.0 and accepted 4.1.
+  There are now 20 executable tasks: 13 accepted and 7 pending. Task 4.1 retains
+  its existing acceptance; 4.2 changes to finalization/decoder behavior must
+  revalidate affected 4.1 contracts and real video against final matching source.
+  The 3,400 gate is not implemented; 2,800 remains enforced until 4.0 acceptance.
+  Accepted browser source is 2,798/2,800 (2 remaining). The unchanged planning
+  allocations 280 + 75 + 100 + 150 forecast 3,403, 3 above the approved 3,400;
+  estimates are not separate caps or proof the work cannot fit. No hidden savings
+  or cap increase is assumed. Current authority is `lifecycle-evidence-budget-amendment.md`;
+  earlier budget/continuation statements above retain their historical scope.
+  Only 4.0 and 4.2 remain authorized here, headlessly; stop before 5.1. Guide/example
+  delivery, profile coverage, browser CI and full-feature acceptance remain open.
+
+- Hosted revalidation confirmed for 4.1: [run 38750478521](https://github.com/norandom/CraftReports/actions/runs/38750478521) at `0c4dd15` passed. Dedicated browser CI remains pending.
+- 4.0 accepted: independently verified exact browser-only 3,400 override and current amendment approval binding. Browser 3,399/3,400 pass and 3,401 fails; other owners retain 1,500 and local 50/300/10 boundaries. Fresh independent canonical fast passed 848 tests/93 subtests. Evidence `artifacts/browser-verification/task-4.0`; measured browser 2,798/3,400 and Development-gates 1,042/1,500. Descriptive gate status updated after review; enforcement logic unchanged. Amended 4.2 is next; stop before 5.1 remains.

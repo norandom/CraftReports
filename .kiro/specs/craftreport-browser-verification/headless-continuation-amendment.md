@@ -70,3 +70,16 @@ This review is not owner approval.
 
 Owner decision: approved explicitly on 2026-10-15. Approval applies only to
 the bounded continuation above.
+
+## Later bounded supersession on 2026-10-15
+
+After task 4.1 acceptance at `0c4dd15`, the owner explicitly approved both changes
+in [lifecycle-evidence-budget-amendment.md](lifecycle-evidence-budget-amendment.md),
+following independent proposal review PASS. That amendment supersedes only this
+record's unchanged-lifecycle-contract and 2,800-maximum statements: it adds the
+ordered gate task 4.0 and resource-specific 4.2 contract, with approved browser
+maximum 3,400, now implemented and independently verified in 4.0. All original measurements, limits, evidence and review
+statements above remain historical provenance. Accepted 4.1 source is now 2,798,
+leaving 602 at the current cap (2 at the earlier 2,800 cap); the unchanged allocations forecast 3,403 against
+approved 3,400. The estimates do not authorize a cap increase. Headless-only
+execution, missing mandatory profiles and stop before 5.1 remain unchanged.

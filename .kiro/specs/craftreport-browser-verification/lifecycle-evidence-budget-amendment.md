@@ -1,10 +1,10 @@
-# Proposed lifecycle evidence contract and browser budget calibration
+# Approved lifecycle evidence contract and browser budget calibration
 
-Status: **owner-approved on 2026-10-15 for both changes**. Application and
-gate implementation remain pending. Complete task 4.1 review under its existing
-contract before applying the amended specification. No new runtime evidence or
-implemented 3,400 gate is claimed; the enforced cap remains 2,800 until task 4.0
-is independently accepted.
+Status: **owner-approved on 2026-10-15 for both changes; specification applied**
+after task 4.1 acceptance at `0c4dd15` under its existing contract. Task 4.0
+implemented and independently verified the exact 3,400 gate on 2026-10-15.
+Amended task 4.2 remains open. The proposal text below is retained as the exact
+approval record; no native lifecycle or full-feature acceptance follows.
 
 ## Two decisions requested
 
@@ -174,6 +174,15 @@ No hypothetical refactor savings are deducted.
 | **Proposed browser aggregate cap** | **3,400** |
 | **Headroom above planning total** | **51** |
 
+**Updated accepted-source measurement (2026-10-15):** task 4.1 was accepted and
+committed at `0c4dd15` with **2,798/2,800 LLOC**, leaving **2** under the then-enforced
+cap. This is **54 above** the 2,744 proposal snapshot. The table above
+remains approval history. Keeping the same planning allocations, the updated
+forecast is **2,798 + 280 + 75 + 100 + 150 = 3,403**, **3 above** the unchanged
+approved **3,400** cap. These allocations remain estimates, not separate caps or
+proof the work cannot fit. No hypothetical refactor savings or cap raise is
+assumed. Task 4.0 is now accepted; 3,400 is enforced, leaving 602 LLOC.
+
 The CLI/profile allocations describe future demand only; they authorize no
 execution beyond 4.2. These are aggregate planning estimates, not separate caps.
 Every browser-owned source/helper/example counts once; tests remain separately
@@ -294,5 +303,18 @@ guide/example or full-feature acceptance is claimed here.
   on 2026-10-15.
 - Owner decision on browser-only 3,400 cap and prerequisite task 4.0: approved
   explicitly on 2026-10-15.
-- Gate implementation/acceptance: not performed by this proposal.
+- Gate implementation/acceptance: task 4.0 independently accepted on 2026-10-15;
+  exact browser 3,400 and unchanged other/local limits verified.
 - Task 4.2 acceptance and any later profile/feature decision: open.
+
+## Specification application record
+
+Applied on 2026-10-15 after task 4.1 independent acceptance and commit `0c4dd15`:
+requirements 7.1/7.3/7.4/7.5, Design lifecycle/data/testing/budget references and
+executable tasks 4.0/4.2 now carry the approved contract. Requirement 7.2 and all
+other acceptance criteria remain unchanged. After 4.0 acceptance there are 20 executable tasks, 14
+accepted and 6 pending. Current normalized-LF document hashes are recorded in
+`spec.json` under `lifecycle_evidence_budget_amendment`; original review hashes
+and historical budget decisions remain intact. Engineering steering records
+implemented and independently verified 3,400 enforcement after task 4.0.
+Specification application itself supplies no runtime evidence; task 4.2 remains open.
