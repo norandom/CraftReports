@@ -76,3 +76,5 @@ feature acceptance. The computer, application and WSL must remain running.
   `artifacts/browser-verification/task-3.3/acceptance/a70eaed1-332f-4fd2-9835-ac3d7c400386`;
   withdrawn patch under `artifacts/simplification-browser-fixtures-withdrawn-20261015`.
   The four-LLOC reduction does not justify further diversion from product delivery.
+- Initialization/discovery committed and pushed as `cf2f19a`; installed canonical
+  fast-check hook passed. Phase artifacts remain drafts until their reviews pass.

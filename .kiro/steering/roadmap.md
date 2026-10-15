@@ -81,7 +81,7 @@ Design/tasks under the explicit overnight authority.
 
 ## Specs (dependency order)
 
-- [x] [craftreport-operation-kernel](../specs/craftreport-operation-kernel/brief.md) -- all 26 executable tasks accepted with final synthetic-scope validation. Dependencies: approved umbrella baseline.
+- [x] [craftreport-operation-kernel](../specs/craftreport-operation-kernel/requirements.md) -- all 26 executable tasks accepted with final synthetic-scope validation. Dependencies: approved umbrella baseline.
 - [ ] [craftreport-browser-verification](../specs/craftreport-browser-verification/brief.md) -- approved phase plans, implementation/profile acceptance remains open; proves released-browser interaction/file boundaries. Dependencies: craftreport-operation-kernel.
 - [ ] [craftreport-snapshot-runtime](../specs/craftreport-snapshot-runtime/brief.md) -- typed publication, immutable ordered snapshots and retained lifecycle/restart behavior. Dependencies: craftreport-operation-kernel.
 - [ ] [craftreport-report-model-packs](../specs/craftreport-report-model-packs/brief.md) -- reusable prepared reports, semantic packs and scoped draft/release findings. Dependencies: craftreport-operation-kernel.
