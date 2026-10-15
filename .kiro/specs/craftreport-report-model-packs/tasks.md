@@ -1,6 +1,6 @@
 # Implementation Plan
 
-Each executable task is a bounded 1–3 hour unit and requires fresh relevant evidence plus independent task review before root accepts/commits it. Checked tasks record accepted implementation. Overnight fast-track does not waive those gates. Root coordinates shared gate files and commits; no worker stages another owner's files.
+Each executable task is a bounded 1â€“3 hour unit and requires fresh relevant evidence plus independent task review before root accepts/commits it. Checked tasks record accepted implementation. Overnight fast-track does not waive those gates. Root coordinates shared gate files and commits; no worker stages another owner's files.
 
 ## Foundation
 
@@ -34,7 +34,8 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
   - _Depends: 2.1_
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6_
 
-- [ ] 3. Resolve semantic presentation and pack metadata
+- [x] 3. Resolve semantic presentation and pack metadata
+  - Apply the independently reviewed theme-support-amendment.md: closed property support/failure values, common mode/release/profile pins and injected compatibility; pure themes must not parse versions or claim observed fit.
   - Resolve the existing theme roles, supported style/format fields, shared version pins and model-owned PackPin attribution/distribution fields established in 2.1; do not redefine their contracts.
   - Implement pure role resolution with allowlisted overrides and explicit unsupported/untested mapping status. Keep imported values/methods independent from palette/number/date presentation.
   - Specify wrapping, typed null plus display marker, empty headers/note and chart gaps; preserve units, zero and negative-value meaning.
@@ -73,6 +74,7 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
   - _Requirements: 1.3, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 6.2_
 
 - [ ] 7. Encode the preparation contracts with exact public wire values
+  - Own theme-support-amendment.md's strict descriptor schemas in adapters/report_models.py and report_codecs.py, including closed properties, exact common scope pins and malformed-version rejection behavior through the boundary compatibility callable.
   - Complete declaration-boundary-clarification.md's raw-input boundary: explicitly test rejection of unknown and executable JSON fields and unsupported content before public operation activation. Task 2.2's typed declaration validation does not replace these acceptance cases.
   - Reuse existing strict PydanticCodec and upstream scalar encoder/decoder for exact int64/Decimal/date/datetime values and typed fields; reject unknown fields and coercions.
   - Implement the reviewed definition, pack summary, requirements and PreparedReport/QualityEvaluation request/result codecs with published 64 KiB input/depth-32 and 8 MiB preparation-result limits; do not increase unrelated operation limits.
@@ -80,9 +82,10 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
   - Done when result roundtrips preserve wide int64, Decimal precision, date/time, literal text and null distinctions, tagged resolved parameters/category schemas remain typed, input caps reject before acceptance and the independently counted maximal output fits the Design's 6S+512 KiB bound below 8 MiB. Defensive result-cap checks fail any implementation defect without weakening the approved pre-acceptance limit contract.
   - _Boundary: Preparation boundary codecs_
   - _Depends: 4, 5, 6_
-  - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 6.3, 6.4_
+  - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 3.1, 3.2, 3.5, 6.3, 6.4_
 
 - [ ] 8. Register guarded validation, discovery and preparation operations
+  - Follow theme-support-amendment.md: composition/reporting.py injects the packaging-based compatibility callable through preparation into theme resolution. InvalidVersion becomes False/incompatible_version, never an exception through pure themes. Operation tests must reject incompatible and untested supplied support without granting mapping or release assurance.
   - Inject the accepted upstream data.ports SnapshotReader and existing journal/result services plus reporting PackReader/PreparationFactWriter into feature-owned reporting.operations handlers and the composition provider; keep kernel application and HTTP/MCP transport files unchanged. Implement the typed fact conversion and immutable pack ResourceReader/delegating ExecutionGuard in adapters/report_resources.py; storage owns the restricted retention method from upstream 3.3 and imports no reporting types.
   - Require accepted upstream 4.1 concrete SnapshotStore/publication/read behavior and its finalized retained-snapshot size invariant before exposing the preparation capability; fail closed when a reader cannot establish S <=1 MiB across restart. The protocol alone or a later post-activation check cannot establish this admission-proof prerequisite.
   - Register the three versioned contracts behind existing authentication/resource guards. Preparation creates a retained result with kernel retry identity and separate preparation/quality stages; target mutation/export/reopen stay absent.
@@ -92,7 +95,7 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
   - Done when operation discovery, authorization, structured stage/recovery failure and retained result/evidence readback work through the real kernel, with no source disclosure or alternate journal; correct full-set evidence completes, omitted/altered pack pins and unavailable preparation evidence prevent completion.
   - _Boundary: PreparationOperations integration_
   - _Depends: 6, 7_
-  - _Requirements: 1.1, 1.4, 1.5, 4.3, 4.5, 4.7, 5.4, 6.1, 6.2, 6.3, 6.4_
+  - _Requirements: 1.1, 1.4, 1.5, 3.1, 3.2, 3.5, 4.3, 4.5, 4.7, 5.4, 6.1, 6.2, 6.3, 6.4_
 
 - [ ] 9. Add public table/chart content and the ordinary caller recipe
   - Add examples/reports/supplied_portfolio.json, examples/templates/public_report/manifest.json and examples/themes/house.json under declared public-packs ownership and scripts/examples/prepare_reusable_report.py under the existing development-gates executable owner.
@@ -134,7 +137,7 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
 
 ## Cross-spec prerequisites
 
-Task 2.1 requires accepted craftreport-snapshot-runtime task 2.1 shared pins; task 2.2 additionally requires its 2.2 data values/input requirements/completeness. Task 7 requires its task 2.3 exact scalar wire codec. Task 8 requires its 2.3 data.ports SnapshotReader seam, 3.1–3.4 durable journal/provider implementation (including 3.3's restricted preparation-fact retention/readback method) and 4.1 concrete SnapshotStore/publication/read/latest operations with the finalized retained-size invariant; capability exposure fails closed without that invariant. Task 9 additionally requires accepted upstream 4.2 production host with initial durable publish/restart proof and uses synthetic data only. These cross-spec IDs must match the sibling's independently reviewed final plan; a changed upstream task graph triggers revalidation. Root serializes shared activation/provider wiring. These requirements do not gate independent report-value design on browser feasibility.
+Task 2.1 requires accepted craftreport-snapshot-runtime task 2.1 shared pins; task 2.2 additionally requires its 2.2 data values/input requirements/completeness. Task 7 requires its task 2.3 exact scalar wire codec. Task 8 requires its 2.3 data.ports SnapshotReader seam, 3.1â€“3.4 durable journal/provider implementation (including 3.3's restricted preparation-fact retention/readback method) and 4.1 concrete SnapshotStore/publication/read/latest operations with the finalized retained-size invariant; capability exposure fails closed without that invariant. Task 9 additionally requires accepted upstream 4.2 production host with initial durable publish/restart proof and uses synthetic data only. These cross-spec IDs must match the sibling's independently reviewed final plan; a changed upstream task graph triggers revalidation. Root serializes shared activation/provider wiring. These requirements do not gate independent report-value design on browser feasibility.
 
 No `(P)` marker is used: the first preparation slice reuses shared value contracts sequentially; root may delegate disjoint read-only audits without changing task acceptance order. No required acceptance test is optional. Mandatory guide/example tasks follow the explicit project documentation rule, which takes precedence over the generic task rule excluding documentation.
 
@@ -162,3 +165,10 @@ No `(P)` marker is used: the first preparation slice reuses shared value contrac
   `artifacts/report-model-packs/task-2.2/`. Reporting source 339 LLOC. Typed
   parameter resolution, requirement intersection and template matching are accepted;
   projection remains task 4 and raw JSON validation remains mandatory task 7.
+
+- Task 3: independently approved by `/root/review_themes_3`; 123 focused
+  theme tests plus scoped Ruff/format/Pyright passed. Resolver148 LLOC, themes
+  aggregate369/1500. Evidence: `artifacts/report-model-packs/task-3/`.
+  Accepted support-descriptor amendment preserves task7 strict wire validation
+  and task8 real packaging callable/malformed-version operation tests. Pure
+  declaration support does not establish observed app fidelity or release status.

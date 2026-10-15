@@ -181,7 +181,7 @@ Resolved parameter pairs follow declaration order; title resolves only literal t
 
 ### ThemeResolution
 
-**Contracts: Service.** `resolve_theme(theme:Theme, overrides:tuple[StyleOverride,...], support:tuple[CapabilityStatus,...]|None)->ResolvedTheme|ThemeFailure`.
+**Contracts: Service.** `resolve_theme(theme:Theme, overrides:tuple[StyleOverride,...], support:tuple[CapabilityStatus,...]|None, *, is_compatible:CompatibilityCheck|None=None)->ResolvedTheme|ThemeFailure`. The independently reviewed [theme support amendment](theme-support-amendment.md) fixes the closed descriptor/failure values, property vocabulary, common target mode/release/profile pins and task 7/8 wiring. Compatibility uses an injected existing-library boundary callable; malformed versions become incompatible, and pure themes never parse versions. No supplied support declaration establishes observed fit, fidelity or release assurance.
 
 Semantic roles are a closed enum: title, header, row_label, source, input, constant, external_result, output, key_result, note, check_pass, check_warn, check_fail, draft. A theme maps every role to named `TextStyle(font_family,size_pt,bold,italic,color,fill,alignment,wrap)`; it includes `ValueFormat(kind,decimal_places,date_pattern,negative_style)`, `ChartStyle(series_colors,line_width,legend,grid)` and `GridStyle(show_gridlines,header_height,column_width)`. No raw CSS or arbitrary app style options.
 
