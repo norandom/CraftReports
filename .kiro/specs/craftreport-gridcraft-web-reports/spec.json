@@ -1,17 +1,17 @@
 {
   "feature_name": "craftreport-gridcraft-web-reports",
-  "created_at": "2026-10-15T19:42:20.182967+02:00",
-  "updated_at": "2026-10-15T18:24:47.1895806+00:00",
+  "created_at": "2026-10-15T17:42:20.182967+00:00",
+  "updated_at": "2026-10-15T18:34:49.7660095+00:00",
   "language": "en",
-  "phase": "requirements-generated",
+  "phase": "design-generated",
   "approvals": {
     "requirements": {
       "generated": true,
       "approved": true
     },
     "design": {
-      "generated": false,
-      "approved": false
+      "generated": true,
+      "approved": true
     },
     "tasks": {
       "generated": false,
@@ -32,5 +32,13 @@
     "verdict": "PASS",
     "repair_passes": 2,
     "sha256": "614908BF8C81555123D16ED4553AA4C1DE0C3911DB863B2B7A715F3252FBE9B7"
+  },
+  "design_review": {
+    "reference": "design-review.md",
+    "mode": "independent",
+    "reviewer": "/root/review_gridcraft_design",
+    "verdict": "PASS",
+    "repair_passes": 1,
+    "sha256": "3107C097155F8449BE586ACB59501E091CD7BEE084B2111A9B2E6645A3D291BE"
   }
 }

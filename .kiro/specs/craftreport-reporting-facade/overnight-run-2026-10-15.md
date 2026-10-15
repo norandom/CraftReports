@@ -78,3 +78,50 @@ feature acceptance. The computer, application and WSL must remain running.
   The four-LLOC reduction does not justify further diversion from product delivery.
 - Initialization/discovery committed and pushed as `cf2f19a`; installed canonical
   fast-check hook passed. Phase artifacts remain drafts until their reviews pass.
+
+### Requirements accepted; Design review in progress
+
+- Snapshot/runtime: 36 criteria independently passed after one bounded correction;
+  committed/pushed `d8dd986`, installed canonical hook passed.
+- Report-model/packs: 40 criteria independently passed after one bounded correction;
+  committed/pushed `da5e683`, installed canonical hook passed.
+- Paired Design review identified shared metric/type constraints, refreshed-run
+  content pinning and capability ownership gaps. Remediation is in progress;
+  no Design/tasks or implementation completion is claimed.
+- Keep new feature handlers/ports/recovery in their capability boundaries. Existing
+  application core measures 1,449/1,500 LLOC; do not grow it or create artificial
+  budget partitions merely to absorb new feature code.
+- Preserve pre-admission input/output limit rejection from umbrella 12.2. A
+  dynamic output cap after command acceptance cannot silently weaken that contract.
+- During commits the installed hook temporarily stashes tracked WIP. Coordinate
+  reviewer read freezes as well as writer freezes; recheck final artifact hashes
+  after restoration. Both accepted requirements retain their reviewed hashes.
+
+### 18:17 UTC checkpoint: upstream plans complete
+
+- Snapshot/runtime Design and 19-task plan independently accepted; task plan
+  committed as `631e684`. Report-model Design and 13-task plan independently
+  accepted as `df65835` and `9c268f6`. Installed commit hooks passed and all three
+  commits were pushed to main.
+- A gate test's fixed generated-spec count was replaced with a baseline comparison,
+  independently reviewed and focused-tested, preserving the pending-review invariant.
+- Snapshot task 1.1 implementation now owns its exact activation/import gate files.
+  A separate worker drafts GridCraft app requirements against both reviewed upstream
+  contracts. Neither approved plans nor ownership activation establish product runtime.
+- Preserve browser WIP and operator containers. Headed acceptance remains unavailable;
+  automation remains headless. No budget increases or added domain breadth authorized.
+
+### 18:28 UTC checkpoint: first implementation task accepted
+
+- Snapshot task 1.1 independently approved and committed/pushed as `aeca3bf`.
+  Focused review: 21 tests/60 subtests, static checks, real ownership/import/size
+  gates and 14 extra AST import cases passed. Installed whole-scope hook passed.
+  Production scanner grew by 7 LLOC; no app/core scaffolding or cap increases.
+- GridCraft requirements: 40 criteria, independently accepted after clarifying
+  immediate pause fencing and failed in-flight outcomes; committed/pushed `d2d4589`.
+- One commit attempt failed when a metadata write overlapped hook stashing.
+  Restored/reconciled metadata, froze tracked writers, reran required hooks to
+  success. No bypass; coordinate all tracked writers before future hooks.
+- Snapshot task 1.2 is implementing actual SQLAlchemy/SQLite database lifetime
+  and process exclusion. GridCraft Design is drafting against accepted upstream
+  contracts, with an early real same-document/app-save feasibility gate.
