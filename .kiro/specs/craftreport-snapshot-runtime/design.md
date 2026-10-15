@@ -79,7 +79,7 @@ New files are proposals until gate task 1 passes. Files group by responsibility,
 | SnapshotCodecs | `src/craftreport/adapters/snapshot_models.py`, `snapshot_wire.py` | New; adapters; closed transport schemas and conversion respectively; reuse existing PydanticCodec |
 | DurableSchema | `src/craftreport/adapters/storage/__init__.py`, `database.py`, `schema.py`, `serialization.py` | New; proposed most-specific snapshot-storage owner |
 | DurableJournal | `src/craftreport/adapters/storage/journal.py` | New; snapshot-storage |
-| DurableProviders | `src/craftreport/adapters/storage/guard.py`, `providers.py`, `results.py` | New; snapshot-storage |
+| DurableProviders | `src/craftreport/adapters/storage/guard.py`, `providers.py`, `results.py`, `evidence.py` | New; snapshot-storage |
 | SnapshotStore | `src/craftreport/adapters/storage/snapshots.py` | New; snapshot-storage |
 | BindingStore | `src/craftreport/adapters/storage/bindings.py` | New; snapshot-storage |
 | PublicationOperations | `src/craftreport/runtime/publication.py` | New; runtime |
@@ -246,3 +246,18 @@ sorted one-process leases, retained command authority, exact snapshot codec and
 canonical fingerprint injection, schema v3 feed/snapshot/evidence migration, and
 reuse of the existing synchronous journal integrity reader in one transaction.
 Task 3.3 reuses this evidence table; no second evidence authority is introduced.
+
+### Reviewed result staging for task 3.3
+
+The result/schema/public-read subset of `results-retention-amendment.md` is
+independently approved at SHA256 `38032305cf5a0d754d4ad2ff194dcbc83c6843c58fdd1c7f6c2f8558038f3469`.
+Use its exact v4 results table, nullable pre-journal query linkage, atomic
+AVAILABLE row verification and receipt-gated public read path. Historical
+receipt observations are immutable even when later content becomes unavailable.
+The proposed `evidence.py` is a concrete independent retained-fact verifier,
+not a framework or new authority. Exact preparation fact fields are additionally approved by independent
+report-model and storage seam review: adopt the six-field stage-specific
+envelope in report-model preparation-scope-amendment.md at SHA256
+12A88B1ACFADCD718791B44E6F0EDE097641F6AE9B553F97F77A9A7BBA536300.
+Stored fact verification is distinct from decision eligibility; storage never
+recomputes policy. The original complete operation pins remain mandatory.

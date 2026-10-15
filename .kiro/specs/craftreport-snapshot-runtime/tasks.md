@@ -58,7 +58,8 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   - _Boundary: DurableProviders guard/resource effects_
   - _Depends: 3.1_
   - _Requirements: 2.1, 2.4, 2.5, 2.6, 3.3, 5.2, 5.7_
-- [ ] 3.3 Implement immutable result and evidence retention with access-safe readback
+- [x] 3.3 Implement immutable result and evidence retention with access-safe readback
+  - Apply independently reviewed result/schema/public-read subset of results-retention-amendment.md. Preparation facts use the separately approved exact six-field report-model preparation-scope envelope; verify observed facts independently of eligibility and preserve exact original complete pins. No generic writer is approved.
   - Persist opaque result/evidence references and exact canonical bytes bound to deployment, subject, operation and versions; independently read and validate digests/pins.
   - Expose the Design's narrow trusted retain_preparation_fact method in existing storage results/evidence files for reporting composition: generic kernel values/canonical closed fact bytes only, retained-command ownership, full declared pins including report-owned resources and independent exact readback. Reuse the evidence table/reader; no reporting imports, public trusted-fact submission, new table or second completion authority.
   - Done when content survives reopen, unauthorized callers cannot inspect private content, deliberate missing differs from unavailable/corrupt storage and unsupported evidence is never marked passed.
@@ -208,3 +209,12 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   Evidence: `artifacts/snapshot-runtime/task-3.2/`. Storage697/1500 LLOC;
   real file-backed effects, exact codec/fingerprint injection, schema-v3 rollback
   and reopen verified. Results/evidence inspection remain task3.3; bindings5.1.
+
+- Task 3.3: independently approved by `/root/review_results_3_3`; fresh344
+  snapshot tests, corruption/malformed-fact/populated-v3 migration probes and
+  scoped static/import/breadth/quality gates passed on frozen source.
+  Evidence: `artifacts/snapshot-runtime/task-3.3/`. Storage949/1500, net+252.
+  Actual file-backed owner isolation, atomic query linkage, immutable retained
+  bytes and reopened preparation/publication facts verified. Observed fact
+  verification does not assert release eligibility. Real reporting producer
+  conversion remains report-model8; complete provider/host wiring remains open.

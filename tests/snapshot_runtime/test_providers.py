@@ -14,6 +14,7 @@ from sqlalchemy import update
 from craftreport.adapters.canonical import CanonicalFingerprint, canonical_bytes
 from craftreport.adapters.snapshot_wire import finalize_snapshot, publication_codec, snapshot_codec
 from craftreport.adapters.storage.database import Database
+from craftreport.adapters.storage.evidence import DurableEvidence
 from craftreport.adapters.storage.journal import DurableJournal
 from craftreport.adapters.storage.providers import DurableResources
 from craftreport.application import ports
@@ -42,6 +43,37 @@ def database(tmp_path: Path) -> Iterator[Database]:
 def provider(database: Database) -> DurableResources:
     fingerprint = CanonicalFingerprint()
     return DurableResources(database, snapshot_codec(), fingerprint, fingerprint.policy)
+
+
+def test_original_snapshot_evidence_survives_feed_advance_and_detects_corruption(
+    database: Database,
+) -> None:
+    from craftreport.adapters.storage.schema import snapshots
+    from craftreport.contracts import Availability, StageState
+
+    async def exercise() -> None:
+        resources = provider(database)
+        first = await publish(resources, database)
+        second = await publish(resources, database, 2, "1")
+        assert isinstance(first, ports.ResourceEffect) and isinstance(second, ports.ResourceEffect)
+        reader = DurableEvidence(database)
+        observed = await reader.inspect((*first.evidence, *second.evidence))
+        assert all(
+            item.availability is Availability.AVAILABLE and item.verification is StageState.PASSED
+            for item in observed
+        )
+        await database.transaction(
+            lambda c: c.execute(
+                update(snapshots)
+                .where(snapshots.c.producer_version == 1)
+                .values(snapshot_bytes=b"bad")
+            )
+        )
+        observed = await reader.inspect((*first.evidence, *second.evidence))
+        assert observed[0].availability is Availability.UNAVAILABLE
+        assert observed[1].availability is Availability.AVAILABLE
+
+    asyncio.run(exercise())
 
 
 def producer(version: int = 1) -> JsonObject:
@@ -369,7 +401,7 @@ def test_corrupt_content_is_unavailable(database: Database, field: str) -> None:
     asyncio.run(exercise())
 
 
-def test_v2_migration_preserves_journal_bytes_and_v3_opens_without_writes(
+def test_v2_migration_preserves_journal_bytes_and_current_schema_opens_without_writes(
     database: Database,
 ) -> None:
     async def exercise() -> None:
@@ -380,7 +412,7 @@ def test_v2_migration_preserves_journal_bytes_and_v3_opens_without_writes(
         with sqlite3.connect(database.path) as independent:
             before = independent.execute("SELECT * FROM commands").fetchall()
             history = independent.execute("SELECT * FROM observations").fetchall()
-            for table in ("evidence", "snapshots", "feeds"):
+            for table in ("results", "evidence", "snapshots", "feeds"):
                 independent.execute("DROP TABLE " + table)
             independent.execute("UPDATE deployment SET schema_version=2")
         migrated = Database(database.path, "deployment-a")

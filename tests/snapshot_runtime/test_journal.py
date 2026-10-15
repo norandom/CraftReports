@@ -16,6 +16,7 @@ from sqlalchemy.engine import Connection
 from craftreport.adapters.canonical import canonical_bytes
 from craftreport.adapters.storage.database import Database, StorageUnavailable
 from craftreport.adapters.storage.journal import DurableJournal
+from craftreport.adapters.storage.results import DurableResults
 from craftreport.adapters.storage.serialization import (
     decode_intent,
     decode_receipt,
@@ -266,6 +267,9 @@ def test_query_ownership_exact_fields_and_collisions(tmp_path: Path, intent: Com
         reference = EvidenceRef(
             "query-proof", "read", "query-one", intent.retry_key.operation, intent.expected_versions
         )
+        result_ref = await DurableResults(database).write(
+            Principal("deployment-a", "bob", frozenset({"read"})), "query-one", {"answer": 42}
+        )
         observation = ports.QueryObservation(
             "query-one",
             Principal("deployment-a", "bob", frozenset({"read"})),
@@ -278,7 +282,7 @@ def test_query_ownership_exact_fields_and_collisions(tmp_path: Path, intent: Com
                 ReceiptState.COMPLETE,
                 stages=(StageResult("read", StageState.PASSED, "verified", (reference,)),),
                 evidence=(reference,),
-                result_ref="query-result",
+                result_ref=result_ref,
                 result_availability=Availability.AVAILABLE,
                 handoff_ref="query-handoff",
             ),
@@ -295,7 +299,7 @@ def test_query_ownership_exact_fields_and_collisions(tmp_path: Path, intent: Com
             observation.resources,
             observation.expected_versions,
             "query-input",
-            "query-result",
+            result_ref,
             observation.update.stages,
             (),
             (reference,),
@@ -319,7 +323,16 @@ def test_query_ownership_exact_fields_and_collisions(tmp_path: Path, intent: Com
             await journal.record_query(
                 replace(observation, operation_id=admitted.receipt.operation_id)
             )
-        await journal.record_query(replace(observation, operation_id="query-two"))
+        second_result = await DurableResults(database).write(
+            observation.principal, "query-two", {"answer": 43}
+        )
+        await journal.record_query(
+            replace(
+                observation,
+                operation_id="query-two",
+                update=replace(observation.update, result_ref=second_result),
+            )
+        )
         await database.close()
         with pytest.raises(ports.ServiceUnavailableError):
             await journal.record_query(replace(observation, operation_id="closed-provider"))

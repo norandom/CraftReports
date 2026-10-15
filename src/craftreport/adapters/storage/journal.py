@@ -9,16 +9,54 @@ from sqlalchemy import update as sql_update
 from sqlalchemy.engine import Connection, RowMapping
 
 from craftreport.adapters.storage.database import Database, StorageUnavailable
-from craftreport.adapters.storage.schema import commands, observations
+from craftreport.adapters.storage.schema import commands, observations, results
 from craftreport.adapters.storage.serialization import (
     decode_intent,
+    decode_object,
     decode_receipt,
     encode_intent,
     encode_receipt,
 )
 from craftreport.application import ports
 from craftreport.application.outcomes import validate_recorded_update
-from craftreport.contracts import CommandIntent, Receipt, ReceiptState, RetryKey
+from craftreport.contracts import Availability, CommandIntent, Receipt, ReceiptState, RetryKey
+
+
+def _link_query_result(connection: Connection, observation: ports.QueryObservation) -> None:
+    reference = observation.update.result_ref
+    row = (
+        connection.execute(select(results).where(results.c.identity == reference))
+        .mappings()
+        .one_or_none()
+    )
+    if row is None:
+        if observation.update.result_availability is Availability.AVAILABLE:
+            raise StorageUnavailable("Available query result is missing")
+        return
+    if (
+        row["operation_id"],
+        row["deployment_scope"],
+        row["subject"],
+        row["command_operation_id"],
+    ) != (
+        observation.operation_id,
+        observation.principal.deployment_scope,
+        observation.principal.subject,
+        None,
+    ):
+        raise StorageUnavailable("Staged query result ownership mismatch")
+    if observation.update.result_availability is Availability.AVAILABLE:
+        try:
+            decode_object(row["result_bytes"], row["result_digest"], max_bytes=8_388_608)
+        except (ValueError, TypeError, OverflowError, RecursionError) as error:
+            raise StorageUnavailable("Staged query result is corrupt") from error
+    changed = connection.execute(
+        sql_update(results)
+        .where(results.c.identity == reference, results.c.command_operation_id.is_(None))
+        .values(command_operation_id=observation.operation_id)
+    )
+    if changed.rowcount != 1:
+        raise StorageUnavailable("Query result linkage changed")
 
 
 def _check_transition(current: Receipt, change: ports.ReceiptUpdate, prior: str | None) -> None:
@@ -328,6 +366,7 @@ class DurableJournal:
                 None,
                 change.handoff_ref,
             )
+            _link_query_result(connection, observation)
             return receipt
 
         return await self._transaction(record)

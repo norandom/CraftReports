@@ -1,4 +1,4 @@
-"""Exact deployment/journal/resource schemas and reviewed v1/v2 transitions."""
+"""Exact retained schemas and reviewed explicit version transitions."""
 
 import json
 from dataclasses import dataclass
@@ -127,6 +127,26 @@ evidence = Table(
     Column("fact_digest", String, nullable=False),
 )
 
+results = Table(
+    "results",
+    metadata,
+    Column("identity", String, primary_key=True),
+    Column("operation_id", String, nullable=False, unique=True),
+    Column("command_operation_id", String, ForeignKey("commands.operation_id"), unique=True),
+    Column("deployment_scope", String, nullable=False),
+    Column("subject", String, nullable=False),
+    Column("result_bytes", LargeBinary, nullable=False),
+    Column("result_digest", String, nullable=False),
+)
+results.append_constraint(
+    CheckConstraint(
+        or_(
+            results.c.command_operation_id.is_(None),
+            results.c.command_operation_id == results.c.operation_id,
+        )
+    )
+)
+
 
 def _objects(connection: Connection) -> dict[tuple[str, str], str | None]:
     catalog = table(
@@ -208,8 +228,10 @@ def _validate_table(connection: Connection, expected: Table) -> None:
 
 def _validate_schema(connection: Connection, version: int) -> None:
     expected = (deployment,) if version == 1 else (deployment, commands, observations)
-    if version == 3:
+    if version in (3, 4):
         expected += (feeds, snapshots, evidence)
+    if version == 4:
+        expected += (results,)
     objects = _objects(connection)
     if set(objects) != {(item.name, "table") for item in expected}:
         raise ValueError("Unrecognized retained schema objects")
@@ -231,13 +253,13 @@ class Deployment:
 
 
 def initialize(connection: Connection, identity: str, existed: bool) -> Deployment:
-    """Validate before writes; migrate only exact deployment v1 or journal v2."""
+    """Validate before writes; upgrade only exact supported retained schemas."""
     if not existed and not _objects(connection):
         metadata.create_all(connection)
         connection.execute(
             insert(deployment).values(
                 singleton=1,
-                schema_version=3,
+                schema_version=4,
                 identity=identity,
                 epoch=uuid4().hex,
                 retention_profile="retain-all",
@@ -248,6 +270,10 @@ def initialize(connection: Connection, identity: str, existed: bool) -> Deployme
     if set(objects) not in (
         {("deployment", "table")},
         {("deployment", "table"), ("commands", "table"), ("observations", "table")},
+        {
+            (item.name, "table")
+            for item in (deployment, commands, observations, feeds, snapshots, evidence)
+        },
         {(item.name, "table") for item in metadata.tables.values()},
     ):
         raise ValueError("Unrecognized retained schema objects")
@@ -258,7 +284,7 @@ def initialize(connection: Connection, identity: str, existed: bool) -> Deployme
     row = rows[0]
     if (
         row["singleton"] != 1
-        or row["schema_version"] not in (1, 2, 3)
+        or row["schema_version"] not in (1, 2, 3, 4)
         or row["identity"] != identity
         or not isinstance(row["identity"], str)
         or not row["identity"].strip()
@@ -276,17 +302,25 @@ def initialize(connection: Connection, identity: str, existed: bool) -> Deployme
     except RecursionError as error:
         raise ValueError("Retained settings cannot be safely decoded") from error
     _validate_schema(connection, row["schema_version"])
-    if row["schema_version"] == 1:
+    _upgrade(connection, row["schema_version"])
+    return Deployment(
+        row["identity"], row["epoch"], row["retention_profile"], row["configured_limits"]
+    )
+
+
+def _upgrade(connection: Connection, version: int) -> None:
+    if version == 1:
         commands.create(connection)
         observations.create(connection)
         _validate_schema(connection, 2)
         connection.execute(update(deployment).values(schema_version=2))
-    if row["schema_version"] in (1, 2):
+    if version in (1, 2):
         feeds.create(connection)
         snapshots.create(connection)
         evidence.create(connection)
         _validate_schema(connection, 3)
         connection.execute(update(deployment).values(schema_version=3))
-    return Deployment(
-        row["identity"], row["epoch"], row["retention_profile"], row["configured_limits"]
-    )
+    if version in (1, 2, 3):
+        results.create(connection)
+        _validate_schema(connection, 4)
+        connection.execute(update(deployment).values(schema_version=4))

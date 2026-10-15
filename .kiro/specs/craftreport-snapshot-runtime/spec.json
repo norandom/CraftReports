@@ -69,5 +69,23 @@
     "repair_passes": 1,
     "authorization": "owner-directed-bounded-fast-track",
     "post_review_change": "UTF-8 punctuation restored; no semantic changes"
+  },
+  "results_retention_amendment": {
+    "reference": "results-retention-amendment.md",
+    "reviewer": "/root/review_results_staging",
+    "verdict": "PASS",
+    "reviewed_sha256": "38032305cf5a0d754d4ad2ff194dcbc83c6843c58fdd1c7f6c2f8558038f3469",
+    "scope": "result staging, schema v4, public receipt-gated readback and historical evidence semantics only; exact preparation fields pending",
+    "authorization": "owner-directed-bounded-fast-track"
+  },
+  "preparation_fact_seam": {
+    "reference": "../craftreport-report-model-packs/preparation-scope-amendment.md",
+    "reviewed_sha256": "12A88B1ACFADCD718791B44E6F0EDE097641F6AE9B553F97F77A9A7BBA536300",
+    "reviewers": [
+      "/root/review_preparation_scope",
+      "/root/review_results_staging"
+    ],
+    "verdict": "PASS",
+    "authorization": "owner-directed-bounded-fast-track"
   }
 }
