@@ -1,0 +1,86 @@
+{
+  "status": "APPROVED_METADATA_REBINDING",
+  "scope": "Metadata-only initial-to-approved review binding; unchanged rendering payload and baseline identity review. Actual run outcome is not independently reviewed here.",
+  "manifest_sha256": "90a24c02d76245afd787a7c9ee53eeacce678893599e5fbd48b7e01679f9bc33",
+  "previous_manifest_sha256": "289692e7742d867037bb6d7ece14b787f0538b8282b216f6e45a1222ef97f9d1",
+  "changed_top_level_keys": [
+    "review_sha256"
+  ],
+  "old_review_sha256": "31b14b852c18b4eef619d9d3311483ce264a9bea054e4d048e8a930b635d1d75",
+  "new_review_sha256": "3b306ce353f52644afb014aceeed600d690e06895d25b41a812a958d44bb91c9",
+  "review_json_sha256": "3b306ce353f52644afb014aceeed600d690e06895d25b41a812a958d44bb91c9",
+  "approved_freeze8_identical_bytes": true,
+  "approved_freeze8_status": "APPROVED_BASELINE_FREEZE",
+  "initial_review_sha256": "31b14b852c18b4eef619d9d3311483ce264a9bea054e4d048e8a930b635d1d75",
+  "baseline_hashes": {
+    "chart-before": {
+      "sha256": "c5897dfb11964668efc194e9ffe51cb3e3d6b8c11991d19ecc9a569795f83f65",
+      "matches_manifest": true
+    },
+    "middle-before": {
+      "sha256": "b0b0a09015f8c91cc5c43683fbc77358e142cf5366d4b7c4f6df7298f8a10db3",
+      "matches_manifest": true
+    },
+    "range-before": {
+      "sha256": "4ea03b214636b4fdc8df05d8bd46e5c91e2bd27b92955130873a883726f6f2f9",
+      "matches_manifest": true
+    },
+    "chart-after": {
+      "sha256": "bd0379bae17e2bf615a67a587b15db26c8a5e93f339ca6a853670a0206a1f7b0",
+      "matches_manifest": true
+    },
+    "middle-after": {
+      "sha256": "0479f73daa296b22298770e0f38499dd1860883537eaa5e960dc28710df50042",
+      "matches_manifest": true
+    },
+    "range-after": {
+      "sha256": "4849a5eadf29a63f53521b49ece9a63348ccb77b8c8aff2ff5ad596f10b93c8a",
+      "matches_manifest": true
+    },
+    "bold": {
+      "sha256": "e387fdd4409c4a88b65f623fe712ab54e7a57b498e1170c7eae6b332ae0ea4fc",
+      "matches_manifest": true
+    },
+    "number": {
+      "sha256": "ce6ddc004ae56c48eda9860c71e7cd35ab011c63fb864bee069815deda450436",
+      "matches_manifest": true
+    },
+    "dialog": {
+      "sha256": "8c4d7a14a048fe815eabb2e9dc977a28988434909500e15b5c799b1670c5f545",
+      "matches_manifest": true
+    },
+    "title": {
+      "sha256": "3ddebbe581013267a5e855473f34245c7443ed3551d276f91555b78c03ba61a9",
+      "matches_manifest": true
+    },
+    "legend": {
+      "sha256": "8b39a79fda5c023c95feba29b89adea7eb3fca9005649676e3167f69dd09b6e7",
+      "matches_manifest": true
+    },
+    "series": {
+      "sha256": "75c3b3ffba715a83e8eb60405c96824ad40db05f25974ae19a10b933f46d1306",
+      "matches_manifest": true
+    },
+    "background": {
+      "sha256": "d27dbe2533d2a53943331136eac683cc9b4e2765c0024cdc76b56d6e68746977",
+      "matches_manifest": true
+    },
+    "home": {
+      "sha256": "3f78d9a22dfcb9aede3bb3340349bcec583e84c0ec8a312cbf60ce87871d2588",
+      "matches_manifest": true
+    },
+    "home-inactive": {
+      "sha256": "c15eaa31fa80616e9a4664e45edb6983211dc2bac00418c9594660f072b39c7a",
+      "matches_manifest": true
+    },
+    "expanded-controls": {
+      "sha256": "27285c31a3034b2edd504d02ed7dd8d8921f88fb5c4ec95dc65c1ba7a7f5cab7",
+      "matches_manifest": true
+    }
+  },
+  "assessment": "Only review_sha256 changes. All rendering fingerprint fields, crop geometry, masks, thresholds and16PNG bytes remain unchanged. Approved freeze8 record names original rendering-payload manifest, retained exactly as manifest-freeze8-original.json. This review approves equivalent rendering payload under new metadata binding without circular selfhash. Initial proposal record retained separately and not substituted for freeze8 approval.",
+  "limits": [
+    "No browser launched or acceptance record independently reviewed by this metadata-only check.",
+    "Second real run must load exact newly bound manifest for its provenance claim."
+  ]
+}

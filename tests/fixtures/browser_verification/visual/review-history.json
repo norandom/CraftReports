@@ -1,0 +1,1104 @@
+{
+  "scope": "Independent calibration history, including rejections. Current runtime review.json is exact approved freeze8; freeze-review.json approves metadata-only binding to that final reviewed payload.",
+  "records": [
+    {
+      "record": "profile-freeze-review-2.json",
+      "sha256": "d87deac2a233821ccfcf1bcf7f49dc81dd54fa074ca67bb8051d22ae85abd51f",
+      "review": {
+        "status": "APPROVED_BASELINE_FREEZE",
+        "scope": "Independent baseline semantics, hash binding, fixed crop geometry and tested missing-series/legend/title sensitivity only. Real-run repeatability and task acceptance remain separate pending checks.",
+        "manifest_sha256": "0651aada945fbbeae400731d77b2705fc1498da39b01de6bdc957aea74bcd1d3",
+        "visual_py_sha256": "5877ba3e7d7adfb48f1926180dba1c63ee3efbb5348fd594b86ea53deed7c8ba",
+        "embedded_initial_review_sha256": "31b14b852c18b4eef619d9d3311483ce264a9bea054e4d048e8a930b635d1d75",
+        "baseline_checks": {
+          "chart-before": {
+            "sha256": "c5897dfb11964668efc194e9ffe51cb3e3d6b8c11991d19ecc9a569795f83f65",
+            "hash_matches": true,
+            "dimensions": [
+              384,
+              240
+            ],
+            "box": [
+              284,
+              231,
+              668,
+              471
+            ],
+            "size_matches": true,
+            "self_comparison": true
+          },
+          "middle-before": {
+            "sha256": "b0b0a09015f8c91cc5c43683fbc77358e142cf5366d4b7c4f6df7298f8a10db3",
+            "hash_matches": true,
+            "dimensions": [
+              21,
+              41
+            ],
+            "box": [
+              470,
+              303,
+              491,
+              344
+            ],
+            "size_matches": true,
+            "self_comparison": true
+          },
+          "range-before": {
+            "sha256": "4ea03b214636b4fdc8df05d8bd46e5c91e2bd27b92955130873a883726f6f2f9",
+            "hash_matches": true,
+            "dimensions": [
+              55,
+              51
+            ],
+            "box": [
+              77,
+              229,
+              132,
+              280
+            ],
+            "size_matches": true,
+            "self_comparison": true
+          },
+          "chart-after": {
+            "sha256": "bd0379bae17e2bf615a67a587b15db26c8a5e93f339ca6a853670a0206a1f7b0",
+            "hash_matches": true,
+            "dimensions": [
+              384,
+              240
+            ],
+            "box": [
+              284,
+              231,
+              668,
+              471
+            ],
+            "size_matches": true,
+            "self_comparison": true
+          },
+          "middle-after": {
+            "sha256": "0479f73daa296b22298770e0f38499dd1860883537eaa5e960dc28710df50042",
+            "hash_matches": true,
+            "dimensions": [
+              21,
+              41
+            ],
+            "box": [
+              470,
+              303,
+              491,
+              344
+            ],
+            "size_matches": true,
+            "self_comparison": true
+          },
+          "range-after": {
+            "sha256": "e35906e858aa7da09fdf99246a88f33f2527a9e51a91654d9e1ece318c9168a4",
+            "hash_matches": true,
+            "dimensions": [
+              55,
+              51
+            ],
+            "box": [
+              77,
+              229,
+              132,
+              280
+            ],
+            "size_matches": true,
+            "self_comparison": true
+          },
+          "bold": {
+            "sha256": "e387fdd4409c4a88b65f623fe712ab54e7a57b498e1170c7eae6b332ae0ea4fc",
+            "hash_matches": true,
+            "dimensions": [
+              26,
+              24
+            ],
+            "box": [
+              119,
+              104,
+              145,
+              128
+            ],
+            "size_matches": true,
+            "self_comparison": true
+          },
+          "number": {
+            "sha256": "ce6ddc004ae56c48eda9860c71e7cd35ab011c63fb864bee069815deda450436",
+            "hash_matches": true,
+            "dimensions": [
+              150,
+              23
+            ],
+            "box": [
+              669,
+              79,
+              819,
+              102
+            ],
+            "size_matches": true,
+            "self_comparison": true
+          },
+          "dialog": {
+            "sha256": "09fbd66ab120a0814fad72adc752255d21d3ca99e61b37e7d9cf80f23cd0aa3d",
+            "hash_matches": true,
+            "dimensions": [
+              380,
+              420
+            ],
+            "box": [
+              610,
+              300,
+              990,
+              720
+            ],
+            "size_matches": true,
+            "self_comparison": true
+          },
+          "title": {
+            "sha256": "3ddebbe581013267a5e855473f34245c7443ed3551d276f91555b78c03ba61a9",
+            "hash_matches": true,
+            "dimensions": [
+              115,
+              15
+            ],
+            "box": [
+              420,
+              239,
+              535,
+              254
+            ],
+            "size_matches": true,
+            "self_comparison": true
+          },
+          "legend": {
+            "sha256": "8b39a79fda5c023c95feba29b89adea7eb3fca9005649676e3167f69dd09b6e7",
+            "hash_matches": true,
+            "dimensions": [
+              50,
+              14
+            ],
+            "box": [
+              450,
+              449,
+              500,
+              463
+            ],
+            "size_matches": true,
+            "self_comparison": true
+          },
+          "series": {
+            "sha256": "75c3b3ffba715a83e8eb60405c96824ad40db05f25974ae19a10b933f46d1306",
+            "hash_matches": true,
+            "dimensions": [
+              36,
+              21
+            ],
+            "box": [
+              616,
+              409,
+              652,
+              430
+            ],
+            "size_matches": true,
+            "self_comparison": true
+          }
+        },
+        "negative_sensitivity": [
+          {
+            "check": "series",
+            "diagnostic": "artifacts\\browser-verification\\task-3.2\\series-missing-value-tight-diagnostic.png",
+            "missing_required_content_rejected": true
+          },
+          {
+            "check": "legend",
+            "diagnostic": "artifacts\\browser-verification\\task-3.2\\legend-missing-value-tight-diagnostic.png",
+            "missing_required_content_rejected": true
+          },
+          {
+            "check": "title",
+            "diagnostic": "artifacts\\browser-verification\\task-3.2\\title-missing-diagnostic.png",
+            "missing_required_content_rejected": true
+          }
+        ],
+        "semantics": [
+          "BEFORE10/20/30 and AFTER10/25/30 independently established against fixed y-axis.",
+          "Same selected chart shows exact B2:B4 blue outline, title Reference series, Value series, bottom Value legend.",
+          "A1/B1 active Bold toolbar supported by separately selected address evidence.",
+          "Number crop establishes Number category; exact stored format0 still requires artifact task3.3."
+        ],
+        "threshold_assessment": "Channel delta20,changed_fraction.002 accepted with mandatory tight middle/title/legend/series/outline/bold crops. Original large-crop omissions now fail required tight checks. All masks empty. Fixed profile only; no auto-update authorized.",
+        "limits": [
+          "No browser started for review.",
+          "Self comparisons establish baseline validity, not real repeated-run tolerance.",
+          "Freeze applies exactly to hashed manifest and baseline bytes."
+        ]
+      }
+    },
+    {
+      "record": "profile-freeze-review-3.json",
+      "sha256": "b7243114f882438d12bb53c120af684068cf74a8cd52f4cbb3a7d94f33e5993b",
+      "review": {
+        "status": "APPROVED_BASELINE_FREEZE",
+        "scope": "Read-only review of added background crop and frozen baseline profile; visible unmasked sheet comparison only. Does not prove global chart count, offscreen/hidden/occluded objects, actual repeated-run reliability, or task completion.",
+        "manifest_sha256": "7af4208d92bf9795b9147a66533881372e5cf35ddc6d7ab54f8aa01b6488dbb5",
+        "visual_py_sha256": "4453732630851b218fefc033f3f6bd8a0c1747945e7899acc76baf45a065ede0",
+        "predecessor_review_sha256": "d87deac2a233821ccfcf1bcf7f49dc81dd54fa074ca67bb8051d22ae85abd51f",
+        "baseline_hashes": {
+          "chart-before": {
+            "sha256": "c5897dfb11964668efc194e9ffe51cb3e3d6b8c11991d19ecc9a569795f83f65",
+            "matches_manifest": true
+          },
+          "middle-before": {
+            "sha256": "b0b0a09015f8c91cc5c43683fbc77358e142cf5366d4b7c4f6df7298f8a10db3",
+            "matches_manifest": true
+          },
+          "range-before": {
+            "sha256": "4ea03b214636b4fdc8df05d8bd46e5c91e2bd27b92955130873a883726f6f2f9",
+            "matches_manifest": true
+          },
+          "chart-after": {
+            "sha256": "bd0379bae17e2bf615a67a587b15db26c8a5e93f339ca6a853670a0206a1f7b0",
+            "matches_manifest": true
+          },
+          "middle-after": {
+            "sha256": "0479f73daa296b22298770e0f38499dd1860883537eaa5e960dc28710df50042",
+            "matches_manifest": true
+          },
+          "range-after": {
+            "sha256": "e35906e858aa7da09fdf99246a88f33f2527a9e51a91654d9e1ece318c9168a4",
+            "matches_manifest": true
+          },
+          "bold": {
+            "sha256": "e387fdd4409c4a88b65f623fe712ab54e7a57b498e1170c7eae6b332ae0ea4fc",
+            "matches_manifest": true
+          },
+          "number": {
+            "sha256": "ce6ddc004ae56c48eda9860c71e7cd35ab011c63fb864bee069815deda450436",
+            "matches_manifest": true
+          },
+          "dialog": {
+            "sha256": "09fbd66ab120a0814fad72adc752255d21d3ca99e61b37e7d9cf80f23cd0aa3d",
+            "matches_manifest": true
+          },
+          "title": {
+            "sha256": "3ddebbe581013267a5e855473f34245c7443ed3551d276f91555b78c03ba61a9",
+            "matches_manifest": true
+          },
+          "legend": {
+            "sha256": "8b39a79fda5c023c95feba29b89adea7eb3fca9005649676e3167f69dd09b6e7",
+            "matches_manifest": true
+          },
+          "series": {
+            "sha256": "75c3b3ffba715a83e8eb60405c96824ad40db05f25974ae19a10b933f46d1306",
+            "matches_manifest": true
+          },
+          "background": {
+            "sha256": "d27dbe2533d2a53943331136eac683cc9b4e2765c0024cdc76b56d6e68746977",
+            "matches_manifest": true
+          }
+        },
+        "background": {
+          "sha256": "d27dbe2533d2a53943331136eac683cc9b4e2765c0024cdc76b56d6e68746977",
+          "box": [
+            27,
+            215,
+            1585,
+            1042
+          ],
+          "size": [
+            1558,
+            827
+          ],
+          "masks": [
+            [
+              0,
+              0,
+              257,
+              65
+            ],
+            [
+              257,
+              16,
+              641,
+              256
+            ]
+          ],
+          "channel_delta": 20,
+          "changed_fraction": 0.0,
+          "self_compare_passes": true,
+          "extra_visible_chart_rejected": true,
+          "masked_cells_and_original_chart_changes_ignored": true
+        },
+        "findings": [
+          "Masks correspond exactly to known data block global27,215..284,280 and original chart global284,231..668,471.",
+          "Mandatory existing original-chart and tight critical crops remain required; background cannot replace them.",
+          "Zero changed fraction rejects every unmasked pixel whose channel difference exceeds20.",
+          "Fresh diagnostic inserts actual baseline chart into unmasked sheet and is rejected.",
+          "No additional chart visible in reviewed baseline outside masks."
+        ],
+        "limitations": [
+          "Any chart wholly within a masked block or original chart rectangle, outside this viewport, hidden behind another object, or on another sheet cannot be excluded by this background crop. Exact workbook chart count requires independent artifact inspection.",
+          "No acceptance run or browser launch performed by reviewer."
+        ]
+      }
+    },
+    {
+      "record": "profile-freeze-review-4.json",
+      "sha256": "9a8b12538cab42e63da9d8b1368a0710f13aefa6a9098cf1965136e8e5716aea",
+      "review": {
+        "status": "REJECTED_FOR_REQUESTED_COLLAPSED_FORBIDS_CLICK_CONTRACT",
+        "scope": "Specific Home-state addition only; previous chart baseline semantic approvals remain separate.",
+        "manifest_sha256": "91b60922c05660fc93c4abb6e45e90eec01360a4523cda1aad1a5a42c2556cb9",
+        "visual_py_sha256": "48d4156ad75f2e5efad64ba4c5f1e51b3fd9f82082747bb6fec0221ad94d89b5",
+        "new_baselines": {
+          "home": {
+            "file": "windows-headless/home.png",
+            "sha256": "3f78d9a22dfcb9aede3bb3340349bcec583e84c0ec8a312cbf60ce87871d2588",
+            "box": [
+              10,
+              73,
+              115,
+              157
+            ],
+            "masks": [],
+            "channel_delta": 20,
+            "changed_fraction": 0.002
+          },
+          "home-inactive": {
+            "file": "windows-headless/home-inactive.png",
+            "sha256": "c15eaa31fa80616e9a4664e45edb6983211dc2bac00418c9594660f072b39c7a",
+            "box": [
+              77,
+              42,
+              112,
+              68
+            ],
+            "masks": [],
+            "channel_delta": 20,
+            "changed_fraction": 0.002
+          }
+        },
+        "actual_comparator_results": [
+          {
+            "source": "view-6d03e376e21f4cf385047f183fe9ce82.png",
+            "state": "expanded Home",
+            "home_matches": true,
+            "home_inactive_matches": false,
+            "decision": "no click; correct"
+          },
+          {
+            "source": "view-6e40c898b4ef4339b4de029b6aa3df2b.png",
+            "state": "expanded Chart Design",
+            "home_matches": false,
+            "home_inactive_matches": true,
+            "decision": "click Home then verify; correct"
+          },
+          {
+            "source": "fixture-after-7ad0efebf0414613b0642e8373b6df4d.png",
+            "state": "collapsed ribbon",
+            "home_matches": false,
+            "home_inactive_matches": true,
+            "decision": "click Home; contrary to requested collapsed-forbids-click condition"
+          }
+        ],
+        "finding": "Inactive Home text crop cannot distinguish collapsed ribbon from an expanded alternative ribbon. Post-click Home verification prevents navigation until expansion but does not prove inactive expanded precondition.",
+        "resolution": "Add independent expanded alternative ribbon geometry check before clicking, or explicitly change contract to allow collapsed Home expansion with verified postcondition. No project edits by reviewer."
+      }
+    },
+    {
+      "record": "profile-freeze-review-5.json",
+      "sha256": "66abb704848cdf6d94fb825f8feb564f4db4eb4c1442e100954d45ad1a6a6098",
+      "review": {
+        "status": "APPROVED_BASELINE_FREEZE",
+        "scope": "Specific fixed-geometry Home precondition addition and existing baseline identities; task acceptance/repeatability separate.",
+        "manifest_sha256": "1aa18df87f657ce6909e7e3d0ef12f4e4d8e3900302d6197aa0db0212789a263",
+        "visual_py_sha256": "1f7d8dd4660169a2a3dd67ef4bc921af72dd818d2784ba400c69902c72c92c05",
+        "baselines": {
+          "chart-before": {
+            "sha256": "c5897dfb11964668efc194e9ffe51cb3e3d6b8c11991d19ecc9a569795f83f65",
+            "matches_manifest": true
+          },
+          "middle-before": {
+            "sha256": "b0b0a09015f8c91cc5c43683fbc77358e142cf5366d4b7c4f6df7298f8a10db3",
+            "matches_manifest": true
+          },
+          "range-before": {
+            "sha256": "4ea03b214636b4fdc8df05d8bd46e5c91e2bd27b92955130873a883726f6f2f9",
+            "matches_manifest": true
+          },
+          "chart-after": {
+            "sha256": "bd0379bae17e2bf615a67a587b15db26c8a5e93f339ca6a853670a0206a1f7b0",
+            "matches_manifest": true
+          },
+          "middle-after": {
+            "sha256": "0479f73daa296b22298770e0f38499dd1860883537eaa5e960dc28710df50042",
+            "matches_manifest": true
+          },
+          "range-after": {
+            "sha256": "e35906e858aa7da09fdf99246a88f33f2527a9e51a91654d9e1ece318c9168a4",
+            "matches_manifest": true
+          },
+          "bold": {
+            "sha256": "e387fdd4409c4a88b65f623fe712ab54e7a57b498e1170c7eae6b332ae0ea4fc",
+            "matches_manifest": true
+          },
+          "number": {
+            "sha256": "ce6ddc004ae56c48eda9860c71e7cd35ab011c63fb864bee069815deda450436",
+            "matches_manifest": true
+          },
+          "dialog": {
+            "sha256": "09fbd66ab120a0814fad72adc752255d21d3ca99e61b37e7d9cf80f23cd0aa3d",
+            "matches_manifest": true
+          },
+          "title": {
+            "sha256": "3ddebbe581013267a5e855473f34245c7443ed3551d276f91555b78c03ba61a9",
+            "matches_manifest": true
+          },
+          "legend": {
+            "sha256": "8b39a79fda5c023c95feba29b89adea7eb3fca9005649676e3167f69dd09b6e7",
+            "matches_manifest": true
+          },
+          "series": {
+            "sha256": "75c3b3ffba715a83e8eb60405c96824ad40db05f25974ae19a10b933f46d1306",
+            "matches_manifest": true
+          },
+          "background": {
+            "sha256": "d27dbe2533d2a53943331136eac683cc9b4e2765c0024cdc76b56d6e68746977",
+            "matches_manifest": true
+          },
+          "home": {
+            "sha256": "3f78d9a22dfcb9aede3bb3340349bcec583e84c0ec8a312cbf60ce87871d2588",
+            "matches_manifest": true
+          },
+          "home-inactive": {
+            "sha256": "c15eaa31fa80616e9a4664e45edb6983211dc2bac00418c9594660f072b39c7a",
+            "matches_manifest": true
+          },
+          "expanded-controls": {
+            "sha256": "27285c31a3034b2edd504d02ed7dd8d8921f88fb5c4ec95dc65c1ba7a7f5cab7",
+            "matches_manifest": true
+          }
+        },
+        "state_tests": [
+          {
+            "source": "acceptance/bdc5b65e-08d3-4c70-a086-ad96eac63b43/chart-before-failed-5f0fc91f28e24f69b075e43d1cc3308a.png",
+            "state": "genuine collapsed ribbon, controls moved upward",
+            "expanded_controls": false,
+            "home": false,
+            "home_inactive": false,
+            "outcome": "Reject before any Home click or navigation; correct"
+          },
+          {
+            "source": "192c0332-5ceb-4310-ac9a-82b72bcde054/view-6d03e376e21f4cf385047f183fe9ce82.png",
+            "state": "expanded Home",
+            "expanded_controls": true,
+            "home": true,
+            "home_inactive": false,
+            "outcome": "Return without click; correct"
+          },
+          {
+            "source": "192c0332-5ceb-4310-ac9a-82b72bcde054/view-6e40c898b4ef4339b4de029b6aa3df2b.png",
+            "state": "expanded Chart Design",
+            "expanded_controls": true,
+            "home": false,
+            "home_inactive": true,
+            "outcome": "Permit Home click then require expanded Home panel; correct"
+          },
+          {
+            "source": "192c0332-5ceb-4310-ac9a-82b72bcde054/fixture-after-7ad0efebf0414613b0642e8373b6df4d.png",
+            "state": "blank panel retaining expanded control geometry",
+            "expanded_controls": true,
+            "home": false,
+            "home_inactive": true,
+            "outcome": "Permit Home click then require expanded Home panel before navigation; correct"
+          }
+        ],
+        "correction_to_review4": "The blank-panel7ad screenshot was previously labeled collapsed by appearance; its formula controls remain at expanded y163..193. It is distinct from genuine collapsed evidence, where controls shift up to y75..101. Review5 explicitly tests both states.",
+        "assessment": "New mandatory83x30 crop at132,163..215,193 contains cancel/accept/fx controls in expanded position and rejects genuine collapsed geometry with actual comparator. Existing Home panel establishes expanded active Home; inactive label is only used after independent expanded geometry precondition. Threshold20/.002/no masks accepted for this crop.",
+        "limitations": [
+          "No browser started.",
+          "Actual postclick transition and repeated-run acceptance remain pending.",
+          "All earlier exact visual identity/sensitivity limitations remain."
+        ]
+      }
+    },
+    {
+      "record": "profile-freeze-review-6.json",
+      "sha256": "18d678decc67fc6689562e76a022ef281e4ed6b2840938742a31263b2d71bda8",
+      "review": {
+        "status": "APPROVED_BASELINE_FREEZE",
+        "scope": "Explicit rendering fingerprint and series-only antialias tolerance change; not final task acceptance.",
+        "manifest_sha256": "414a1f34376fd30e9bcb7c09f40d87a9e8a74232d7e7cf3686be0f59683f36be",
+        "source_hashes": {
+          "scripts\\browser_verification\\visual_profile.py": "df8a5032e0ab11c80b6797c5e35202e5e88d6af0e3bdc3dcf62d7c1991f18ea1",
+          "scripts\\browser_verification\\visual.py": "b338d0a4c861fc73d36933ff56517bf90feed5bf30348d5d9e0799526f0363b9",
+          "scripts\\browser_verification\\chart_interactions.py": "e4af8929c03a651994e3c6356ad48301e8a20a75bdda745136c79f136df11bf0"
+        },
+        "baseline_hashes": {
+          "chart-before": {
+            "sha256": "c5897dfb11964668efc194e9ffe51cb3e3d6b8c11991d19ecc9a569795f83f65",
+            "matches_manifest": true
+          },
+          "middle-before": {
+            "sha256": "b0b0a09015f8c91cc5c43683fbc77358e142cf5366d4b7c4f6df7298f8a10db3",
+            "matches_manifest": true
+          },
+          "range-before": {
+            "sha256": "4ea03b214636b4fdc8df05d8bd46e5c91e2bd27b92955130873a883726f6f2f9",
+            "matches_manifest": true
+          },
+          "chart-after": {
+            "sha256": "bd0379bae17e2bf615a67a587b15db26c8a5e93f339ca6a853670a0206a1f7b0",
+            "matches_manifest": true
+          },
+          "middle-after": {
+            "sha256": "0479f73daa296b22298770e0f38499dd1860883537eaa5e960dc28710df50042",
+            "matches_manifest": true
+          },
+          "range-after": {
+            "sha256": "e35906e858aa7da09fdf99246a88f33f2527a9e51a91654d9e1ece318c9168a4",
+            "matches_manifest": true
+          },
+          "bold": {
+            "sha256": "e387fdd4409c4a88b65f623fe712ab54e7a57b498e1170c7eae6b332ae0ea4fc",
+            "matches_manifest": true
+          },
+          "number": {
+            "sha256": "ce6ddc004ae56c48eda9860c71e7cd35ab011c63fb864bee069815deda450436",
+            "matches_manifest": true
+          },
+          "dialog": {
+            "sha256": "09fbd66ab120a0814fad72adc752255d21d3ca99e61b37e7d9cf80f23cd0aa3d",
+            "matches_manifest": true
+          },
+          "title": {
+            "sha256": "3ddebbe581013267a5e855473f34245c7443ed3551d276f91555b78c03ba61a9",
+            "matches_manifest": true
+          },
+          "legend": {
+            "sha256": "8b39a79fda5c023c95feba29b89adea7eb3fca9005649676e3167f69dd09b6e7",
+            "matches_manifest": true
+          },
+          "series": {
+            "sha256": "75c3b3ffba715a83e8eb60405c96824ad40db05f25974ae19a10b933f46d1306",
+            "matches_manifest": true
+          },
+          "background": {
+            "sha256": "d27dbe2533d2a53943331136eac683cc9b4e2765c0024cdc76b56d6e68746977",
+            "matches_manifest": true
+          },
+          "home": {
+            "sha256": "3f78d9a22dfcb9aede3bb3340349bcec583e84c0ec8a312cbf60ce87871d2588",
+            "matches_manifest": true
+          },
+          "home-inactive": {
+            "sha256": "c15eaa31fa80616e9a4664e45edb6983211dc2bac00418c9594660f072b39c7a",
+            "matches_manifest": true
+          },
+          "expanded-controls": {
+            "sha256": "27285c31a3034b2edd504d02ed7dd8d8921f88fb5c4ec95dc65c1ba7a7f5cab7",
+            "matches_manifest": true
+          }
+        },
+        "series_check": {
+          "actual_path": "artifacts\\browser-verification\\task-3.2\\final\\c02e7ca8-0d38-4c7a-a7b7-51d62584f70f\\series-e3df3fd52a5b4395a38578a3f9119851.png",
+          "actual_sha256": "da0d06394ed1327db995069e5c6d8287a57f03d1771a36bce4e19972a1a9c607",
+          "max_delta": 21,
+          "pixels_above20": 4,
+          "pixels_above24": 0,
+          "new_channel_delta": 24,
+          "changed_fraction": 0.002,
+          "actual_passes": true,
+          "erased_value_rejected": true,
+          "visual_assessment": "Both crops visibly read Value; differences limited to small intensity variation. Series-only24 justified by observed maximum21 and retained missing-content rejection."
+        },
+        "fingerprint_mutations": {
+          "browser_version": "REJECTED",
+          "browser_revision": "REJECTED",
+          "os": "REJECTED",
+          "headed": "REJECTED",
+          "viewport": "REJECTED",
+          "device_scale": "REJECTED",
+          "locale": "REJECTED",
+          "graphics_arguments": "REJECTED",
+          "graphics_renderer": "REJECTED",
+          "build_sha256": "REJECTED"
+        },
+        "provenance_fields_ignored": true,
+        "assessment": "Build and all nine explicit rendering fields affect compatibility; Windows/headless/profile changes reject. Executable location, native window handle and observed visibility remain evidence provenance and do not define pixel compatibility. All16baseline hashes unchanged and matching.",
+        "limits": [
+          "No browser launched.",
+          "Actual D3-selection range remediation and repeated before/after acceptance remain separate required evidence.",
+          "Latest freeze record should accompany exact manifest; manifest review_sha256 currently identifies original independent review.json, not this later freeze record."
+        ]
+      }
+    },
+    {
+      "record": "profile-freeze-review-7.json",
+      "sha256": "1c036060d3aacf96573e049980724af6b5703011a05b15484ece17afebdd60da",
+      "review": {
+        "status": "APPROVED_BASELINE_FREEZE",
+        "scope": "Independent replacement-dialog semantic review and exact profile identities; no final acceptance or settled-render runtime claim.",
+        "manifest_sha256": "bb324ca6084ea41f2c68ebf1db391ecaa81b6dafec262a0bce0fb3a6631ea39d",
+        "source_hashes": {
+          "scripts\\browser_verification\\chart_interactions.py": "04ed8c3446cf55a16ef482a070bcc23b07bff7dbbaf09925bf1dba05bdab9ee7",
+          "scripts\\browser_verification\\visual_profile.py": "df8a5032e0ab11c80b6797c5e35202e5e88d6af0e3bdc3dcf62d7c1991f18ea1"
+        },
+        "baseline_hashes": {
+          "chart-before": {
+            "sha256": "c5897dfb11964668efc194e9ffe51cb3e3d6b8c11991d19ecc9a569795f83f65",
+            "matches_manifest": true,
+            "same_as_freeze6": true
+          },
+          "middle-before": {
+            "sha256": "b0b0a09015f8c91cc5c43683fbc77358e142cf5366d4b7c4f6df7298f8a10db3",
+            "matches_manifest": true,
+            "same_as_freeze6": true
+          },
+          "range-before": {
+            "sha256": "4ea03b214636b4fdc8df05d8bd46e5c91e2bd27b92955130873a883726f6f2f9",
+            "matches_manifest": true,
+            "same_as_freeze6": true
+          },
+          "chart-after": {
+            "sha256": "bd0379bae17e2bf615a67a587b15db26c8a5e93f339ca6a853670a0206a1f7b0",
+            "matches_manifest": true,
+            "same_as_freeze6": true
+          },
+          "middle-after": {
+            "sha256": "0479f73daa296b22298770e0f38499dd1860883537eaa5e960dc28710df50042",
+            "matches_manifest": true,
+            "same_as_freeze6": true
+          },
+          "range-after": {
+            "sha256": "e35906e858aa7da09fdf99246a88f33f2527a9e51a91654d9e1ece318c9168a4",
+            "matches_manifest": true,
+            "same_as_freeze6": true
+          },
+          "bold": {
+            "sha256": "e387fdd4409c4a88b65f623fe712ab54e7a57b498e1170c7eae6b332ae0ea4fc",
+            "matches_manifest": true,
+            "same_as_freeze6": true
+          },
+          "number": {
+            "sha256": "ce6ddc004ae56c48eda9860c71e7cd35ab011c63fb864bee069815deda450436",
+            "matches_manifest": true,
+            "same_as_freeze6": true
+          },
+          "dialog": {
+            "sha256": "8c4d7a14a048fe815eabb2e9dc977a28988434909500e15b5c799b1670c5f545",
+            "matches_manifest": true,
+            "same_as_freeze6": false
+          },
+          "title": {
+            "sha256": "3ddebbe581013267a5e855473f34245c7443ed3551d276f91555b78c03ba61a9",
+            "matches_manifest": true,
+            "same_as_freeze6": true
+          },
+          "legend": {
+            "sha256": "8b39a79fda5c023c95feba29b89adea7eb3fca9005649676e3167f69dd09b6e7",
+            "matches_manifest": true,
+            "same_as_freeze6": true
+          },
+          "series": {
+            "sha256": "75c3b3ffba715a83e8eb60405c96824ad40db05f25974ae19a10b933f46d1306",
+            "matches_manifest": true,
+            "same_as_freeze6": true
+          },
+          "background": {
+            "sha256": "d27dbe2533d2a53943331136eac683cc9b4e2765c0024cdc76b56d6e68746977",
+            "matches_manifest": true,
+            "same_as_freeze6": true
+          },
+          "home": {
+            "sha256": "3f78d9a22dfcb9aede3bb3340349bcec583e84c0ec8a312cbf60ce87871d2588",
+            "matches_manifest": true,
+            "same_as_freeze6": true
+          },
+          "home-inactive": {
+            "sha256": "c15eaa31fa80616e9a4664e45edb6983211dc2bac00418c9594660f072b39c7a",
+            "matches_manifest": true,
+            "same_as_freeze6": true
+          },
+          "expanded-controls": {
+            "sha256": "27285c31a3034b2edd504d02ed7dd8d8921f88fb5c4ec95dc65c1ba7a7f5cab7",
+            "matches_manifest": true,
+            "same_as_freeze6": true
+          }
+        },
+        "dialog_replacement": {
+          "actual_source": "artifacts\\browser-verification\\task-3.2\\final-refactored\\e22ba4a6-35f7-4f3f-9eac-92d729cf1ddd\\dialog-3b18971f76ed454794fda3510039c8fa.png",
+          "sha256": "8c4d7a14a048fe815eabb2e9dc977a28988434909500e15b5c799b1670c5f545",
+          "baseline_sha256": "8c4d7a14a048fe815eabb2e9dc977a28988434909500e15b5c799b1670c5f545",
+          "source_identical_baseline": true,
+          "old_dialog_pixels_delta_above20": 926,
+          "box": [
+            610,
+            300,
+            990,
+            720
+          ],
+          "masks": [],
+          "channel_delta": 20,
+          "changed_fraction": 0.002
+        },
+        "semantic_review": [
+          "New opaque dialog visibly retains title Select Data Source, blank overall source, exactly one Value series, category=Report!$A$2:$A$4, disabled Remove, Cancel and OK.",
+          "Geometry and expected text are unchanged. Old crop visibly has background sheet grid bleeding through, new crop is opaque. No changed workbook semantic expectation inferred from output.",
+          "Mandatory tight Value series baseline remains unchanged and still separately required.",
+          "Only dialog baseline bytes changed; all other15 baseline hashes match freeze6."
+        ],
+        "settling_assessment": "Observed code requires two byte-identical actual dialog crops separated by frame(driver.page); correctness comparison remains separate from stability detection. Baseline is not automatically derived or updated by acquisition. Outer timeout remains required by caller.",
+        "limits": [
+          "Two equal frames establish observed stability only; they cannot prove animation completion for every timing pattern. Incorrect/transient equal image must still fail frozen oracle.",
+          "Actual final before/after repeatability and cleanup still require runtime evidence.",
+          "No browser started by reviewer."
+        ]
+      }
+    },
+    {
+      "record": "profile-freeze-review-8.json",
+      "sha256": "3b306ce353f52644afb014aceeed600d690e06895d25b41a812a958d44bb91c9",
+      "review": {
+        "status": "APPROVED_BASELINE_FREEZE",
+        "scope": "Independent range-after checkpoint replacement semantics only; new acceptance run still required.",
+        "manifest_sha256": "289692e7742d867037bb6d7ece14b787f0538b8282b216f6e45a1222ef97f9d1",
+        "baseline_hashes": {
+          "chart-before": {
+            "sha256": "c5897dfb11964668efc194e9ffe51cb3e3d6b8c11991d19ecc9a569795f83f65",
+            "matches_manifest": true,
+            "same_as_freeze7": true
+          },
+          "middle-before": {
+            "sha256": "b0b0a09015f8c91cc5c43683fbc77358e142cf5366d4b7c4f6df7298f8a10db3",
+            "matches_manifest": true,
+            "same_as_freeze7": true
+          },
+          "range-before": {
+            "sha256": "4ea03b214636b4fdc8df05d8bd46e5c91e2bd27b92955130873a883726f6f2f9",
+            "matches_manifest": true,
+            "same_as_freeze7": true
+          },
+          "chart-after": {
+            "sha256": "bd0379bae17e2bf615a67a587b15db26c8a5e93f339ca6a853670a0206a1f7b0",
+            "matches_manifest": true,
+            "same_as_freeze7": true
+          },
+          "middle-after": {
+            "sha256": "0479f73daa296b22298770e0f38499dd1860883537eaa5e960dc28710df50042",
+            "matches_manifest": true,
+            "same_as_freeze7": true
+          },
+          "range-after": {
+            "sha256": "4849a5eadf29a63f53521b49ece9a63348ccb77b8c8aff2ff5ad596f10b93c8a",
+            "matches_manifest": true,
+            "same_as_freeze7": false
+          },
+          "bold": {
+            "sha256": "e387fdd4409c4a88b65f623fe712ab54e7a57b498e1170c7eae6b332ae0ea4fc",
+            "matches_manifest": true,
+            "same_as_freeze7": true
+          },
+          "number": {
+            "sha256": "ce6ddc004ae56c48eda9860c71e7cd35ab011c63fb864bee069815deda450436",
+            "matches_manifest": true,
+            "same_as_freeze7": true
+          },
+          "dialog": {
+            "sha256": "8c4d7a14a048fe815eabb2e9dc977a28988434909500e15b5c799b1670c5f545",
+            "matches_manifest": true,
+            "same_as_freeze7": true
+          },
+          "title": {
+            "sha256": "3ddebbe581013267a5e855473f34245c7443ed3551d276f91555b78c03ba61a9",
+            "matches_manifest": true,
+            "same_as_freeze7": true
+          },
+          "legend": {
+            "sha256": "8b39a79fda5c023c95feba29b89adea7eb3fca9005649676e3167f69dd09b6e7",
+            "matches_manifest": true,
+            "same_as_freeze7": true
+          },
+          "series": {
+            "sha256": "75c3b3ffba715a83e8eb60405c96824ad40db05f25974ae19a10b933f46d1306",
+            "matches_manifest": true,
+            "same_as_freeze7": true
+          },
+          "background": {
+            "sha256": "d27dbe2533d2a53943331136eac683cc9b4e2765c0024cdc76b56d6e68746977",
+            "matches_manifest": true,
+            "same_as_freeze7": true
+          },
+          "home": {
+            "sha256": "3f78d9a22dfcb9aede3bb3340349bcec583e84c0ec8a312cbf60ce87871d2588",
+            "matches_manifest": true,
+            "same_as_freeze7": true
+          },
+          "home-inactive": {
+            "sha256": "c15eaa31fa80616e9a4664e45edb6983211dc2bac00418c9594660f072b39c7a",
+            "matches_manifest": true,
+            "same_as_freeze7": true
+          },
+          "expanded-controls": {
+            "sha256": "27285c31a3034b2edd504d02ed7dd8d8921f88fb5c4ec95dc65c1ba7a7f5cab7",
+            "matches_manifest": true,
+            "same_as_freeze7": true
+          }
+        },
+        "range_after": {
+          "sha256": "4849a5eadf29a63f53521b49ece9a63348ccb77b8c8aff2ff5ad596f10b93c8a",
+          "actual_source_sha256": "4849a5eadf29a63f53521b49ece9a63348ccb77b8c8aff2ff5ad596f10b93c8a",
+          "full_source_sha256": "a4f846eaeff6f281ef1b8935b41e714b03e68e48c81b2d417d335a7cddc5599b",
+          "raw_observation_sha256": "55c8e17e04726476e68f12bfc0d6ab4fb92d8e7943d38be337cec857856b2d60",
+          "box": [
+            77,
+            229,
+            132,
+            280
+          ],
+          "masks": [],
+          "channel_delta": 20,
+          "changed_fraction": 0.002,
+          "actual_passes": true,
+          "erased_rejected": true,
+          "wrong_before_values_rejected": true,
+          "observed_cells": [
+            {
+              "address": "A1",
+              "value": "Period"
+            },
+            {
+              "address": "B1",
+              "value": "Value"
+            },
+            {
+              "address": "A2",
+              "value": "Q1"
+            },
+            {
+              "address": "A3",
+              "value": "Q2"
+            },
+            {
+              "address": "A4",
+              "value": "Q3"
+            },
+            {
+              "address": "B2",
+              "value": "10"
+            },
+            {
+              "address": "B3",
+              "value": "25"
+            },
+            {
+              "address": "B4",
+              "value": "30"
+            },
+            {
+              "address": "D1",
+              "value": "craftreport-browser-reference-v1"
+            },
+            {
+              "address": "D2",
+              "value": "KEEP"
+            },
+            {
+              "address": "D3",
+              "value": "-7"
+            }
+          ],
+          "category": "=Report!$A$2:$A$4"
+        },
+        "semantic_review": [
+          "Visible blue outline exactly encloses B2:B4; rows contain10,25,30 from independent fixture AFTER expectations.",
+          "Full screenshot shows active D3 with green border outside value range and formula -7, same selected chart at F2 with title Reference series, Value legend, Q1/Q2/Q3 and middle25.",
+          "Only range-after PNG changes from freeze7. Other15 baseline hashes, rendering fingerprint, box, masks and thresholds retained.",
+          "Replacement removes green activeB3 selection overlay; it does not revise expected source bounds or values."
+        ],
+        "limits": [
+          "Cell clipboard strings alone do not prove storage types.",
+          "New before/after run against frozen manifest, saved artifact and reopen claims remain outside this review.",
+          "No browser launched."
+        ]
+      }
+    },
+    {
+      "record": "profile-freeze-review-9.json",
+      "sha256": "b37c3acdfe1d694a397a8d27dab7d9f75792da5f1c4476afcbcc24619be7263d",
+      "review": {
+        "status": "APPROVED_METADATA_REBINDING",
+        "scope": "Metadata-only initial-to-approved review binding; unchanged rendering payload and baseline identity review. Actual run outcome is not independently reviewed here.",
+        "manifest_sha256": "90a24c02d76245afd787a7c9ee53eeacce678893599e5fbd48b7e01679f9bc33",
+        "previous_manifest_sha256": "289692e7742d867037bb6d7ece14b787f0538b8282b216f6e45a1222ef97f9d1",
+        "changed_top_level_keys": [
+          "review_sha256"
+        ],
+        "old_review_sha256": "31b14b852c18b4eef619d9d3311483ce264a9bea054e4d048e8a930b635d1d75",
+        "new_review_sha256": "3b306ce353f52644afb014aceeed600d690e06895d25b41a812a958d44bb91c9",
+        "review_json_sha256": "3b306ce353f52644afb014aceeed600d690e06895d25b41a812a958d44bb91c9",
+        "approved_freeze8_identical_bytes": true,
+        "approved_freeze8_status": "APPROVED_BASELINE_FREEZE",
+        "initial_review_sha256": "31b14b852c18b4eef619d9d3311483ce264a9bea054e4d048e8a930b635d1d75",
+        "baseline_hashes": {
+          "chart-before": {
+            "sha256": "c5897dfb11964668efc194e9ffe51cb3e3d6b8c11991d19ecc9a569795f83f65",
+            "matches_manifest": true
+          },
+          "middle-before": {
+            "sha256": "b0b0a09015f8c91cc5c43683fbc77358e142cf5366d4b7c4f6df7298f8a10db3",
+            "matches_manifest": true
+          },
+          "range-before": {
+            "sha256": "4ea03b214636b4fdc8df05d8bd46e5c91e2bd27b92955130873a883726f6f2f9",
+            "matches_manifest": true
+          },
+          "chart-after": {
+            "sha256": "bd0379bae17e2bf615a67a587b15db26c8a5e93f339ca6a853670a0206a1f7b0",
+            "matches_manifest": true
+          },
+          "middle-after": {
+            "sha256": "0479f73daa296b22298770e0f38499dd1860883537eaa5e960dc28710df50042",
+            "matches_manifest": true
+          },
+          "range-after": {
+            "sha256": "4849a5eadf29a63f53521b49ece9a63348ccb77b8c8aff2ff5ad596f10b93c8a",
+            "matches_manifest": true
+          },
+          "bold": {
+            "sha256": "e387fdd4409c4a88b65f623fe712ab54e7a57b498e1170c7eae6b332ae0ea4fc",
+            "matches_manifest": true
+          },
+          "number": {
+            "sha256": "ce6ddc004ae56c48eda9860c71e7cd35ab011c63fb864bee069815deda450436",
+            "matches_manifest": true
+          },
+          "dialog": {
+            "sha256": "8c4d7a14a048fe815eabb2e9dc977a28988434909500e15b5c799b1670c5f545",
+            "matches_manifest": true
+          },
+          "title": {
+            "sha256": "3ddebbe581013267a5e855473f34245c7443ed3551d276f91555b78c03ba61a9",
+            "matches_manifest": true
+          },
+          "legend": {
+            "sha256": "8b39a79fda5c023c95feba29b89adea7eb3fca9005649676e3167f69dd09b6e7",
+            "matches_manifest": true
+          },
+          "series": {
+            "sha256": "75c3b3ffba715a83e8eb60405c96824ad40db05f25974ae19a10b933f46d1306",
+            "matches_manifest": true
+          },
+          "background": {
+            "sha256": "d27dbe2533d2a53943331136eac683cc9b4e2765c0024cdc76b56d6e68746977",
+            "matches_manifest": true
+          },
+          "home": {
+            "sha256": "3f78d9a22dfcb9aede3bb3340349bcec583e84c0ec8a312cbf60ce87871d2588",
+            "matches_manifest": true
+          },
+          "home-inactive": {
+            "sha256": "c15eaa31fa80616e9a4664e45edb6983211dc2bac00418c9594660f072b39c7a",
+            "matches_manifest": true
+          },
+          "expanded-controls": {
+            "sha256": "27285c31a3034b2edd504d02ed7dd8d8921f88fb5c4ec95dc65c1ba7a7f5cab7",
+            "matches_manifest": true
+          }
+        },
+        "assessment": "Only review_sha256 changes. All rendering fingerprint fields, crop geometry, masks, thresholds and16PNG bytes remain unchanged. Approved freeze8 record names original rendering-payload manifest, retained exactly as manifest-freeze8-original.json. This review approves equivalent rendering payload under new metadata binding without circular selfhash. Initial proposal record retained separately and not substituted for freeze8 approval.",
+        "limits": [
+          "No browser launched or acceptance record independently reviewed by this metadata-only check.",
+          "Second real run must load exact newly bound manifest for its provenance claim."
+        ]
+      }
+    },
+    {
+      "record": "profile-freeze-review.json",
+      "sha256": "f358c6565cb27c95a92b046ca41d2f361ae0d24c0d891e1123ab4efbe3fd81c0",
+      "review": {
+        "status": "REJECTED_FREEZE",
+        "scope": "Baseline crop semantics and sensitivity only, read-only project review",
+        "manifest_sha256": "60311b0cc43e52f4fbe93147e1b682a8a8cd74d832168ff8c6d8ce766f927ad3",
+        "visual_py_sha256": "937539f682819bfcd89df055372d2ce3c4e42440acc506a18da54796a2ab8472",
+        "baseline_hashes": {
+          "chart-before": {
+            "path": "tests\\fixtures\\browser_verification\\visual\\windows-headless\\chart-before.png",
+            "sha256": "c5897dfb11964668efc194e9ffe51cb3e3d6b8c11991d19ecc9a569795f83f65",
+            "matches_manifest": true
+          },
+          "middle-before": {
+            "path": "tests\\fixtures\\browser_verification\\visual\\windows-headless\\middle-before.png",
+            "sha256": "b0b0a09015f8c91cc5c43683fbc77358e142cf5366d4b7c4f6df7298f8a10db3",
+            "matches_manifest": true
+          },
+          "range-before": {
+            "path": "tests\\fixtures\\browser_verification\\visual\\windows-headless\\range-before.png",
+            "sha256": "4ea03b214636b4fdc8df05d8bd46e5c91e2bd27b92955130873a883726f6f2f9",
+            "matches_manifest": true
+          },
+          "chart-after": {
+            "path": "tests\\fixtures\\browser_verification\\visual\\windows-headless\\chart-after.png",
+            "sha256": "bd0379bae17e2bf615a67a587b15db26c8a5e93f339ca6a853670a0206a1f7b0",
+            "matches_manifest": true
+          },
+          "middle-after": {
+            "path": "tests\\fixtures\\browser_verification\\visual\\windows-headless\\middle-after.png",
+            "sha256": "0479f73daa296b22298770e0f38499dd1860883537eaa5e960dc28710df50042",
+            "matches_manifest": true
+          },
+          "range-after": {
+            "path": "tests\\fixtures\\browser_verification\\visual\\windows-headless\\range-after.png",
+            "sha256": "e35906e858aa7da09fdf99246a88f33f2527a9e51a91654d9e1ece318c9168a4",
+            "matches_manifest": true
+          },
+          "bold": {
+            "path": "tests\\fixtures\\browser_verification\\visual\\windows-headless\\bold.png",
+            "sha256": "e387fdd4409c4a88b65f623fe712ab54e7a57b498e1170c7eae6b332ae0ea4fc",
+            "matches_manifest": true
+          },
+          "number": {
+            "path": "tests\\fixtures\\browser_verification\\visual\\windows-headless\\number.png",
+            "sha256": "ce6ddc004ae56c48eda9860c71e7cd35ab011c63fb864bee069815deda450436",
+            "matches_manifest": true
+          },
+          "dialog": {
+            "path": "tests\\fixtures\\browser_verification\\visual\\windows-headless\\dialog.png",
+            "sha256": "09fbd66ab120a0814fad72adc752255d21d3ca99e61b37e7d9cf80f23cd0aa3d",
+            "matches_manifest": true
+          }
+        },
+        "positive_findings": [
+          "All nine baseline crops visually contain semantically correct expected content.",
+          "Before and after points match independent20 and25.",
+          "Bold active toolbar and Number category are correctly cropped.",
+          "No masks hide required content.",
+          "Crop right/bottom use Pillow-exclusive bounds; omitted outermost border does not omit required chart semantics."
+        ],
+        "blocking_findings": [
+          {
+            "crop": "dialog",
+            "issue": "Missing Value series name is accepted",
+            "changed_pixels": 123,
+            "total_pixels": 159600,
+            "changed_fraction": 0.0007706766917293233,
+            "allowed": 0.002,
+            "diagnostic": "artifacts/browser-verification/task-3.2/dialog-missing-value-diagnostic.png"
+          },
+          {
+            "crop": "chart-after",
+            "issue": "Missing bottom Value legend is accepted",
+            "changed_pixels": 78,
+            "total_pixels": 92160,
+            "changed_fraction": 0.0008463541666666667,
+            "allowed": 0.002,
+            "diagnostic": "artifacts/browser-verification/task-3.2/chart-after-missing-value-diagnostic.png"
+          }
+        ],
+        "required_resolution": "Add mandatory tight series-name and legend/title crops with sensitive thresholds, or zero changed_fraction full chart/dialog and prove repeatability. Negative tests must remove genuine required content rather than white entire crop.",
+        "limits": "No browser launch. Real repeatability pending. Exact stored0 requires artifact inspection."
+      }
+    }
+  ]
+}

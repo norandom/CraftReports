@@ -43,9 +43,9 @@ from .evidence import (
     native_window,
     verify_loaded,
 )
+from .visual_profile import GRAPHICS, RuntimeProfile
 
 VIEWPORT: ViewportSize = {"width": 1600, "height": 1100}
-GRAPHICS = ("--use-angle=swiftshader", "--enable-unsafe-swiftshader")
 PICKER_SCRIPT = """(() => {
   const present = 'showSaveFilePicker' in window;
   const d = Object.getOwnPropertyDescriptor(window, 'showSaveFilePicker');
@@ -75,20 +75,6 @@ class WindowBounds(Value):
     height: int
     left: int
     top: int
-
-
-class RuntimeProfile(Value):
-    browser_version: str
-    executable: str
-    os: str
-    headed: bool
-    visible: bool
-    window_handle: int | None
-    viewport: tuple[int, int] = (1600, 1100)
-    device_scale: int = 1
-    locale: str = "en-US"
-    graphics_arguments: tuple[str, ...] = GRAPHICS
-    graphics_renderer: str
 
 
 class ReadyPage(Value):

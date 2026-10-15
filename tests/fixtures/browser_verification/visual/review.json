@@ -1,0 +1,163 @@
+{
+  "status": "APPROVED_BASELINE_FREEZE",
+  "scope": "Independent range-after checkpoint replacement semantics only; new acceptance run still required.",
+  "manifest_sha256": "289692e7742d867037bb6d7ece14b787f0538b8282b216f6e45a1222ef97f9d1",
+  "baseline_hashes": {
+    "chart-before": {
+      "sha256": "c5897dfb11964668efc194e9ffe51cb3e3d6b8c11991d19ecc9a569795f83f65",
+      "matches_manifest": true,
+      "same_as_freeze7": true
+    },
+    "middle-before": {
+      "sha256": "b0b0a09015f8c91cc5c43683fbc77358e142cf5366d4b7c4f6df7298f8a10db3",
+      "matches_manifest": true,
+      "same_as_freeze7": true
+    },
+    "range-before": {
+      "sha256": "4ea03b214636b4fdc8df05d8bd46e5c91e2bd27b92955130873a883726f6f2f9",
+      "matches_manifest": true,
+      "same_as_freeze7": true
+    },
+    "chart-after": {
+      "sha256": "bd0379bae17e2bf615a67a587b15db26c8a5e93f339ca6a853670a0206a1f7b0",
+      "matches_manifest": true,
+      "same_as_freeze7": true
+    },
+    "middle-after": {
+      "sha256": "0479f73daa296b22298770e0f38499dd1860883537eaa5e960dc28710df50042",
+      "matches_manifest": true,
+      "same_as_freeze7": true
+    },
+    "range-after": {
+      "sha256": "4849a5eadf29a63f53521b49ece9a63348ccb77b8c8aff2ff5ad596f10b93c8a",
+      "matches_manifest": true,
+      "same_as_freeze7": false
+    },
+    "bold": {
+      "sha256": "e387fdd4409c4a88b65f623fe712ab54e7a57b498e1170c7eae6b332ae0ea4fc",
+      "matches_manifest": true,
+      "same_as_freeze7": true
+    },
+    "number": {
+      "sha256": "ce6ddc004ae56c48eda9860c71e7cd35ab011c63fb864bee069815deda450436",
+      "matches_manifest": true,
+      "same_as_freeze7": true
+    },
+    "dialog": {
+      "sha256": "8c4d7a14a048fe815eabb2e9dc977a28988434909500e15b5c799b1670c5f545",
+      "matches_manifest": true,
+      "same_as_freeze7": true
+    },
+    "title": {
+      "sha256": "3ddebbe581013267a5e855473f34245c7443ed3551d276f91555b78c03ba61a9",
+      "matches_manifest": true,
+      "same_as_freeze7": true
+    },
+    "legend": {
+      "sha256": "8b39a79fda5c023c95feba29b89adea7eb3fca9005649676e3167f69dd09b6e7",
+      "matches_manifest": true,
+      "same_as_freeze7": true
+    },
+    "series": {
+      "sha256": "75c3b3ffba715a83e8eb60405c96824ad40db05f25974ae19a10b933f46d1306",
+      "matches_manifest": true,
+      "same_as_freeze7": true
+    },
+    "background": {
+      "sha256": "d27dbe2533d2a53943331136eac683cc9b4e2765c0024cdc76b56d6e68746977",
+      "matches_manifest": true,
+      "same_as_freeze7": true
+    },
+    "home": {
+      "sha256": "3f78d9a22dfcb9aede3bb3340349bcec583e84c0ec8a312cbf60ce87871d2588",
+      "matches_manifest": true,
+      "same_as_freeze7": true
+    },
+    "home-inactive": {
+      "sha256": "c15eaa31fa80616e9a4664e45edb6983211dc2bac00418c9594660f072b39c7a",
+      "matches_manifest": true,
+      "same_as_freeze7": true
+    },
+    "expanded-controls": {
+      "sha256": "27285c31a3034b2edd504d02ed7dd8d8921f88fb5c4ec95dc65c1ba7a7f5cab7",
+      "matches_manifest": true,
+      "same_as_freeze7": true
+    }
+  },
+  "range_after": {
+    "sha256": "4849a5eadf29a63f53521b49ece9a63348ccb77b8c8aff2ff5ad596f10b93c8a",
+    "actual_source_sha256": "4849a5eadf29a63f53521b49ece9a63348ccb77b8c8aff2ff5ad596f10b93c8a",
+    "full_source_sha256": "a4f846eaeff6f281ef1b8935b41e714b03e68e48c81b2d417d335a7cddc5599b",
+    "raw_observation_sha256": "55c8e17e04726476e68f12bfc0d6ab4fb92d8e7943d38be337cec857856b2d60",
+    "box": [
+      77,
+      229,
+      132,
+      280
+    ],
+    "masks": [],
+    "channel_delta": 20,
+    "changed_fraction": 0.002,
+    "actual_passes": true,
+    "erased_rejected": true,
+    "wrong_before_values_rejected": true,
+    "observed_cells": [
+      {
+        "address": "A1",
+        "value": "Period"
+      },
+      {
+        "address": "B1",
+        "value": "Value"
+      },
+      {
+        "address": "A2",
+        "value": "Q1"
+      },
+      {
+        "address": "A3",
+        "value": "Q2"
+      },
+      {
+        "address": "A4",
+        "value": "Q3"
+      },
+      {
+        "address": "B2",
+        "value": "10"
+      },
+      {
+        "address": "B3",
+        "value": "25"
+      },
+      {
+        "address": "B4",
+        "value": "30"
+      },
+      {
+        "address": "D1",
+        "value": "craftreport-browser-reference-v1"
+      },
+      {
+        "address": "D2",
+        "value": "KEEP"
+      },
+      {
+        "address": "D3",
+        "value": "-7"
+      }
+    ],
+    "category": "=Report!$A$2:$A$4"
+  },
+  "semantic_review": [
+    "Visible blue outline exactly encloses B2:B4; rows contain10,25,30 from independent fixture AFTER expectations.",
+    "Full screenshot shows active D3 with green border outside value range and formula -7, same selected chart at F2 with title Reference series, Value legend, Q1/Q2/Q3 and middle25.",
+    "Only range-after PNG changes from freeze7. Other15 baseline hashes, rendering fingerprint, box, masks and thresholds retained.",
+    "Replacement removes green activeB3 selection overlay; it does not revise expected source bounds or values."
+  ],
+  "limits": [
+    "Cell clipboard strings alone do not prove storage types.",
+    "New before/after run against frozen manifest, saved artifact and reopen claims remain outside this review.",
+    "No browser launched."
+  ]
+}

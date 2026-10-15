@@ -1,0 +1,102 @@
+{
+  "reviewer": "independent read-only baseline reviewer",
+  "status": "APPROVED_FOR_CHART_AND_BOLD_VISUAL_BASELINE",
+  "scope": "Candidate PNG semantic review only; not full task, save, exact integer-format OOXML, reopen, or journey acceptance. No baseline/source changed.",
+  "expectation_source": "tests/fixtures/browser_verification/expected.json and approved design; expected values not inferred from candidate",
+  "artifacts": {
+    "view-6d03e376e21f4cf385047f183fe9ce82.png": {
+      "path": "artifacts\\browser-verification\\task-3.2\\192c0332-5ceb-4310-ac9a-82b72bcde054\\view-6d03e376e21f4cf385047f183fe9ce82.png",
+      "sha256": "7a77957b4a7055f145f26720b7fb4f875d5c46499b5ba161f85bedd2d994edc5"
+    },
+    "view-8b5640c8a7044723a42730dfed5a80c0.png": {
+      "path": "artifacts\\browser-verification\\task-3.2\\192c0332-5ceb-4310-ac9a-82b72bcde054\\view-8b5640c8a7044723a42730dfed5a80c0.png",
+      "sha256": "d1a677f49d8ff6a2782ea1831a6e35ef8640471350fc7a7cbdf5478c839938ab"
+    },
+    "fixture-after-7ad0efebf0414613b0642e8373b6df4d.png": {
+      "path": "artifacts\\browser-verification\\task-3.2\\192c0332-5ceb-4310-ac9a-82b72bcde054\\fixture-after-7ad0efebf0414613b0642e8373b6df4d.png",
+      "sha256": "f1724f18bc6de7811f2e0a056d7ad9ca02b7e0208220e3bab4c52b6e51304241"
+    },
+    "selected-A1-8529fd18523045dcb8814b823184ecdb.png": {
+      "path": "artifacts\\browser-verification\\task-3.2\\192c0332-5ceb-4310-ac9a-82b72bcde054\\selected-A1-8529fd18523045dcb8814b823184ecdb.png",
+      "sha256": "3c59a8b44d5ec93e0442eb6c2d380d990dfacd7c53c2445782fd796582b2f5c3"
+    },
+    "selected-B1-43f0fe8f04c1447c9a4380743051dcab.png": {
+      "path": "artifacts\\browser-verification\\task-3.2\\192c0332-5ceb-4310-ac9a-82b72bcde054\\selected-B1-43f0fe8f04c1447c9a4380743051dcab.png",
+      "sha256": "4403172a399f7edc91b7e3c0569c767739d8c7c18f9bdd7a84af5cbbc9f796a5"
+    },
+    "view-e0bfffaccb034065a6a8af6cf751e765.png": {
+      "path": "artifacts\\browser-verification\\task-3.2\\192c0332-5ceb-4310-ac9a-82b72bcde054\\view-e0bfffaccb034065a6a8af6cf751e765.png",
+      "sha256": "1b087f94f6fdd0f649a72c0eb90cbf0ab1d55b65aca98621cb76442f65c0ef8a"
+    },
+    "view-844cfabdbf7845da895429c59224216f.png": {
+      "path": "artifacts\\browser-verification\\task-3.2\\192c0332-5ceb-4310-ac9a-82b72bcde054\\view-844cfabdbf7845da895429c59224216f.png",
+      "sha256": "c7a3f421ac0cd7541399d72c225dc73bc0f0903ed616ff2769768f1bbc905750"
+    }
+  },
+  "findings": {
+    "before_plot": "Independent 10/20/30 expectation matches x480 blue y335..336 against y435=0,y262=35; middle value about20.03.",
+    "after_plot": "Independent 10/25/30 expectation matches x480 blue y310..312; middle value about25.09. Outer points remain near10 and30.",
+    "range": "Selected same chart blue outline visibly bounds B2:B4 (x79..129,y231..278).",
+    "category": "Select Data visibly contains =Report!$A$2:$A$4, one Value series; genuine clipboard receipt supplied by controller separately.",
+    "chart": "One line chart, title Reference series, bottom Value legend, Q1/Q2/Q3 labels; top-left x284,y231 corresponds F2; rendered384x240 extent is consistent with480x300 at0.8 UI scale.",
+    "bold": "Both A1 and B1 have active gray Bold toolbar button in BEFORE and AFTER selected-header screenshots. Initial appearance-only concern withdrawn; glyphs alone were ambiguous.",
+    "integer_format": "Visible integer display only; exact stored format0 requires independent artifact inspection."
+  },
+  "proposed_crops_only": {
+    "chart": [
+      284,
+      231,
+      668,
+      471
+    ],
+    "middle_point": [
+      470,
+      303,
+      491,
+      344
+    ],
+    "title": [
+      420,
+      239,
+      535,
+      254
+    ],
+    "legend": [
+      450,
+      449,
+      500,
+      463
+    ],
+    "values_outline": [
+      77,
+      229,
+      132,
+      280
+    ],
+    "header_glyphs": [
+      27,
+      215,
+      130,
+      230
+    ],
+    "bold_active": [
+      119,
+      104,
+      145,
+      128
+    ],
+    "selected_address": [
+      8,
+      166,
+      125,
+      191
+    ]
+  },
+  "proposed_comparison": {
+    "masks": [],
+    "channel_delta_threshold": 20,
+    "maximum_changed_pixel_fraction": 0.002,
+    "require_all_crops": true,
+    "notes": "Proposals require repeatability and wrong-middle-point/bold-inactive sensitivity checks before freezing. Bind crops to identical selected-address/checkpoint state. Never mask line point, header glyph, or Bold control. No threshold acceptance claimed from one capture."
+  }
+}
