@@ -5,7 +5,7 @@ All executable units target 1–3 hours and remain unchecked until fresh task-lo
 Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_runtime/<affected-file>`, then `uv.exe run --frozen python scripts/check.py --fast` through installed hooks; integration tasks run the affected installed-wheel journey and final `--integration`. Record actual commands/exit codes/source/evidence. Root coordinates shared gate changes with report-model before new source. Per-task tests verify domain effects rather than mirror implementation.
 
 - [ ] 1. Activate exact ownership and durable runtime prerequisites
-- [ ] 1.1 Apply reviewed ownership, budgets and import boundaries before source expansion
+- [x] 1.1 Apply reviewed ownership, budgets and import boundaries before source expansion
   - Root registers most-specific snapshot-storage ownership of adapters/storage, data/runtime, exact executable recipe/bootstrap paths and fixture/content/docs ownership; applies existing 1,500 capability/50 function/300 module/McCabe 10 defaults without raises.
   - Extend the five-layer import gate narrowly for data, runtime and snapshot-storage; keep runtime free of compiler/theme/framework/storage imports and pure data free of application/framework imports. Only data.ports may import the existing application.service_values Missing/VersionConflict/ServiceUnavailable values. Include exact positive/negative import fixtures and same typed/linted source scope; add no application code.
   - Done when canonical fast checks accept allowed fixtures and reject forbidden dependencies; ledger approval refers to this reviewed Design and shared edits are serialized with sibling activation.
@@ -145,3 +145,13 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   - _Boundary: Adopter workflow recipe/bootstrap, fixture, guide and acceptance record_
   - _Depends: 6.2_
   - _Requirements: 1.5, 2.2, 2.4, 2.5, 3.1, 4.2, 4.3, 4.6, 5.1, 5.2, 5.3, 5.4, 5.5, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6_
+
+## Implementation Notes
+
+- Task 1.1: independently approved by `/root/review_snapshot_gate_1_1`;
+  focused Windows tests 21 passed/60 subtests, Ruff/format/Pyright and real
+  breadth/import/quality gates passed. RED and final evidence retained under
+  `artifacts/snapshot-runtime/task-1.1/`. Exact member imports preserve the
+  data.ports exception; recipes remain development-gates, fixture public-packs.
+  Scanner +7 LLOC; no application code or budget increase. Installed hook is
+  required before this acceptance lands.

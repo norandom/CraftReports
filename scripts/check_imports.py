@@ -9,11 +9,23 @@ from pathlib import Path, PurePosixPath
 
 from quality_policy import Ownership, load_ownership
 
-LAYERS = {"contracts", "application", "adapters", "interfaces", "composition"}
+LAYERS = {
+    "contracts",
+    "application",
+    "adapters",
+    "interfaces",
+    "composition",
+    "data",
+    "runtime",
+    "snapshot-storage",
+}
 ALLOWED = {
     "contracts": {"contracts"},
+    "data": {"contracts", "data"},
+    "runtime": {"contracts", "data", "runtime"},
+    "snapshot-storage": {"contracts", "application", "data", "runtime", "snapshot-storage"},
     "application": {"contracts", "application"},
-    "adapters": {"contracts", "application", "adapters"},
+    "adapters": {"contracts", "application", "data", "runtime", "adapters"},
     "interfaces": {"contracts", "application", "interfaces"},
     "composition": LAYERS,
 }
@@ -26,6 +38,15 @@ BROWSER_MODULES = {
     "playwright",
     "PIL",
 }
+RUNTIME_APPLICATION_MODULES = {
+    "ports",
+    "service_values",
+    "journal_values",
+    "capabilities",
+    "registry",
+    "outcomes",
+}
+SNAPSHOT_READ_RESULTS = {"Missing", "VersionConflict", "ServiceUnavailable"}
 
 
 def module_name(path: Path, root: Path) -> str:
@@ -57,10 +78,12 @@ def target_layer(target: str) -> str | None:
         return None
     if len(parts) == 1 or parts[1] in {"bootstrap", "__init__"}:
         return "composition"
+    if parts[1:3] == ["adapters", "storage"]:
+        return "snapshot-storage"
     return parts[1]
 
 
-def forbidden(owner: str, target: str, package_modules: Ownership) -> bool:
+def forbidden(owner: str, target: str, package_modules: Ownership, module: str) -> bool:
     if owner != "browser-verification" and any(
         target == prefix or target.startswith(f"{prefix}.") for prefix in BROWSER_MODULES
     ):
@@ -70,6 +93,22 @@ def forbidden(owner: str, target: str, package_modules: Ownership) -> bool:
     module_path = PurePosixPath(*target.split("."))
     if any(module_path.is_relative_to(prefix) for _, prefix in package_modules.entries):
         return package_modules.resolve(module_path.as_posix()) != owner
+    if (
+        owner == "data"
+        and module == "craftreport.data.ports"
+        and target
+        in {f"craftreport.application.service_values.{value}" for value in SNAPSHOT_READ_RESULTS}
+    ):
+        return False
+    if owner in {"runtime", "snapshot-storage"} and layer == "application":
+        modules = RUNTIME_APPLICATION_MODULES | (
+            {"dispatch_ports"} if owner == "snapshot-storage" else set[str]()
+        )
+        return not any(
+            target == f"craftreport.application.{name}"
+            or target.startswith(f"craftreport.application.{name}.")
+            for name in modules
+        )
     if owner not in LAYERS:
         if layer is None:
             return False
@@ -79,8 +118,9 @@ def forbidden(owner: str, target: str, package_modules: Ownership) -> bool:
         return layer != "contracts" and not port
     if layer is not None:
         return layer not in ALLOWED[owner]
-    if owner in {"contracts", "application"}:
-        return external not in sys.stdlib_module_names or external in STORAGE
+    if owner in {"contracts", "application", "data", "runtime", "snapshot-storage"}:
+        concrete = {"sqlalchemy", "sqlite3"} if owner == "snapshot-storage" else set[str]()
+        return external not in (sys.stdlib_module_names - STORAGE) | concrete
     return False
 
 
@@ -98,17 +138,10 @@ def file_errors(root: Path, path: Path, owners: Ownership, package_modules: Owne
         if not isinstance(node, (ast.Import, ast.ImportFrom)):
             continue
         targets = import_targets(node, package)
-        if isinstance(node, ast.ImportFrom) and targets[0] == "craftreport" and len(targets) > 1:
-            targets = targets[1:]
-        elif (
-            isinstance(node, ast.ImportFrom)
-            and owner not in LAYERS
-            and targets[0] == "craftreport.application"
-            and len(targets) > 1
-        ):
+        if isinstance(node, ast.ImportFrom) and len(targets) > 1:
             targets = targets[1:]
         for target in targets:
-            if forbidden(owner, target, package_modules):
+            if forbidden(owner, target, package_modules, module):
                 errors.append(f"{relative}:{node.lineno}: forbidden import: {owner} -> {target}")
     return errors
 

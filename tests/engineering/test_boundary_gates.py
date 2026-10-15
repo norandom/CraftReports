@@ -276,7 +276,7 @@ class BoundaryGateTests(unittest.TestCase):
     def test_unknown_unapproved_and_most_specific_parked_owners(self) -> None:
         for path, diagnostic in (
             ("src/craftreport/mystery/code.py", "unknown ownership"),
-            ("src/craftreport/data/code.py", "unapproved ownership: data"),
+            ("src/craftreport/reporting/code.py", "unapproved ownership: reporting"),
             ("packages/craftreport-wordcraft/README.md", "parked ownership: wordcraft"),
         ):
             with self.subTest(path=path):
@@ -420,6 +420,68 @@ class BoundaryGateTests(unittest.TestCase):
         )
         self.write("src/craftreport/__init__.py", "from .composition.app import app\n")
         self.run_gate("imports")
+
+    def test_snapshot_allowed_dependencies(self) -> None:
+        cases = {
+            "data/values.py": "from decimal import Decimal\nfrom ..contracts import values\n",
+            "data/ports.py": (
+                "from craftreport.application.service_values import Missing as M, "
+                "VersionConflict, ServiceUnavailable\nfrom .values import Snapshot\n"
+            ),
+            "runtime/publication.py": (
+                "from ..data import ports\nfrom ..application import ports as kernel_ports\n"
+                "from craftreport.application.registry import OperationBinding\n"
+                "from craftreport.application.capabilities import CapabilityInstance\n"
+                "from craftreport.application.outcomes import outcome_update, OutcomeFacts\n"
+                "from craftreport.application.journal_values import ReceiptUpdate\n"
+            ),
+            "adapters/storage/schema.py": (
+                "import sqlite3\nfrom sqlalchemy import Table\nfrom ...runtime import values\n"
+                "from craftreport.application.dispatch_ports import RetainedResult\n"
+                "from .database import Database\n"
+            ),
+            "adapters/snapshot_wire.py": "from ..data import values\nfrom ..runtime import ports\n",
+            "composition/snapshot_host.py": "from ..adapters.storage import providers\n",
+        }
+        for path, source in cases.items():
+            self.write(f"src/craftreport/{path}", source)
+        self.run_gate("imports", cli=True)
+
+    def test_snapshot_forbidden_dependencies(self) -> None:
+        cases = (
+            ("data/values.py", "from ..application.service_values import Missing"),
+            ("data/ports.py", "from ..application.service_values import ResourceSnapshot"),
+            ("data/ports.py", "from ..application.service_values import *"),
+            ("data/ports.py", "import craftreport.application.service_values as services"),
+            ("data/ports/helpers.py", "from ...application.service_values import Missing"),
+            ("data/values.py", "from ..runtime import values"),
+            ("data/values.py", "import sqlite3"),
+            ("data/values.py", "import pydantic"),
+            ("data/values.py", "import polars"),
+            ("data/values.py", "from ..adapters.storage import database"),
+            ("runtime/publication.py", "from ..reporting import compiler"),
+            ("runtime/publication.py", "from ..themes import values"),
+            ("runtime/publication.py", "from ..policies import checks"),
+            ("runtime/publication.py", "from ..application import dispatch"),
+            ("runtime/publication.py", "from ..adapters.storage import snapshots"),
+            ("runtime/publication.py", "import sqlalchemy"),
+            ("runtime/publication.py", "import sqlite3"),
+            ("runtime/publication.py", "import fastapi"),
+            ("adapters/storage/schema.py", "from ...reporting import compiler"),
+            ("adapters/storage/schema.py", "from ...application import dispatch"),
+            ("adapters/storage/schema.py", "from .. import snapshot_wire"),
+            ("adapters/storage/schema.py", "import fastapi"),
+            ("adapters/storage/schema.py", "import duckdb"),
+        )
+        for path, source in cases:
+            with self.subTest(path=path, source=source):
+                fixture = f"src/craftreport/{path}"
+                self.write(fixture, source + "\n")
+                report = str(self.run_gate("imports", 1))
+                self.assertIn(f"{fixture}:1: forbidden import:", report)
+                if path.startswith("adapters/storage/"):
+                    self.assertIn("snapshot-storage ->", report)
+                (self.root / fixture).unlink()
 
     def test_invalid_syntax_and_unresolved_relative_imports(self) -> None:
         for source in ("from ....adapters import bad\n", "def broken(:\n"):
