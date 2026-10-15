@@ -5,7 +5,11 @@ from __future__ import annotations
 from typing import Literal
 from uuid import UUID, uuid4
 
-from .contracts import Text, Value
+from . import browser
+from .config import Bounds, RunConfig
+from .contracts import CleanupFinding, Outcome, Text, Value
+from .deployment import DeploymentLease
+from .evidence import VideoEvidence
 
 ResourceKind = Literal["deployment", "process", "driver", "browser", "context", "connection"]
 CloseState = Literal["pending", "graceful", "forced", "failed"]
@@ -69,3 +73,48 @@ class ResourceRegistry:
         updated = ResourceToken.model_validate(token.model_dump() | {"close_state": state})
         self._tokens[token_id] = updated
         return updated
+
+
+class StartupResult(Value):
+    """A readiness receipt, deliberately not a verified workbook journey."""
+
+    run_id: UUID
+    bounds: Bounds
+    headed: bool
+    readiness: Outcome[browser.ReadyPage]
+    cleanup: tuple[CleanupFinding, ...]
+    resources: tuple[ResourceToken, ...]
+    video: VideoEvidence | None
+    unexecuted: tuple[str, ...] = (
+        "visible-mutation",
+        "persistence",
+        "byte-inspection",
+        "browser-reopen",
+    )
+
+
+async def startup(
+    config: RunConfig, lease: DeploymentLease, registry: ResourceRegistry
+) -> StartupResult:
+    """Exercise startup and retain evidence on either path; caller owns deployment."""
+    state = browser.BrowserState(registry)
+    config.run_directory.mkdir(parents=True, exist_ok=True)
+    try:
+        readiness = await browser.start(config, lease, state)
+    finally:
+        cleanup = await browser.close(config, state)
+        if state.diagnostics:
+            state.diagnostics.write(config.run_directory / "diagnostics.json")
+    result = StartupResult(
+        run_id=config.run_id,
+        bounds=config.bounds,
+        headed=config.headed,
+        readiness=readiness,
+        cleanup=cleanup,
+        resources=registry.tokens,
+        video=state.video,
+    )
+    (config.run_directory / "startup.json").write_text(
+        result.model_dump_json(indent=2), encoding="utf-8"
+    )
+    return result

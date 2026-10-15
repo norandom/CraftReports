@@ -107,7 +107,7 @@ The existing probe on 8871 is preserved.
   - _Depends: 2.2; owner approval recorded in budget-amendment.md_
   - _Requirements: 2.6, 6.6, 8.1_
 
-- [ ] 2.4 Integrate isolated browser startup with minimum evidence and cleanup
+- [x] 2.4 Integrate isolated browser startup with minimum evidence and cleanup
   - Create owned fixed-profile contexts with diagnostics before navigation and
     explicit video recording; verify loaded asset hashes and usable canvas.
   - Exercise the disclosed picker-capability removal, confirm absence and record
@@ -319,3 +319,5 @@ Deployments here are disposable verification infrastructure, not product release
 - 2.2 reopened for a hosted-Linux test portability regression: seven simulated owned tests passed Windows paths to the WSL profile on Linux and failed before their intended assertions. Actual WSL deployment evidence remains valid. Fix the owning test setup and verify Linux without weakening production path checks. Hosted failure `https://github.com/norandom/CraftReports/actions/runs/38612814632`, retained `artifacts/ci-first-push/failed.log`. Kernel offline fixture-cache resolution is a separate upstream repair.
 
 - 2.2 Linux portability follow-up accepted: old Linux suite 7 failed/10 passed; repaired and independent source-hash-matched Linux run 17 passed. Windows focused 17 passed/canonical fast 741 passed/88 subtests. Only simulated test mode/argv assertions changed; production validation and all fault assertions retained. Evidence `artifacts/browser-verification/task-2.2/linux-portability`. Hosted kernel cache repair remains separate.
+
+- 2.4 accepted on 2026-10-15: independent review and fresh canonical fast checks passed (763 tests, 88 subtests); four real final runs proved headed/headless startup and missing-WASM/denied-clipboard rejection with graceful owned cleanup. Reviewer independently rehashed/decoded all four videos and matched all five source hashes. Loaded HTML/JS/WASM, native window visibility, disclosed picker removal and reversible A1/B1/A1 selection are observed. Evidence `artifacts/browser-verification/task-2.4/review-index.json`; source 1,714/2,800 LLOC. Calibrated Windows profile is explicit; unknown profiles block, including Linux until separately calibrated. Workbook mutation/save/reopen and complete lifecycle/evidence acceptance remain later tasks.
