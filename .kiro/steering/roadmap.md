@@ -1,6 +1,6 @@
 # Roadmap
 
-Updated: 2026-10-14. **Five-part decomposition approved** by the owner's contextual "ok". There are three real specs: the umbrella has approved requirements; the kernel has approved requirements, Design and Tasks and all 26 executable tasks accepted; browser verification has approved requirements/Design and 18 approved tasks with implementation in progress. The kernel's 36 Python source modules and final validation cover synthetic effects and temporary state, not the composed reporting application. The remaining three downstream bounded specs are not initialized.
+Updated: 2026-10-15. **Five-part decomposition approved** by the owner's contextual "ok". Six actual specifications now exist: the umbrella retains approved foundation requirements; the kernel has all 26 executable tasks accepted within its synthetic scope; browser verification remains in progress with 15 of 20 tasks accepted at the overnight-run baseline; and the three downstream bounded specs are initialized with discovery briefs and registered ownership. Phase status remains authoritative in each `spec.json`; initialization is not phase approval or a working capability.
 
 ## Overview
 
@@ -8,7 +8,7 @@ CraftReport delivers a public modular reporting facade, beginning with supplied 
 
 ## Approach Decision
 
-- **Approved direction:** stable kernel plus self-contained capabilities, developed one bounded spec at a time. Thin REST/MCP/UI entry points share typed command/query dispatch and common guards/evidence. Concrete contracts and implementation choices remain subject to each bounded Design review.
+- **Approved direction:** stable kernel plus self-contained capabilities. Thin REST/MCP/UI entry points share typed command/query dispatch and common guards/evidence. Concrete contracts and implementation choices remain subject to each bounded Design review. The bounded overnight continuation below allows independent upstream work in parallel.
 - **Why:** ownership, dependency contracts and evidence remain inspectable as apps/domains grow. Shared reporting meaning does not fork per app.
 - **Alternatives:** one expanding umbrella implementation obscures ownership; making every utility a plugin adds indirection; microservices/brokers/event sourcing are not required by the foundation.
 
@@ -21,7 +21,7 @@ CraftReport delivers a public modular reporting facade, beginning with supplied 
 
 Use typed Python/Polars where processing is needed; avoid handwritten SQL in core logic; private packs stay separate. Database/ORM remain downstream Design decisions. The approved kernel dependencies and tools are locked and installed; task-local compatibility, installed-client checks and independent final synthetic-scope validation have passed. DuckDB remains excluded.
 
-GridCraft is the latest official downloadable release, at least 0.6.1, with checksum/build recorded per deployment. No local GridCraft compilation. Docker runs in Debian WSL here; configured remote instances are an alternative. Playwright verifies the actual browser session, with screenshots, review videos, diagnostics and persisted artifact/reopen evidence.
+GridCraft is the latest official downloadable release, at least 0.6.1, with checksum/build recorded per deployment. No local GridCraft compilation. Docker runs in Debian WSL here; configured remote instances are an alternative. Check the actual selected release's supported embedding/control/file capabilities; prefer mature released capabilities to custom automation where their semantics suffice. Historical UI-only assumptions do not constrain newer releases. Playwright verifies the actual browser session, with screenshots, review videos, diagnostics and persisted artifact/reopen evidence. Unattended automation remains headless; separate missing headed evidence stays open.
 
 ## Boundary Strategy
 
@@ -32,14 +32,43 @@ The umbrella acceptance baseline is retained. Child requirements/designs referen
 | Order | Candidate | Responsibility | Dependencies |
 | --- | --- | --- | --- |
 | 1 | [craftreport-operation-kernel](../specs/craftreport-operation-kernel/requirements.md) | Typed contracts, plugin/operation registration, shared command/query middleware, thin software interfaces and evidence/port contracts. Requirements, Design and Tasks approved; implementation and final synthetic-scope validation accepted. | Approved umbrella acceptance baseline. |
-| 2 | [craftreport-browser-verification](../specs/craftreport-browser-verification/requirements.md) | Latest web-release download/serve profile, owned browser verification, screenshots/videos/diagnostics and real edit/save/reopen feasibility proof. Requirements and Design approved; 18 tasks approved; implementation in progress. | Kernel contract/evidence identities; browser feasibility is verified independently of a complete report workflow. |
-| 3 | `craftreport-snapshot-runtime` | Typed producer publication, ordered immutable snapshots, retained operations/binding state, scheduler and restart reconciliation. | Operation kernel; reviewed persistence choice. |
-| 4 | `craftreport-report-model-packs` | Declarative compilation, semantic themes, public/private pack compatibility, scoped findings and draft/release rules. | Kernel data/model/evidence contracts. |
-| 5 | `craftreport-gridcraft-web-reports` | App package: owned-region rendering, controls, live refresh, actual XLSX export and integrated browser journey. | Browser proof, snapshot runtime and report/packs capabilities. |
+| 2 | [craftreport-browser-verification](../specs/craftreport-browser-verification/requirements.md) | Latest web-release download/serve profile, owned browser verification, screenshots/videos/diagnostics and real edit/save/reopen feasibility proof. Requirements and Design approved; 20 approved tasks after bounded amendments; implementation in progress. | Kernel contract/evidence identities; browser feasibility is verified independently of a complete report workflow. |
+| 3a | [craftreport-snapshot-runtime](../specs/craftreport-snapshot-runtime/brief.md) | Typed producer publication, ordered immutable snapshots, retained operations/binding state, scheduler and restart reconciliation. Initialized; discovery brief prepared. | Operation kernel; reviewed persistence choice. Independent of report-model planning and browser closure. |
+| 3b | [craftreport-report-model-packs](../specs/craftreport-report-model-packs/brief.md) | Declarative compilation, semantic themes, public/private pack compatibility, scoped findings and draft/release rules. Initialized; discovery brief prepared. | Operation kernel; agreed plain input/prepared-report contracts. Independent of runtime implementation and browser closure. |
+| 4 | [craftreport-gridcraft-web-reports](../specs/craftreport-gridcraft-web-reports/brief.md) | App package: owned-region rendering, controls, live refresh, actual XLSX export and integrated browser journey. Initialized; discovery brief prepared. | Both upstream reviewed designs/contracts; actual browser capability evidence for each claimed app path. Full browser closure remains separate. |
 
 Kernel, snapshot, pack and app responsibilities have separate closure evidence. Browser feasibility is checked early; its harness later verifies the fully composed system. A successful UI-only feasibility test cannot claim a working facade/report flow.
 
-The operation kernel and browser verification have child spec.json metadata. Browser verification requirements and Design are approved; Tasks are approved and implementation is in progress. The remaining three scopes are approved roadmap entries awaiting initiation, not existing specs or approved task sets. Do not run batch fast-track automatically. Preserve human Requirements -> Design -> Tasks approvals and register each actual spec as it is created.
+### Bounded overnight continuation
+
+The owner's 2026-10-15 instruction authorizes eight hours of unattended progress
+across the three existing foundation scopes. Its exact deadline, operating
+constraints and checkpoint record are in
+[overnight-run-2026-10-15.md](../specs/craftreport-reporting-facade/overnight-run-2026-10-15.md).
+This is intentional fast-track authority for those scopes only; record its
+provenance in new phase metadata. It supersedes sequential human pauses within
+that bounded run while preserving independent phase/task/implementation reviews,
+ownership registration, installed hooks and fresh acceptance evidence. It does
+not authorize future domains/apps, financial methods, GIPS assurance or higher
+numeric budgets.
+
+Initialization/registration is complete for the three downstream scopes. Wave 1
+reviews snapshot-runtime and report-model-packs requirements/designs independently.
+Agree one small immutable snapshot,
+binding-requirements and prepared-report seam; do not create a circular dependency
+or parallel source of canonical state. Wave 2 freezes app Design/tasks against
+both reviewed contracts and current released-browser capabilities. Independent
+data/model tasks may proceed while browser feasibility remains open. Actual app
+acceptance still needs matching external-effect and artifact evidence; a missing
+headed profile remains `MANUAL_VERIFY_REQUIRED` and cannot be silently waived.
+
+The first deliverable is a thin external producer -> reusable table/line-chart
+report -> identified live GridCraft -> snapshot-pinned XLSX flow. Defer optional
+ingestion formats, multiple storage backends, generic report languages and
+cross-app infrastructure. Before new source lands, reviewed tasks must apply the
+existing default budgets to exact owners and narrowly extend import-boundary
+rules/tests; root coordinates shared gate edits. Discovery alone performs none
+of these phase or implementation actions.
 
 ## Existing Spec Updates
 
@@ -47,14 +76,21 @@ The operation kernel and browser verification have child spec.json metadata. Bro
 
 ## Direct Implementation Candidates
 
-None authorized. Core steering and research documentation are current; production foundations require approved bounded Design/tasks.
+None outside the bounded specs. Production foundations require reviewed bounded
+Design/tasks under the explicit overnight authority.
 
 ## Specs (dependency order)
 
-1. [craftreport-operation-kernel](../specs/craftreport-operation-kernel/requirements.md) — requirements, Design and Tasks approved; all 26 executable tasks accepted with final synthetic-scope validation. Upstream: approved umbrella baseline. Downstream: browser verification is initialized; the other three scopes remain uninitialized.
-2. [craftreport-browser-verification](../specs/craftreport-browser-verification/requirements.md) — requirements and Design approved; 18 tasks approved after independent graph review; implementation is in progress. Proves the released-browser interaction and actual file boundary, without implementing the reporting service.
+- [x] [craftreport-operation-kernel](../specs/craftreport-operation-kernel/brief.md) -- all 26 executable tasks accepted with final synthetic-scope validation. Dependencies: approved umbrella baseline.
+- [ ] [craftreport-browser-verification](../specs/craftreport-browser-verification/brief.md) -- approved phase plans, implementation/profile acceptance remains open; proves released-browser interaction/file boundaries. Dependencies: craftreport-operation-kernel.
+- [ ] [craftreport-snapshot-runtime](../specs/craftreport-snapshot-runtime/brief.md) -- typed publication, immutable ordered snapshots and retained lifecycle/restart behavior. Dependencies: craftreport-operation-kernel.
+- [ ] [craftreport-report-model-packs](../specs/craftreport-report-model-packs/brief.md) -- reusable prepared reports, semantic packs and scoped draft/release findings. Dependencies: craftreport-operation-kernel.
+- [ ] [craftreport-gridcraft-web-reports](../specs/craftreport-gridcraft-web-reports/brief.md) -- integrated live report and actual snapshot-consistent XLSX/reopen journey. Dependencies: craftreport-operation-kernel, craftreport-snapshot-runtime, craftreport-report-model-packs, craftreport-browser-verification (matching path evidence; full profile closure remains open).
 
-This is a sequential review plan, not authorization for batch generation or execution. Kernel acceptance supports shared contracts only; the umbrella stays open for the complete reporting journeys.
+Kernel acceptance supports shared contracts only; the umbrella stays open for
+the complete reporting journeys. Each new brief names the required quickstart,
+runnable adopter example and owning boundary; those delivery tasks and their
+execution validation travel through the bounded phase plans.
 
 ## Horizon and Activation Rules
 

@@ -16,15 +16,15 @@ approved_spec_scopes = ["craftreport-operation-kernel", "craftreport-browser-ver
 approved_capability_owners = ["contracts", "application", "adapters", "interfaces", "composition", "development-gates", "documentation", "browser-verification"]
 scope_approval_reference = ".kiro/specs/craftreport-operation-kernel/design-review.md"
 gate_implemented = true
-spec_count = 3
+spec_count = 6
 generated_task_sets = 2
 actual_python_modules = 36
 actual_plugin_packages = 0
 planned_plugin_packages = 19
 plugin_root = "packages"
 planned_module_capabilities = 13
-open_fronts = 2
-open_front_ids = ["spec.craftreport-browser-verification", "spec.craftreport-reporting-facade"]
+open_fronts = 5
+open_front_ids = ["spec.craftreport-browser-verification", "spec.craftreport-gridcraft-web-reports", "spec.craftreport-report-model-packs", "spec.craftreport-reporting-facade", "spec.craftreport-snapshot-runtime"]
 source_root = "src/craftreport"
 work_lines_source = ".kiro/steering/overview.md"
 retirement_limit_days = 14
@@ -468,5 +468,41 @@ owner = ["docs", "README.md"]
 path_state = "existing-developer-documentation"
 feature_keys = ["interfaces.mcp", "apps.capabilities", "reports.evidence"]
 closes = "n/a (active; kernel contracts, setup and product evaluation documentation implemented)"
+closure_required = false
+close_targets = []
+
+[spec.craftreport-snapshot-runtime]
+status = "active"
+line = "shared-reporting"
+phase_source = ".kiro/specs/craftreport-snapshot-runtime/spec.json"
+phase_at_draft = "initialized"
+status_since = "2026-10-15"
+owner = [".kiro/specs/craftreport-snapshot-runtime"]
+path_state = "existing-documents"
+closes = "n/a (active; bounded overnight fast-track, independent phase reviews required)"
+closure_required = false
+close_targets = []
+
+[spec.craftreport-report-model-packs]
+status = "active"
+line = "shared-reporting"
+phase_source = ".kiro/specs/craftreport-report-model-packs/spec.json"
+phase_at_draft = "initialized"
+status_since = "2026-10-15"
+owner = [".kiro/specs/craftreport-report-model-packs"]
+path_state = "existing-documents"
+closes = "n/a (active; bounded overnight fast-track, independent phase reviews required)"
+closure_required = false
+close_targets = []
+
+[spec.craftreport-gridcraft-web-reports]
+status = "active"
+line = "craft-app-integration"
+phase_source = ".kiro/specs/craftreport-gridcraft-web-reports/spec.json"
+phase_at_draft = "initialized"
+status_since = "2026-10-15"
+owner = [".kiro/specs/craftreport-gridcraft-web-reports"]
+path_state = "existing-documents"
+closes = "n/a (active; bounded overnight fast-track, independent phase reviews required)"
 closure_required = false
 close_targets = []
