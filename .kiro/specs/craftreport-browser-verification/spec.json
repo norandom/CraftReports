@@ -1,7 +1,7 @@
 {
   "feature_name": "craftreport-browser-verification",
   "created_at": "2026-10-14T15:37:37.420827Z",
-  "updated_at": "2026-10-14T16:30:26.741792+00:00",
+  "updated_at": "2026-10-15T12:53:09.929583+00:00",
   "language": "en",
   "phase": "implementation-in-progress",
   "approvals": {
@@ -58,5 +58,18 @@
     "executable_tasks": 19,
     "original_generation_tasks": 18,
     "amended_design_sha256": "544a5d62b2550937007a4ba9d4165c82021e7d9f2741216810aa6faa1326b782"
+  },
+  "headless_continuation_amendment": {
+    "approved": true,
+    "approved_at": "2026-10-15",
+    "reference": "headless-continuation-amendment.md",
+    "independent_review": "PASS",
+    "authorized_tasks": [
+      "4.1",
+      "4.2"
+    ],
+    "stop_before": "5.1",
+    "headless_only": true,
+    "acceptance_and_budgets_unchanged": true
   }
 }

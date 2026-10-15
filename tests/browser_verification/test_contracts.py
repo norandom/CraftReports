@@ -222,7 +222,12 @@ def test_cancellation_before_acquisition_still_retains_late_resource() -> None:
 def test_verified_result_requires_every_stage_and_successful_owned_cleanup() -> None:
     run_id = uuid4()
     stages = tuple(
-        StageFinding(stage=stage, requirements=("7.4",), status="passed")
+        StageFinding(
+            stage=stage,
+            requirements=("7.4",),
+            status="passed",
+            evidence_refs=("synthetic-unit-evidence",),
+        )
         for stage in sorted(MANDATORY_STAGES)
     )
     cleanup = CleanupFinding(
@@ -248,6 +253,7 @@ def test_verified_result_requires_every_stage_and_successful_owned_cleanup() -> 
         {"cleanup": ()},
         {"app_sha256": None},
         {"findings": (*stages, finding("unexecuted"))},
+        {"findings": tuple(s.model_copy(update={"evidence_refs": ()}) for s in stages)},
     ):
         with pytest.raises(ValidationError):
             RunResult.model_validate(result.model_dump() | changes)
@@ -257,6 +263,7 @@ def test_verified_result_requires_every_stage_and_successful_owned_cleanup() -> 
         {"exit_status": 1},
         {"survivors": ["context"]},
         {"final_video_state": "unfinished"},
+        {"final_video_state": "not-required"},
         {"owner_run": uuid4()},
     ):
         with pytest.raises(ValidationError):

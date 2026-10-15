@@ -10,6 +10,7 @@ from uuid import UUID, uuid4
 from . import browser, chart_interactions, interactions, persistence, visual, xlsx
 from .config import Bounds, RunConfig
 from .contracts import (
+    ActionReceipt,
     ArtifactCheckSet,
     ArtifactIdentity,
     CheckSet,
@@ -147,6 +148,9 @@ class RoundTripResult(Value):
     primary: Rejected | None = None
     cleanup: tuple[CleanupFinding, ...] = ()
     videos: tuple[VideoEvidence, ...] = ()
+    readiness: tuple[Outcome[browser.ReadyPage], ...] = ()
+    receipts: tuple[ActionReceipt, ...] = ()
+    diagnostics: tuple[browser.Diagnostic, ...] = ()
 
 
 async def chart_check(
@@ -256,6 +260,7 @@ async def recorded_workbook(
     driver: interactions.BrowserDriver | None = None
     try:
         ready = await browser.start(config, lease, state)
+        result = result.model_copy(update={"readiness": (*result.readiness, ready)})
         if isinstance(ready, Rejected):
             result = result.model_copy(update={"primary": ready})
         else:
@@ -278,8 +283,12 @@ async def recorded_workbook(
             }
         )
         if state.diagnostics:
+            result = result.model_copy(
+                update={"diagnostics": (*result.diagnostics, *state.diagnostics.events)}
+            )
             state.diagnostics.write(config.run_directory / "diagnostics.json")
         if driver:
+            result = result.model_copy(update={"receipts": (*result.receipts, *driver.receipts)})
             (config.run_directory / "interactions.json").write_text(
                 json.dumps(
                     {

@@ -234,6 +234,9 @@ MANDATORY_STAGES = frozenset(
 
 class RunResult(Value):
     schema_version: Literal[1] = 1
+    scope: Literal["synthetic-browser-reference-roundtrip"] = (
+        "synthetic-browser-reference-roundtrip"
+    )
     run_id: UUID
     source_revision: Text
     dirty_content: tuple[ContentIdentity, ...] = ()
@@ -257,6 +260,10 @@ class RunResult(Value):
                 or not CheckSet(findings=self.findings).passed
                 or not MANDATORY_STAGES.issubset(item.stage for item in self.findings)
                 or not self.cleanup
+                or not MANDATORY_STAGES.issubset(
+                    item.stage for item in self.findings if item.evidence_refs
+                )
+                or not any(item.final_video_state == "finalized" for item in self.cleanup)
             ):
                 raise ValueError(
                     "verified requires all mandatory stages and acquired-resource cleanup"

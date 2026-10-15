@@ -176,6 +176,10 @@ The existing probe on 8871 is preserved.
   - Record actual route/profile capability findings and first-slice source budget.
     Stop expansion if required routes are blocked or the approved cap cannot fit;
     seek an owning design/budget correction rather than manufacturing success.
+    Owner-approved exception: after independent acceptance of the Windows
+    headless sensitivity/recovery checkpoint, tasks 4.1 and 4.2 may proceed
+    under `headless-continuation-amendment.md`. Retain unsupported profile
+    findings explicitly; stop again before 5.1 for the profile/verification decision.
   - Done when independent review can inspect both the expected failed challenge
     and restored successful journey, including owned cleanup.
   - Validation: paired real sensitivity/recovery runs and relevant fast checks.
@@ -185,7 +189,7 @@ The existing probe on 8871 is preserved.
 
 ## 4. Complete evidence and lifecycle accountability after feasibility
 
-- [ ] 4.1 (P) Finalize inspectable evidence and scoped verdict reduction
+- [x] 4.1 (P) Finalize inspectable evidence and scoped verdict reduction
   - Bind requirement/source/fixture/app/browser/page/artifact identities to stage
     findings; record dirty content hashes when a clean revision is unavailable.
   - Retain named checkpoints, sanitized diagnostics and distinct unexecuted
@@ -349,3 +353,9 @@ Deployments here are disposable verification infrastructure, not product release
 
 - 3.4 accepted: independent review matched 467 evidence files and 34 current source hashes, confirmed actual suppressed dispatch leaves all eleven observed cells unchanged (B3=20) and rejects the edit before Save, and verified a distinct restored full round trip with all 22 saved-byte findings and fresh-context chart/cell checks. Four retained videos independently decoded headlessly; owned cleanup was graceful. Fresh independent canonical fast passed 813 tests/88 subtests. Evidence `artifacts/browser-verification/task-3.4/review-index.json`; source 2,496/2,800 LLOC. Original challenge assertion typo remains retained; exact source equivalence establishes unchanged production/recovery code after its correction. This accepts only the Windows headless download-fallback checkpoint.
 - Expansion hold after 3.4: required headed/Linux profiles remain unverified, and the owner prohibits automated foreground windows. The task stop-expansion rule remains in force before 4.1/4.2. The separately proposed `headless-continuation-amendment.md` passed independent review but requires explicit owner approval; no acceptance criteria or budgets are waived. Remaining source forecast is uncertain, not proof the cap cannot fit.
+
+- Owner explicitly approved `headless-continuation-amendment.md` on 2026-10-15. The prior expansion hold is lifted only for tasks 4.1 and 4.2, with headless-only execution, unchanged acceptance criteria and 2,800-LLOC cap. Stop before 5.1; missing headed/Linux coverage remains open.
+
+- Hosted revalidation confirmed for 3.4: [run 38735032116](https://github.com/norandom/CraftReports/actions/runs/38735032116) at `add0f10` succeeded. Dedicated browser CI remains pending.
+- 4.1 accepted after reference-completeness remediation: typed readiness/receipts/diagnostics and provenance bind stage findings; final manifest atomically publishes after cleanup with hashed findings and every declared observation reference. Independent review matched 2,020 evidence files and both 75-identity source/input/cache freezes, rechecked 22 actual XLSX findings and all chart/cell phases, and decoded three finalized videos headlessly. Missing actual Open, Reopen or cell screenshots and truncated recordings reject acceptance. Fresh independent canonical fast passed 847 tests/88 subtests. Evidence `artifacts/browser-verification/task-4.1/remediation-1/review-index.json`; source 2,798/2,800 LLOC. Prior incomplete-reference reproduction and intermediate attempts remain retained. Scoped Windows headless synthetic acceptance only; native lifecycle and full-feature/profile acceptance remain open.
+- Owner approved both changes in `lifecycle-evidence-budget-amendment.md` on 2026-10-15: explicit SDK/native closure evidence and browser-only 3,400 cap through new gate task 4.0. Apply the amended specification after this 4.1 acceptance; enforcement remains 2,800 until the gate is implemented and independently accepted. Stop before 5.1 remains. Final 4.1 baseline 2,798 is 54 above the proposal planning snapshot 2,744; preserve the approved 3,400 maximum and report the reduced headroom honestly.

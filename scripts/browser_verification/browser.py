@@ -330,7 +330,7 @@ async def start(
             assert state.context
             session = await state.context.new_cdp_session(page)
             await state.diagnostics.capture_network(session)
-            return Succeeded(payload=await observe(config, lease, state))
+            return Succeeded[ReadyPage](payload=await observe(config, lease, state))
     except (Error, OSError, ValueError, TimeoutError):
         code = state.checkpoint + "-unavailable"
         state.diagnostics.events.append(Diagnostic(category="page", code=code))
@@ -373,6 +373,7 @@ async def close(
                     state.video = await decode_video(
                         state.browser, await video.path(), state.registry
                     )
+                    state.video = state.video.model_copy(update={"context_id": state.context_id})
                     if not state.video.decoded_frame:
                         raise ValueError("video frame unavailable")
                     video_state = "finalized"

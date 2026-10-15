@@ -101,6 +101,7 @@ class VideoEvidence(Value):
     width: int = Field(gt=0)
     height: int = Field(gt=0)
     decoded_frame: bool
+    context_id: UUID | None = None
 
 
 def native_window(process_id: int) -> int | None:
@@ -268,9 +269,22 @@ class Registry(Protocol):
     def record_close(self, token_id: UUID, state: Literal["graceful", "failed"]) -> object: ...
 
 
+def complete_webm(body: bytes) -> None:
+    """Pinned Playwright recordings finalize a finite WebM Segment length."""
+    marker = bytes.fromhex("18538067")
+    offset = body.find(marker, 0, 4096) + 4
+    if offset < 4 or offset >= len(body) or body[offset] == 0:
+        raise ValueError("invalid-webm-segment")
+    width = 9 - body[offset].bit_length()
+    size = int.from_bytes(body[offset : offset + width], "big") & ((1 << (7 * width)) - 1)
+    if size == (1 << (7 * width)) - 1 or offset + width + size != len(body):
+        raise ValueError("unfinished-or-truncated-webm")
+
+
 async def decode_video(browser: Browser, path: Path, registry: Registry) -> VideoEvidence:
     """Decode a frame with the same Chromium, never infer video health from size."""
     body = path.read_bytes()
+    complete_webm(body)
     context = await browser.new_context()
     token = registry.register("context", "video-check-" + uuid4().hex)
     registry.mark_acquired(token.token_id)

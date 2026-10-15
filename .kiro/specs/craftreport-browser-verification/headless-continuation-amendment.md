@@ -1,7 +1,7 @@
 # Bounded headless continuation after the feasibility checkpoint
 
-Status: proposed on 2026-10-15; owner approval pending. This document does not
-change approved tasks, authorize implementation, or close missing coverage.
+Status: owner-approved on 2026-10-15. Authorizes only the bounded continuation
+below; missing coverage remains open.
 
 ## Decision requested
 
@@ -68,5 +68,5 @@ Independent review: PASS on 2026-10-15 by
 4.1/4.2 exception preserves all criteria, profile blockers and numeric limits.
 This review is not owner approval.
 
-Owner decision: pending. Approval applies only to the bounded continuation
-above; elapsed time or general resume instructions do not approve this change.
+Owner decision: approved explicitly on 2026-10-15. Approval applies only to
+the bounded continuation above.
