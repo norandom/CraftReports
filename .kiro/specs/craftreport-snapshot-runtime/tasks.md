@@ -27,7 +27,7 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   - _Boundary: SnapshotValues, VersionPin_
   - _Depends: 1.1_
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.6_
-- [ ] 2.2 Implement pure report completeness requirements
+- [x] 2.2 Implement pure report completeness requirements
   - Add agreed immutable requirement/issue values and pure checker, including missing/incompatible fields/units/metric kinds/shapes and required nonnull declarations/values. Empty metric kinds is unrestricted; chart completeness requires explicit numeric series shape; dataset chart fields use declared exact types, never inferred requirements.
   - Done when one accepted snapshot is independently complete for one binding and incomplete for another, with precise locations and no compiler/runtime import.
   - _Boundary: SnapshotValues requirements_
@@ -176,3 +176,10 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   is a nonempty string label; producer_version is positive signed64; digests are
   lowercase SHA256. Task 2.3 must check datetime lexical precision before parsing
   and normalize UTC; wire serialization remains that task's responsibility.
+
+
+- Task 2.2: independent `/root/review_snapshot_requirements_2_2` approval;
+  40 focused Windows tests, Ruff/format/Pyright and breadth passed. Pure
+  requirements/checker adds 131 LLOC (data425/1500), with declared kind, shape,
+  unit and nonnull semantics, no inference or snapshot mutation. RED evidence
+  and fresh checks: `artifacts/snapshot-runtime/task-2.2/`.
