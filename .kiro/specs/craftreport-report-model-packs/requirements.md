@@ -19,11 +19,11 @@ A report owner prepares a reusable table and line-chart report from supplied dat
 
 #### Acceptance Criteria
 
-1. When a caller validates a versioned definition, the CraftReport preparer shall identify its table, line-chart, named input and parameter requirements without mutating an app.
-2. When a caller supplies parameter values, the CraftReport preparer shall validate required names, declared types, defaults and permitted choices and expose the resolved values.
+1. When a caller validates a versioned definition, the CraftReport preparer shall validate its identity/version, selected template/theme, target requirements and validation scope and identify its table, line-chart, named input and parameter requirements before complete preparation or target use without mutating an app.
+2. When a caller supplies parameter values, the CraftReport preparer shall validate required names, declared types, defaults, permitted choices/ranges and binding dependencies and expose resolved values or an affected location and reason for failure.
 3. If a definition contains unknown constructs, executable code, formulas, SQL or arbitrary app actions, the CraftReport preparer shall reject it with a structured location and unsupported or invalid-input reason.
 4. If a required binding, field, metric or compatible type/unit is absent, the CraftReport preparer shall identify the unmet requirement and withhold complete preparation.
-5. When the same compatible definition is selected against different complete snapshots, the CraftReport preparer shall prepare each report without changing the definition.
+5. When the same compatible definition/template is selected against different complete snapshots, the CraftReport preparer shall revalidate the selected template's required bindings and prepare its declared report structure for each snapshot without rewriting the definition.
 6. When definition, parameters or presentation selections change, the CraftReport preparer shall expose the new selection identities and invalidate findings dependent on the changed selections.
 
 ### Requirement 2: Pinned supplied content
@@ -64,6 +64,7 @@ A report owner prepares a reusable table and line-chart report from supplied dat
 5. When a caller discovers or inspects packs, the CraftReport preparer shall expose only metadata and source content permitted for that caller.
 6. When public distribution or sanitized diagnostics are produced, the CraftReport preparer shall exclude private source bodies/assets, credentials and deployment input values.
 7. When prepared content is handed to an artifact producer, the CraftReport preparer shall carry pack/version attribution and artifact distribution policy separately from permission to disclose template source.
+8. If a pack requests executable code, the CraftReport preparer shall reject the pack as unsupported by the declarative reporting contract.
 
 ### Requirement 5: Scoped findings and draft/release decisions
 
@@ -89,7 +90,7 @@ A report owner prepares a reusable table and line-chart report from supplied dat
 
 1. When an ordinary caller discovers or invokes definition validation, pack discovery or report preparation through supported REST and MCP entry points, the CraftReport service shall apply the same versioned validation, access, retry and result-inspection semantics.
 2. If a caller lacks permission for input, pack source or artifact distribution, the CraftReport service shall reject the affected action without disclosing restricted content.
-3. When a caller inspects preparation limits or a request exceeds them, the CraftReport service shall expose the applicable limits and reject exceeded limits before accepting complete work.
+3. When a caller inspects preparation limits or a request exceeds them, the CraftReport service shall expose the applicable limits and reject exceeded limits before accepting work.
 4. When preparation finishes or fails, the CraftReport service shall distinguish preparation and quality evaluation from target mutation, artifact persistence and reopen verification and provide structured stage/recovery diagnostics.
 5. When an adopter follows `docs/quickstarts/Quickstart_How_to_prepare_a_reusable_report.md` and runs `scripts/examples/prepare_reusable_report.py`, the CraftReport service shall demonstrate a public table/line-chart definition reused against two synthetic snapshots through ordinary REST and MCP with AI disabled and inspectable pinned results.
 6. When feature acceptance runs, the CraftReport service shall demonstrate missing-binding and invalid-parameter rejection, private-pack visibility and distribution isolation, executable-content rejection and required-unevaluated-check draft/release rejection with commands, observed results and owned-resource cleanup recorded.
