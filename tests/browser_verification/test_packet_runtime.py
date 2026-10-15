@@ -23,6 +23,7 @@ from scripts.browser_verification.config import Bounds, OwnedDeployment, RunConf
 from scripts.browser_verification.contracts import CheckSet, Succeeded
 from scripts.browser_verification.evidence import decode_video
 from scripts.browser_verification.fixture import FixtureExpectation
+from scripts.browser_verification.lifecycle import SDKResources
 
 from .test_roundtrip_runtime import FIXTURE, ROOT
 
@@ -102,18 +103,20 @@ def prove_negative_invariants(
 async def independently_decode_and_truncate(result: journey.RoundTripResult, root: Path) -> None:
     root.mkdir(parents=True)
     registry = journey.ResourceRegistry(result.cleanup[0].owner_run)
+    owner = SDKResources(registry)
     async with async_playwright() as playwright:
         browser = await playwright.chromium.launch(headless=True)
         try:
             for video in result.videos:
-                observed = await decode_video(browser, Path(video.content.path), registry)
+                observed = await decode_video(browser, Path(video.content.path), owner)
                 assert observed.decoded_frame and observed.content == video.content
             source = Path(result.videos[0].content.path).read_bytes()
             truncated = root / "tail-truncated.webm"
             truncated.write_bytes(source[:-100])
             with pytest.raises(ValueError, match="truncated-webm"):
-                await decode_video(browser, truncated, registry)
+                await decode_video(browser, truncated, owner)
         finally:
+            await owner.close_all(30)
             await browser.close()
     assert not registry.pending_cleanup
 
@@ -203,7 +206,10 @@ def test_current_headless_final_packet(disconnected: bool, monkeypatch: pytest.M
         deployment=prepared.payload,
         fixture=FixtureExpectation.read(FIXTURE / "expected.json"),
         source_revision=subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
+            ["git", "rev-parse", "HEAD"],
+            cwd=ROOT,
+            text=True,
+            creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
         ).strip(),
         source_content=frozen,
         dependencies=(

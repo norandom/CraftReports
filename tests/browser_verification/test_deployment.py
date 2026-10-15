@@ -5,7 +5,6 @@ import json
 import socket
 import subprocess
 from pathlib import Path, PurePosixPath, PureWindowsPath
-from typing import Any
 from uuid import uuid4
 
 import httpx
@@ -115,11 +114,11 @@ class Runtime:
         self.id = "a" * 64
         self.network_id = "b" * 64
 
-    def up(self, argv: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
+    def up(self, argv: list[str], deadline: float | None = None) -> str:
         self.calls.append(argv)
         self.present = True
         self.network = True
-        return subprocess.CompletedProcess(argv, 0, "")
+        return ""
 
     def run(self, mode: d.Mode, argv: list[str], deadline: float) -> str:
         self.calls.append(argv)
@@ -177,7 +176,7 @@ def setup(
 
     monkeypatch.setattr(d, "available", port_available)
     monkeypatch.setattr(d, "run", runtime.run)
-    monkeypatch.setattr(d.subprocess, "run", runtime.up)
+    monkeypatch.setattr(d, "execute", runtime.up)
     return config, state, runtime
 
 
@@ -200,7 +199,9 @@ def test_owned_and_exact_cleanup(
     startup = next(argv for argv in runtime.calls if "compose" in argv)
     assert startup[: len(prefix)] == prefix
     assert startup[len(prefix) + 3] == "docker"
-    assert d.close(state, 5).status == "graceful"
+    cleanup = d.close(state, 5)
+    assert cleanup.status == "graceful" and cleanup.accepted
+    assert cleanup.container_ids == (runtime.id,) and cleanup.network_ids == (runtime.network_id,)
     assert not runtime.present and not runtime.network
     assert ["rm", runtime.id] in runtime.calls
     assert not any("down" in argv or "8871" in argv for argv in runtime.calls)
@@ -221,11 +222,11 @@ def test_owned_rejections_retain_partial_ownership(
         (bundle.root / "nested/index.html").write_bytes(b"corrupt")
     if fault == "up-timeout":
 
-        def timeout(argv: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
+        def timeout(argv: list[str], deadline: float) -> str:
             runtime.up(argv)
             raise subprocess.TimeoutExpired(argv, 1)
 
-        monkeypatch.setattr(d.subprocess, "run", timeout)
+        monkeypatch.setattr(d, "execute", timeout)
     with client(bundle, wrong=fault == "build") as connection:
         result = d.prepare(config, bundle, state, client=connection)
     assert isinstance(result, Rejected)
@@ -256,6 +257,20 @@ def test_cleanup_survivor_is_failure(
     monkeypatch.setattr(d, "run", survivor)
     result = d.close(state, 5)
     assert result.status == "failed" and runtime.id in result.survivors
+
+
+def test_missing_owned_container_without_observed_exit_cannot_pass(
+    tmp_path: Path, bundle: BundleIdentity, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config, state, runtime = setup(tmp_path, bundle, monkeypatch)
+    with client(bundle) as connection:
+        assert isinstance(d.prepare(config, bundle, state, client=connection), Succeeded)
+    runtime.present = False
+    result = d.close(state, 5)
+    assert result.status == "failed" and result.exit_status is None
+    assert result.container_ids == (runtime.id,)
+    assert result.network_ids == (runtime.network_id,)
+    assert not result.accepted
 
 
 def test_available_port_conflict() -> None:
@@ -322,11 +337,11 @@ def test_delayed_creation_after_startup_timeout_keeps_cleanup_unresolved(
 ) -> None:
     config, state, runtime = setup(tmp_path, bundle, monkeypatch)
 
-    def delayed(argv: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
+    def delayed(argv: list[str], deadline: float) -> str:
         # Model the daemon completing its request after the CLI timed out.
         raise subprocess.TimeoutExpired(argv, 1)
 
-    monkeypatch.setattr(d.subprocess, "run", delayed)
+    monkeypatch.setattr(d, "execute", delayed)
     with client(bundle) as connection:
         assert isinstance(d.prepare(config, bundle, state, client=connection), Rejected)
     assert not runtime.present and not runtime.network

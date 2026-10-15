@@ -205,10 +205,11 @@ def test_registry_reverse_order_and_exact_ownership() -> None:
         registry.record_close(uuid4(), "graceful")
     assert registry.record_close(context.token_id, "failed").close_state == "failed"
     assert registry.pending_cleanup == (registry.tokens[1], browser)
-    registry.record_close(context.token_id, "forced")
+    with pytest.raises(ValueError):
+        registry.record_close(context.token_id, "forced")
     with pytest.raises(ValueError):
         registry.mark_acquired(context.token_id)
-    assert registry.tokens[1].close_state == "forced"
+    assert registry.tokens[1].close_state == "failed"
 
 
 def test_cancellation_before_acquisition_still_retains_late_resource() -> None:
@@ -238,6 +239,7 @@ def test_verified_result_requires_every_stage_and_successful_owned_cleanup() -> 
         final_video_state="finalized",
     )
     result = RunResult(
+        schema_version=1,
         run_id=run_id,
         source_revision="synthetic-test-revision",
         dependency_identities=("playwright-test",),

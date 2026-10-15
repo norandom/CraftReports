@@ -81,9 +81,11 @@ def test_official_startup_and_failure_cleanup(
         assert isinstance(prepared, Succeeded), prepared
         result = asyncio.run(journey.startup(config, prepared.payload, registry))
         assert result.video and result.video.decoded_frame
-        assert all(item.status == "graceful" for item in result.cleanup)
+        assert all(item.accepted for item in result.cleanup)
         assert all(
-            item.close_state == "graceful" for item in registry.tokens if item.kind != "deployment"
+            item.close_state in ("sdk-closed", "graceful")
+            for item in registry.tokens
+            if item.kind != "deployment"
         )
         if scenario in ("headed", "headless"):
             assert isinstance(result.readiness, Succeeded), result

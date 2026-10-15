@@ -63,7 +63,7 @@ async def workbook(
             json.dumps(evidence, indent=2), encoding="utf-8"
         )
         assert state.video and state.video.decoded_frame
-        assert all(item.status == "graceful" for item in cleanup)
+        assert all(item.accepted for item in cleanup)
 
 
 async def challenge(

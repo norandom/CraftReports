@@ -94,17 +94,15 @@
     "gate_task": "4.0",
     "gate_implemented": true,
     "gate_accepted": true,
-    "authorized_pending_tasks": [
-      "4.2"
-    ],
+    "authorized_pending_tasks": [],
     "stop_before": "5.1",
     "headless_only": true,
     "executable_tasks": 20,
-    "accepted_tasks": 14,
-    "pending_tasks": 6,
+    "accepted_tasks": 15,
+    "pending_tasks": 5,
     "major_groups": 7,
-    "accepted_source_lloc": 2798,
-    "current_enforced_headroom_lloc": 602,
+    "accepted_source_lloc": 3168,
+    "current_enforced_headroom_lloc": 232,
     "proposal_planning_baseline_lloc": 2744,
     "historical_planning_total_lloc": 3349,
     "updated_planning_total_lloc": 3403,
@@ -114,12 +112,16 @@
     "original_review_records_retained": true,
     "amended_requirements_sha256": "e56b5a01836ccdf6ae8ff8aff7425031134ff7d71eeb018f6a7417b059e9ce3e",
     "amended_design_sha256": "0f0eb6de5b41f33a7550c2bde7448355f0ae60097c173a0c2739e65564f80a7f",
-    "amended_tasks_sha256": "641ab1703f8c62f3992ebee1d2137b1e4077f85750f084951b47a58e966e962d",
+    "amended_tasks_sha256": "a17f555dc71ff465031f3f2060b66b426c308860b6260e9ef4f1d3308c30be4c",
     "gate_accepted_at": "2026-10-15",
     "application_snapshot_hashes": {
       "amended_requirements_sha256": "e56b5a01836ccdf6ae8ff8aff7425031134ff7d71eeb018f6a7417b059e9ce3e",
       "amended_design_sha256": "d420e7916a19609ef6af00cbbaac82be4201b1013e82595d94dc8c26661cd88c",
       "amended_tasks_sha256": "248f12b280deae7d7b6d40d6cf5bf1833ceaea6c3219c60bc7ae42334b44244c"
-    }
+    },
+    "lifecycle_task_accepted": true,
+    "lifecycle_task_accepted_at": "2026-10-15",
+    "lifecycle_evidence_reference": "artifacts/browser-verification/task-4.2/review-index.json",
+    "lifecycle_independent_reviewer": "/root/review_lifecycle_4_2"
   }
 }

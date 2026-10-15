@@ -5,8 +5,9 @@ from __future__ import annotations
 import asyncio
 import io
 import platform
+import time
 from dataclasses import dataclass, field
-from typing import Literal, Protocol, cast
+from typing import Literal, cast
 from uuid import UUID, uuid4
 
 from PIL import Image
@@ -43,6 +44,7 @@ from .evidence import (
     native_window,
     verify_loaded,
 )
+from .lifecycle import Registry, SDKResources, protected
 from .visual_profile import GRAPHICS, RuntimeProfile
 
 VIEWPORT: ViewportSize = {"width": 1600, "height": 1100}
@@ -54,19 +56,6 @@ PICKER_SCRIPT = """(() => {
     configurable: d ? d.configurable : null, removed: !!removed,
     absent: !('showSaveFilePicker' in window)}));
 })()"""
-
-
-class Token(Protocol):
-    @property
-    def token_id(self) -> UUID: ...
-
-
-class Registry(Protocol):
-    @property
-    def run_id(self) -> UUID: ...
-    def register(self, kind: Literal["driver", "browser", "context"], identity: str) -> Token: ...
-    def mark_acquired(self, token_id: UUID) -> object: ...
-    def record_close(self, token_id: UUID, state: Literal["graceful", "failed"]) -> object: ...
 
 
 class WindowBounds(Value):
@@ -98,6 +87,7 @@ class ReadyPage(Value):
 @dataclass
 class BrowserState:
     registry: Registry
+    resources: SDKResources = field(init=False)
     driver: Playwright | None = None
     browser: Browser | None = None
     context: BrowserContext | None = None
@@ -107,6 +97,7 @@ class BrowserState:
     context_id: UUID = field(default_factory=uuid4)
     page_id: UUID = field(default_factory=uuid4)
     video: VideoEvidence | None = None
+    cleanup_deadline: float | None = None
     interaction_started: bool = False
     checkpoint: Literal[
         "launch",
@@ -120,10 +111,8 @@ class BrowserState:
         "diagnostics",
     ] = "launch"
 
-    def acquired(self, kind: Literal["driver", "browser", "context"]) -> None:
-        token = self.registry.register(kind, kind + "-" + str(self.context_id))
-        self.tokens[kind] = token.token_id
-        self.registry.mark_acquired(token.token_id)
+    def __post_init__(self) -> None:
+        self.resources = SDKResources(self.registry)
 
     def next_context(self) -> None:
         if not self.context or self.context.pages or not self.video or not self.video.decoded_frame:
@@ -131,30 +120,48 @@ class BrowserState:
         del self.tokens["context"]
         self.context_id, self.page_id = uuid4(), uuid4()
         self.context, self.page, self.video = None, None, None
+        self.cleanup_deadline = None
         self.interaction_started = False
         self.checkpoint = "launch"
 
 
 async def launch(config: RunConfig, state: BrowserState) -> Page:
     if state.browser is None:
-        state.driver = await async_playwright().start()
-        state.acquired("driver")
-        state.browser = await state.driver.chromium.launch(
-            headless=not config.headed,
-            args=list(GRAPHICS),
-            executable_path=state.driver.chromium.executable_path,
+        state.driver = cast(
+            Playwright,
+            await state.resources.acquire(
+                "driver", "driver-" + str(state.context_id), async_playwright().start()
+            ),
         )
-        state.acquired("browser")
+        state.browser = cast(
+            Browser,
+            await state.resources.acquire(
+                "browser",
+                "browser-" + str(state.context_id),
+                state.driver.chromium.launch(
+                    headless=not config.headed,
+                    args=list(GRAPHICS),
+                    executable_path=state.driver.chromium.executable_path,
+                ),
+            ),
+        )
     assert state.browser
-    state.context = await state.browser.new_context(
-        viewport=VIEWPORT,
-        device_scale_factor=1,
-        locale="en-US",
-        service_workers="block",
-        record_video_dir=str(config.run_directory / "videos"),
-        record_video_size=VIEWPORT,
+    state.context = cast(
+        BrowserContext,
+        await state.resources.acquire(
+            "context",
+            "context-" + str(state.context_id),
+            state.browser.new_context(
+                viewport=VIEWPORT,
+                device_scale_factor=1,
+                locale="en-US",
+                service_workers="block",
+                record_video_dir=str(config.run_directory / "videos"),
+                record_video_size=VIEWPORT,
+            ),
+        ),
     )
-    state.acquired("context")
+    state.tokens["context"] = state.resources.entries[-1].token
     await state.context.add_init_script(PICKER_SCRIPT)
     state.page = await state.context.new_page()
     return state.page
@@ -356,45 +363,38 @@ async def start(
 async def close(
     config: RunConfig, state: BrowserState, retain_browser: bool = False
 ) -> tuple[CleanupFinding, ...]:
-    findings: list[CleanupFinding] = []
-    for kind in ("context",) if retain_browser else ("context", "browser", "driver"):
-        if kind not in state.tokens:
+    return await protected(
+        finalize_browser(config, state, retain_browser), state.registry.request_cancel
+    )
+
+
+async def finalize_browser(
+    config: RunConfig, state: BrowserState, retain: bool
+) -> tuple[CleanupFinding, ...]:
+    state.cleanup_deadline = state.cleanup_deadline or time.monotonic() + config.bounds.cleanup
+    deadline = state.cleanup_deadline
+    previous = {f.resource_id for f in state.registry.findings}
+    recordings: list[tuple[UUID, CleanupFinding]] = []
+    for entry in tuple(state.resources.entries):
+        if entry.kind != "context" or entry.finding:
             continue
-        status: Literal["graceful", "failed"] = "graceful"
-        video_state: Literal["not-required", "finalized", "unfinished"] = "not-required"
+        closed = await state.resources.close_one(entry, deadline)
+        recordings.append((entry.token, closed))
+    for token, closed in recordings:
+        video_state: Literal["unfinished", "finalized"] = "unfinished"
         try:
-            async with asyncio.timeout(config.bounds.cleanup):
-                if kind == "context" and state.context:
-                    video_state = "unfinished"
-                    video = state.page.video if state.page else None
-                    await state.context.close()
-                    if not video or not state.browser:
-                        raise ValueError("required video unavailable")
-                    state.video = await decode_video(
-                        state.browser, await video.path(), state.registry
-                    )
-                    state.video = state.video.model_copy(update={"context_id": state.context_id})
-                    if not state.video.decoded_frame:
-                        raise ValueError("video frame unavailable")
-                    video_state = "finalized"
-                elif kind == "browser" and state.browser:
-                    await state.browser.close()
-                    if state.browser.is_connected():
-                        raise ValueError("browser still connected")
-                elif kind == "driver" and state.driver:
-                    await state.driver.stop()
-        except (Error, OSError, ValueError, TimeoutError):
-            status = "failed"
-        token = state.tokens[kind]
-        state.registry.record_close(token, status)
-        findings.append(
-            CleanupFinding(
-                resource_id=token,
-                owner_run=config.run_id,
-                identity=kind,
-                status=status,
-                final_video_state=video_state,
-                survivors=(kind,) if status == "failed" else (),
-            )
-        )
-    return tuple(findings)
+            async with asyncio.timeout_at(deadline):
+                video = state.page.video if state.page else None
+                if not closed.accepted or not video or not state.browser:
+                    raise ValueError("required-video-unavailable")
+                state.video = await decode_video(
+                    state.browser, await video.path(), state.resources, deadline
+                )
+                state.video = state.video.model_copy(update={"context_id": state.context_id})
+                video_state = "finalized"
+        except (Exception, asyncio.CancelledError):
+            pass
+        state.registry.update_video(token, video_state)
+    if not retain:
+        await state.resources.close_all(config.bounds.cleanup, deadline=deadline)
+    return tuple(f for f in state.registry.findings if f.resource_id not in previous)

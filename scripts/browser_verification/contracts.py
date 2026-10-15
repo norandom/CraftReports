@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated, Literal
+from typing import Annotated, Literal, cast
 from urllib.parse import urlsplit
 from uuid import UUID
 
@@ -209,14 +209,79 @@ class ContentIdentity(Value):
     sha256: Sha256
 
 
+ResourceKind = Literal["deployment", "process", "driver", "browser", "context", "decode-context"]
+CloseState = Literal[
+    "pending", "sdk-closed", "graceful", "forced", "failed", "timed-out", "unresolved", "unexecuted"
+]
+SDK_IDENTITY = "playwright==1.64.0"
+SDK_LIMITATION = "playwright_internal_force_unobservable"
+
+
 class CleanupFinding(Value):
     resource_id: UUID
     owner_run: UUID
     identity: Text
-    status: Literal["graceful", "forced", "failed", "unexecuted"]
+    status: CloseState
     exit_status: Annotated[int, Field(strict=True)] | None = None
+    native_pid: Annotated[int, Field(strict=True, gt=0)] | None = None
+    container_ids: tuple[Text, ...] = ()
+    network_ids: tuple[Text, ...] = ()
     survivors: tuple[Text, ...] = ()
     final_video_state: Literal["not-required", "finalized", "unfinished"]
+    resource_kind: ResourceKind | None = None
+    acquisition_id: UUID | None = None
+    close_id: UUID | None = None
+    mechanism: str | None = None
+    started: Annotated[float, Field(ge=0, allow_inf_nan=False)] | None = None
+    deadline: Annotated[float, Field(ge=0, allow_inf_nan=False)] | None = None
+    finished: Annotated[float, Field(ge=0, allow_inf_nan=False)] | None = None
+    acquisition_state: Literal["partial", "acquired", "failed", "unsettled"] = "partial"
+    acquisition_task_state: Literal[
+        "not-started", "pending", "succeeded", "failed", "cancelled"
+    ] = "pending"
+    close_task_state: Literal["not-started", "pending", "succeeded", "failed", "cancelled"] = (
+        "not-started"
+    )
+    requested_force: bool = False
+    observed_force: bool = False
+    unexpected_disconnect: bool = False
+    sdk_identity: Literal["playwright==1.64.0"] | None = None
+    declared_limitations: tuple[Literal["playwright_internal_force_unobservable"], ...] = ()
+
+    @property
+    def accepted(self) -> bool:
+        if (
+            self.requested_force
+            or self.observed_force
+            or self.unexpected_disconnect
+            or self.survivors
+            or self.acquisition_state != "acquired"
+            or not self.acquisition_id
+            or not self.close_id
+            or self.final_video_state == "unfinished"
+            or self.started is None
+            or self.deadline is None
+            or self.finished is None
+            or not self.started <= self.finished <= self.deadline
+        ):
+            return False
+        if self.resource_kind in ("driver", "browser", "context", "decode-context"):
+            return (
+                self.status == "sdk-closed"
+                and self.acquisition_task_state == "succeeded"
+                and self.close_task_state == "succeeded"
+                and self.mechanism == "public-close"
+                and self.sdk_identity == SDK_IDENTITY
+                and self.declared_limitations == (SDK_LIMITATION,)
+            )
+        return (
+            self.resource_kind in ("process", "deployment")
+            and self.status == "graceful"
+            and self.exit_status == 0
+            and self.mechanism == "observed-exit"
+            and (self.resource_kind != "process" or self.native_pid is not None)
+            and (self.resource_kind != "deployment" or bool(self.container_ids))
+        )
 
 
 MANDATORY_STAGES = frozenset(
@@ -233,7 +298,12 @@ MANDATORY_STAGES = frozenset(
 
 
 class RunResult(Value):
-    schema_version: Literal[1] = 1
+    schema_version: Literal[1, 2] = 2
+    lifecycle_contract: Literal["historical-v1", "resource-specific-v2"] = "resource-specific-v2"
+    sdk_identity: Literal["playwright==1.64.0"] | None = "playwright==1.64.0"
+    declared_limitations: tuple[Literal["playwright_internal_force_unobservable"], ...] = (
+        SDK_LIMITATION,
+    )
     scope: Literal["synthetic-browser-reference-roundtrip"] = (
         "synthetic-browser-reference-roundtrip"
     )
@@ -248,8 +318,35 @@ class RunResult(Value):
     verdict: Literal["VERIFIED", "FAILED", "BLOCKED", "UNRESOLVED"]
     predecessor_run: UUID | None = None
 
+    @model_validator(mode="before")
+    @classmethod
+    def historical_schema(cls, data: object) -> object:
+        if not isinstance(data, dict):
+            return data
+        values = cast(dict[str, object], data)
+        if values.get("schema_version") == 1:
+            return values | {
+                "lifecycle_contract": "historical-v1",
+                "sdk_identity": None,
+                "declared_limitations": (),
+            }
+        return values
+
     @model_validator(mode="after")
     def truthful_completion(self) -> RunResult:
+        if self.schema_version == 2 and (
+            self.lifecycle_contract != "resource-specific-v2"
+            or self.sdk_identity != SDK_IDENTITY
+            or self.declared_limitations != (SDK_LIMITATION,)
+            or (
+                self.verdict == "VERIFIED"
+                and any(
+                    len({getattr(c, attribute) for c in self.cleanup}) != len(self.cleanup)
+                    for attribute in ("resource_id", "acquisition_id", "close_id")
+                )
+            )
+        ):
+            raise ValueError("lifecycle declaration must match schema and pinned SDK")
         if self.predecessor_run == self.run_id:
             raise ValueError("recovery requires a distinct run")
         if any(item.owner_run != self.run_id for item in self.cleanup):
@@ -269,7 +366,7 @@ class RunResult(Value):
                     "verified requires all mandatory stages and acquired-resource cleanup"
                 )
             if any(
-                item.status != "graceful"
+                (not item.accepted if self.schema_version == 2 else item.status != "graceful")
                 or item.survivors
                 or item.exit_status not in (None, 0)
                 or item.final_video_state == "unfinished"

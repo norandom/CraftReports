@@ -7,16 +7,26 @@ import ctypes
 import hashlib
 import json
 import sys
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal, Protocol, cast
 from urllib.parse import urlsplit
 from uuid import UUID, uuid4
 
-from playwright.async_api import Browser, CDPSession, ConsoleMessage, Error, Page, Request
+from playwright.async_api import (
+    Browser,
+    BrowserContext,
+    CDPSession,
+    ConsoleMessage,
+    Error,
+    Page,
+    Request,
+)
 from pydantic import BaseModel, ConfigDict, Field
 
 from .contracts import ContentIdentity, Value
+from .lifecycle import SDKResources, protected
 
 WARNING_PROFILE = (
     "ad10af2baf9c7ed4ccbd81e32b37698f5075cdf4f26b726fee7fc7938a3a8d27",
@@ -258,17 +268,6 @@ def verify_loaded(
     )
 
 
-class Token(Protocol):
-    @property
-    def token_id(self) -> UUID: ...
-
-
-class Registry(Protocol):
-    def register(self, kind: Literal["context"], identity: str) -> Token: ...
-    def mark_acquired(self, token_id: UUID) -> object: ...
-    def record_close(self, token_id: UUID, state: Literal["graceful", "failed"]) -> object: ...
-
-
 def complete_webm(body: bytes) -> None:
     """Pinned Playwright recordings finalize a finite WebM Segment length."""
     marker = bytes.fromhex("18538067")
@@ -281,13 +280,19 @@ def complete_webm(body: bytes) -> None:
         raise ValueError("unfinished-or-truncated-webm")
 
 
-async def decode_video(browser: Browser, path: Path, registry: Registry) -> VideoEvidence:
+async def decode_video(
+    browser: Browser, path: Path, registry: SDKResources, deadline: float | None = None
+) -> VideoEvidence:
     """Decode a frame with the same Chromium, never infer video health from size."""
     body = path.read_bytes()
     complete_webm(body)
-    context = await browser.new_context()
-    token = registry.register("context", "video-check-" + uuid4().hex)
-    registry.mark_acquired(token.token_id)
+    owner = registry
+    deadline = deadline if deadline is not None else time.monotonic() + 30
+    context = cast(
+        BrowserContext,
+        await owner.acquire("decode-context", "video-check-" + uuid4().hex, browser.new_context()),
+    )
+    entry = owner.entries[-1]
     try:
         page = await context.new_page()
         await page.set_content("<video muted></video>")
@@ -314,9 +319,6 @@ async def decode_video(browser: Browser, path: Path, registry: Registry) -> Vide
             }
         )
     finally:
-        try:
-            await context.close()
-        except Exception:
-            registry.record_close(token.token_id, "failed")
-            raise
-        registry.record_close(token.token_id, "graceful")
+        closed = await protected(owner.close_one(entry, deadline))
+        if not closed.accepted:
+            raise ValueError("video-context-close-failed")

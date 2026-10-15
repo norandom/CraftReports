@@ -7,9 +7,9 @@ import json
 import socket
 import subprocess
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path, PurePath
-from typing import Literal, Protocol
+from typing import Literal
 from uuid import UUID, uuid4
 
 import httpx
@@ -25,6 +25,7 @@ from .contracts import (
     Succeeded,
     Value,
 )
+from .process import CommandScope, Registry, execute, scope
 from .release import BundleIdentity, remaining
 
 RECIPE = Path(__file__).resolve().parents[2] / "docs/deployment/gridcraft/compose.yaml"
@@ -34,21 +35,6 @@ Mode = Literal["owned-wsl", "owned-linux", "external"]
 
 class DeploymentError(ValueError):
     """Fixed public diagnostic without external response or manifest content."""
-
-
-class Token(Protocol):
-    @property
-    def token_id(self) -> UUID: ...
-
-
-class Registry(Protocol):
-    @property
-    def run_id(self) -> UUID: ...
-    def register(self, kind: Literal["deployment"], identity: str) -> Token: ...
-    def mark_acquired(self, token_id: UUID) -> object: ...
-    def record_close(
-        self, token_id: UUID, state: Literal["graceful", "forced", "failed"]
-    ) -> object: ...
 
 
 class DeploymentLease(Value):
@@ -70,6 +56,9 @@ class DeploymentState:
     container_ids: tuple[str, ...] = ()
     network_ids: tuple[str, ...] = ()
     startup_uncertain: bool = False
+    processes: list[subprocess.Popen[str]] = field(default_factory=list[subprocess.Popen[str]])
+    acquisition_id: UUID | None = None
+    acquired: bool = False
 
 
 def project_name(run_id: UUID) -> str:
@@ -93,15 +82,7 @@ def linux_path(path: PurePath, mode: Mode) -> str:
 
 
 def run(mode: Mode, arguments: list[str], deadline: float) -> str:
-    result = subprocess.run(
-        command(mode) + arguments,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        timeout=remaining(deadline),
-        check=True,
-    )
-    return result.stdout.strip()
+    return execute(command(mode) + arguments, deadline)
 
 
 def containers(lease: DeploymentLease, deadline: float) -> tuple[str, ...]:
@@ -270,6 +251,7 @@ def start(
         raise DeploymentError("existing deployment project conflict")
     # Register the unique project before up: timeout may leave late-created containers.
     token = state.registry.register("deployment", project)
+    state.acquisition_id = token.acquisition_id
     lease = lease.model_copy(update={"resource_id": token.token_id})
     state.lease = lease
     override = config.run_directory / "deployment.yaml"
@@ -303,19 +285,13 @@ def start(
     ]
     prefix = command(selection.mode)
     state.startup_uncertain = True
-    subprocess.run(
-        prefix[:-1] + env + [prefix[-1]] + arguments,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        timeout=remaining(deadline),
-        check=True,
-    )
+    execute(prefix[:-1] + env + [prefix[-1]] + arguments, deadline)
     state.startup_uncertain = False
     state.container_ids = containers(lease, deadline)
     state.network_ids = networks(lease, deadline)
     validate_service(lease, state.container_ids, root, deadline)
     state.registry.mark_acquired(lease.resource_id)
+    state.acquired = True
     return lease
 
 
@@ -353,7 +329,8 @@ def prepare(
             with httpx.Client(headers={"Cache-Control": "no-cache"}) as connection:
                 return prepare(config, bundle, state, client=connection)
         deadline = time.monotonic() + config.bounds.readiness
-        lease = start(config, bundle, state, deadline)
+        with scope(CommandScope(state.registry, state.processes, config.bounds.cleanup)):
+            lease = start(config, bundle, state, deadline)
         state.lease = lease
         while True:
             try:
@@ -396,26 +373,44 @@ def stop_container(
 
 
 def close(state: DeploymentState, bound: float) -> CleanupFinding:
+    with scope(CommandScope(state.registry, state.processes, bound, time.monotonic() + bound)):
+        return close_owned(state, bound)
+
+
+def close_containers(
+    state: DeploymentState, lease: DeploymentLease, deadline: float
+) -> tuple[Literal["graceful", "forced", "failed"], int | None, tuple[str, ...], bool]:
+    ids = containers(lease, deadline)
+    state.container_ids = tuple(dict.fromkeys((*state.container_ids, *ids)))
+    live = run(lease.mode, ["ps", "-aq", "--no-trunc"], deadline).split()
+    status: Literal["graceful", "forced", "failed"] = "graceful"
+    exit_status: int | None = None
+    force = False
+    for container in state.container_ids:
+        if container in live:
+            stopped_status, exit_status = stop_container(lease, container, deadline)
+            if stopped_status != "graceful":
+                status = stopped_status
+            force = force or stopped_status == "forced"
+    live = run(lease.mode, ["ps", "-aq", "--no-trunc"], deadline).split()
+    survivors = tuple(identity for identity in state.container_ids if identity in live)
+    return status, exit_status, survivors + containers(lease, deadline), force
+
+
+def close_owned(state: DeploymentState, bound: float) -> CleanupFinding:
     lease = state.lease
     if lease is None:
         raise DeploymentError("no deployment acquired")
     survivors: tuple[str, ...] = ()
     status: Literal["graceful", "forced", "failed"] = "graceful"
     exit_status: int | None = None
+    started = time.monotonic()
+    deadline = started + bound
+    force = False
     try:
-        deadline = time.monotonic() + bound
         if lease.project is not None:
-            ids = containers(lease, deadline)
-            state.container_ids = tuple(dict.fromkeys((*state.container_ids, *ids)))
-            live = run(lease.mode, ["ps", "-aq", "--no-trunc"], deadline).split()
-            for container in state.container_ids:
-                if container in live:
-                    stopped_status, exit_status = stop_container(lease, container, deadline)
-                    if stopped_status != "graceful":
-                        status = stopped_status
-            live = run(lease.mode, ["ps", "-aq", "--no-trunc"], deadline).split()
-            survivors = tuple(identity for identity in state.container_ids if identity in live)
-            survivors += containers(lease, deadline) + close_networks(state, lease, deadline)
+            status, exit_status, survivors, force = close_containers(state, lease, deadline)
+            survivors += close_networks(state, lease, deadline)
             if survivors:
                 status = "failed"
     except (ValueError, OSError, subprocess.SubprocessError):
@@ -425,9 +420,9 @@ def close(state: DeploymentState, bound: float) -> CleanupFinding:
         # A snapshot cannot prove quiescence after an ambiguous Compose request.
         status = "failed"
         survivors = tuple(dict.fromkeys((*survivors, str(lease.project))))
-    if lease.project is not None:
-        state.registry.record_close(lease.resource_id, status)
-    return CleanupFinding(
+    if lease.project is not None and exit_status is None:
+        status = "failed"
+    finding = CleanupFinding(
         resource_id=lease.resource_id,
         owner_run=lease.owner_run,
         identity=lease.project or lease.origin,
@@ -435,4 +430,18 @@ def close(state: DeploymentState, bound: float) -> CleanupFinding:
         survivors=survivors,
         exit_status=exit_status,
         final_video_state="not-required",
+        resource_kind="deployment" if lease.project else None,
+        acquisition_id=state.acquisition_id,
+        close_id=uuid4(),
+        mechanism="observed-exit" if lease.project else None,
+        started=started,
+        deadline=deadline,
+        finished=time.monotonic(),
+        acquisition_state="acquired" if state.acquired else "partial",
+        observed_force=force,
+        container_ids=state.container_ids,
+        network_ids=state.network_ids,
     )
+    if lease.project is not None:
+        state.registry.record_finding(finding)
+    return finding

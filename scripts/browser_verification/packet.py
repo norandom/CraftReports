@@ -340,15 +340,31 @@ def reconcile_cleanup(
     tokens = {r.token_id: r for r in resources}
     if len(tokens) != len(resources) or any(r.owner_run != inputs.config.run_id for r in resources):
         raise ValueError("resource-identity-mismatch")
-    if len({c.resource_id for c in result.cleanup}) != len(result.cleanup):
+    cleanup_records = result.cleanup + tuple(
+        r.finding
+        for r in resources
+        if r.finding and r.token_id not in {c.resource_id for c in result.cleanup}
+    )
+    if len({c.resource_id for c in cleanup_records}) != len(cleanup_records):
         raise ValueError("duplicate-cleanup-finding")
-    for cleanup in result.cleanup:
+    for attribute in ("resource_id", "acquisition_id", "close_id"):
+        identities = [getattr(c, attribute) for c in cleanup_records]
+        if None in identities or len(set(identities)) != len(identities):
+            raise ValueError("missing-or-duplicate-lifecycle-identity")
+    if {c.resource_id for c in cleanup_records} != set(tokens):
+        raise ValueError("missing-resource-cleanup")
+    for cleanup in cleanup_records:
         token = tokens.get(cleanup.resource_id)
         if (
             token is None
             or token.close_state != cleanup.status
             or token.owner_run != cleanup.owner_run
             or cleanup.identity not in (token.kind, token.identity)
+            or cleanup.resource_kind != token.kind
+            or cleanup.acquisition_id != token.acquisition_id
+            or cleanup.close_id != token.close_id
+            or cleanup != token.finding
+            or (cleanup.accepted and token.acquisition != "acquired")
         ):
             raise ValueError("cleanup-token-disagrees")
 
@@ -368,8 +384,8 @@ def finalize(
     inputs: PacketInputs, result: RoundTripResult, resources: tuple[ResourceToken, ...]
 ) -> RunResult:
     directory = inputs.config.run_directory
-    if (directory / "manifest.json").exists() or any(r.close_state == "pending" for r in resources):
-        raise ValueError("finalization-requires-closed-resources-and-new-packet")
+    if (directory / "manifest.json").exists():
+        raise ValueError("finalization-requires-new-packet")
     stages = list(reduce_stages(result))
     files = tuple(hash_content(p) for p in sorted(directory.rglob("*")) if p.is_file())
     try:
@@ -387,27 +403,21 @@ def finalize(
             )
         )
     cleanup = result.cleanup + tuple(
-        CleanupFinding(
+        r.finding
+        or CleanupFinding(
             resource_id=r.token_id,
             owner_run=r.owner_run,
             identity=r.identity,
             status=r.close_state,
+            resource_kind=r.kind,
+            acquisition_id=r.acquisition_id,
+            close_id=r.close_id,
             final_video_state="not-required",
         )
         for r in resources
-        if r.token_id not in {c.resource_id for c in result.cleanup} and r.close_state != "pending"
+        if r.token_id not in {c.resource_id for c in result.cleanup}
     )
-    good_cleanup = (
-        bool(cleanup)
-        and all(r.close_state == "graceful" for r in resources)
-        and all(
-            c.status == "graceful"
-            and not c.survivors
-            and c.exit_status in (None, 0)
-            and c.final_video_state != "unfinished"
-            for c in cleanup
-        )
-    )
+    good_cleanup = bool(cleanup) and all(c.accepted for c in cleanup)
     stages.append(finding("cleanup", "passed" if good_cleanup else "failed", "resources.json"))
     stages.extend(
         finding(s, "unexecuted") for s in sorted(MANDATORY_STAGES - {f.stage for f in stages})

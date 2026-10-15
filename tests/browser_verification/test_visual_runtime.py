@@ -84,7 +84,7 @@ async def workbook(
             json.dumps(evidence, indent=2), encoding="utf-8"
         )
         assert state.video and state.video.decoded_frame
-        assert all(i.status == "graceful" for i in cleanup)
+        assert all(i.accepted for i in cleanup)
 
 
 def test_actual_reviewed_chart_before_and_after() -> None:

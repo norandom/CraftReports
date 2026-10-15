@@ -19,7 +19,7 @@ pytestmark = pytest.mark.integration
 
 
 def assert_result(result: journey.RoundTripResult, disconnected: bool, config: RunConfig) -> None:
-    assert all(i.status == "graceful" for i in result.cleanup), result.cleanup
+    assert all(i.accepted for i in result.cleanup), result.cleanup
     assert result.videos and all(i.decoded_frame for i in result.videos)
     if disconnected:
         assert isinstance(result.primary, Rejected), result

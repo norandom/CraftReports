@@ -47,7 +47,7 @@ async def workbook(
     assert len(result.charts) == len(result.checks) == 3
     assert all(i.passed for i in result.checks)
     assert len(result.videos) == 2 and all(i.decoded_frame for i in result.videos)
-    assert all(i.status == "graceful" for i in result.cleanup)
+    assert all(i.accepted for i in result.cleanup)
 
 
 async def file_fault(
@@ -102,7 +102,7 @@ async def file_fault(
         (config.run_directory / "file-fault.json").write_text(
             json.dumps(evidence, indent=2), encoding="utf-8"
         )
-        assert all(i.status == "graceful" for i in cleanup)
+        assert all(i.accepted for i in cleanup)
         assert state.video and state.video.decoded_frame
 
 

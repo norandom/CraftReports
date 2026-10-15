@@ -230,7 +230,7 @@ The existing probe on 8871 is preserved.
   - _Depends: 3.4_
   - _Requirements: 5.1, 5.3, 5.4, 5.5, 5.6, 7.4, 7.5_
 
-- [ ] 4.2 Complete bounded ownership cleanup and cancellation behavior
+- [x] 4.2 Complete bounded ownership cleanup and cancellation behavior
   - Register and retain exact public SDK objects/acquisition tasks, direct
     deployment subprocess handles and exact container identities through partial
     acquisition, late completion, success, failure and supported cancellation.
@@ -428,3 +428,5 @@ Deployments here are disposable verification infrastructure, not product release
 
 - Hosted revalidation confirmed for 4.1: [run 38750478521](https://github.com/norandom/CraftReports/actions/runs/38750478521) at `0c4dd15` passed. Dedicated browser CI remains pending.
 - 4.0 accepted: independently verified exact browser-only 3,400 override and current amendment approval binding. Browser 3,399/3,400 pass and 3,401 fails; other owners retain 1,500 and local 50/300/10 boundaries. Fresh independent canonical fast passed 848 tests/93 subtests. Evidence `artifacts/browser-verification/task-4.0`; measured browser 2,798/3,400 and Development-gates 1,042/1,500. Descriptive gate status updated after review; enforcement logic unchanged. Amended 4.2 is next; stop before 5.1 remains.
+
+- 4.2 accepted on 2026-10-15: independent review approved exact SDK acquisition/closure ownership, bounded cancellation cleanup and retained native subprocess exit evidence. Fresh independent canonical fast passed 870 tests, 2 Linux-only skips and 93 subtests. Matching-source Windows native 26 passed, Linux native 28 passed; six real headless SDK cases and the expected-failed/restored packet pair passed. Reviewer matched 2,440 indexed files, source/runtime freezes, 22 actual XLSX checks and independently decoded all three videos. Evidence `artifacts/browser-verification/task-4.2/review-index.json`; source 3,168/3,400 LLOC, leaving 232. SDK closure retains its declared native-force observation limitation. Fifteen of twenty tasks are accepted; stop before 5.1 remains mandatory. Headed/Linux workbook profiles, adopter delivery, dedicated browser CI and full-feature acceptance remain open.

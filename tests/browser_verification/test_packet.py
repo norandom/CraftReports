@@ -86,14 +86,16 @@ def test_source_change_is_retained_as_evidence_failure(tmp_path: Path) -> None:
     assert any(f.stage == "evidence" and f.status == "failed" for f in final.findings)
 
 
-def test_pending_resource_cannot_publish(tmp_path: Path) -> None:
+@pytest.mark.parametrize("count", [1, 2])
+def test_pending_resource_publishes_rejecting_packet(tmp_path: Path, count: int) -> None:
     inputs = inputs_for(tmp_path)
     resource = journey.ResourceToken(
         token_id=uuid4(), owner_run=inputs.config.run_id, kind="context", identity="pending-context"
     )
-    with pytest.raises(ValueError):
-        packet.finalize(inputs, journey.RoundTripResult(), (resource,))
-    assert not (inputs.config.run_directory / "manifest.json").exists()
+    resources = tuple(resource.model_copy(update={"token_id": uuid4()}) for _ in range(count))
+    final = packet.finalize(inputs, journey.RoundTripResult(), resources)
+    assert final.verdict == "FAILED"
+    assert final.cleanup[0].status == "pending"
 
 
 def test_primary_failure_is_not_replaced_by_cleanup_failure(tmp_path: Path) -> None:

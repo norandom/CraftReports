@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 from pathlib import Path
 from typing import Literal
@@ -15,9 +16,12 @@ from .contracts import (
     ArtifactIdentity,
     CheckSet,
     CleanupFinding,
+    CloseState,
     InspectedArtifact,
     Outcome,
     Rejected,
+    ResourceKind,
+    StageFinding,
     Succeeded,
     TargetIdentity,
     Text,
@@ -28,9 +32,6 @@ from .evidence import VideoEvidence
 from .fixture import FixtureExpectation
 from .visual_profile import ChartObservation, VisualProfile
 
-ResourceKind = Literal["deployment", "process", "driver", "browser", "context", "connection"]
-CloseState = Literal["pending", "graceful", "forced", "failed"]
-
 
 class ResourceToken(Value):
     token_id: UUID
@@ -39,6 +40,12 @@ class ResourceToken(Value):
     identity: Text
     acquisition: Literal["partial", "acquired"] = "partial"
     close_state: CloseState = "pending"
+    acquisition_id: UUID | None = None
+    close_id: UUID | None = None
+    finding: CleanupFinding | None = None
+    lifecycle_contract: Literal["resource-specific-v2"] = "resource-specific-v2"
+    sdk_identity: Literal["playwright==1.64.0"] | None = None
+    declared_limitations: tuple[Literal["playwright_internal_force_unobservable"], ...] = ()
 
 
 class ResourceRegistry:
@@ -46,10 +53,62 @@ class ResourceRegistry:
         self.run_id = run_id
         self._tokens: dict[UUID, ResourceToken] = {}
         self._cancel_requested = False
+        self._findings: dict[UUID, CleanupFinding] = {}
+        self._active: asyncio.Task[object] | None = None
+
+    def watch(self) -> None:
+        self._active = asyncio.current_task()
+
+    @property
+    def findings(self) -> tuple[CleanupFinding, ...]:
+        return tuple(self._findings.values())
+
+    def record_finding(self, finding: CleanupFinding) -> None:
+        token = self._tokens[finding.resource_id]
+        if (
+            finding.owner_run != self.run_id
+            or token.kind != finding.resource_kind
+            or token.acquisition_id != finding.acquisition_id
+            or token.close_id not in (None, finding.close_id)
+        ):
+            raise ValueError("cleanup ownership mismatch")
+        self.record_close(token.token_id, finding.status)
+        self._tokens[token.token_id] = token.model_copy(
+            update={
+                "close_state": finding.status,
+                "acquisition_id": finding.acquisition_id,
+                "close_id": finding.close_id,
+                "finding": finding,
+            }
+        )
+        self._findings[token.token_id] = finding
+
+    def update_video(self, token_id: UUID, state: Literal["unfinished", "finalized"]) -> None:
+        finding = self._findings[token_id].model_copy(update={"final_video_state": state})
+        self._findings[token_id] = finding
+        self._tokens[token_id] = self._tokens[token_id].model_copy(update={"finding": finding})
+
+    def begin_close(self, token_id: UUID, close_id: UUID) -> None:
+        token = self._tokens[token_id]
+        if token.close_state != "pending" or token.close_id is not None:
+            raise ValueError("close already attempted")
+        self._tokens[token_id] = token.model_copy(update={"close_id": close_id})
 
     def register(self, kind: ResourceKind, identity: str) -> ResourceToken:
         """Call immediately on acquisition, before any setup or readiness await."""
-        token = ResourceToken(token_id=uuid4(), kind=kind, owner_run=self.run_id, identity=identity)
+        token = ResourceToken(
+            token_id=uuid4(),
+            kind=kind,
+            owner_run=self.run_id,
+            identity=identity,
+            acquisition_id=uuid4(),
+            sdk_identity="playwright==1.64.0"
+            if kind in ("driver", "browser", "context", "decode-context")
+            else None,
+            declared_limitations=("playwright_internal_force_unobservable",)
+            if kind in ("driver", "browser", "context", "decode-context")
+            else (),
+        )
         if any(item.kind == kind and item.identity == token.identity for item in self.tokens):
             raise ValueError("resource is already registered")
         self._tokens[token.token_id] = token
@@ -62,7 +121,9 @@ class ResourceRegistry:
     @property
     def pending_cleanup(self) -> tuple[ResourceToken, ...]:
         return tuple(
-            item for item in reversed(self.tokens) if item.close_state in ("pending", "failed")
+            item
+            for item in reversed(self.tokens)
+            if item.close_state not in ("sdk-closed", "graceful", "forced")
         )
 
     @property
@@ -71,7 +132,14 @@ class ResourceRegistry:
 
     def request_cancel(self) -> None:
         """Retain supported cancellation intent without discarding late acquisitions."""
-        self._cancel_requested = True
+        if not self._cancel_requested:
+            self._cancel_requested = True
+            if (
+                self._active
+                and not self._active.done()
+                and asyncio.current_task(loop=self._active.get_loop()) is not self._active
+            ):
+                self._active.cancel()
 
     def mark_acquired(self, token_id: UUID) -> ResourceToken:
         token = self._tokens[token_id]
@@ -81,11 +149,9 @@ class ResourceRegistry:
         self._tokens[token_id] = updated
         return updated
 
-    def record_close(
-        self, token_id: UUID, state: Literal["graceful", "forced", "failed"]
-    ) -> ResourceToken:
+    def record_close(self, token_id: UUID, state: CloseState) -> ResourceToken:
         token = self._tokens[token_id]
-        if token.close_state in ("graceful", "forced"):
+        if token.close_state != "pending":
             raise ValueError("resource close is already finalized")
         updated = ResourceToken.model_validate(token.model_dump() | {"close_state": state})
         self._tokens[token_id] = updated
@@ -114,12 +180,19 @@ async def startup(
     config: RunConfig, lease: DeploymentLease, registry: ResourceRegistry
 ) -> StartupResult:
     """Exercise startup and retain evidence on either path; caller owns deployment."""
+    registry.watch()
     state = browser.BrowserState(registry)
     config.run_directory.mkdir(parents=True, exist_ok=True)
+    readiness: Outcome[browser.ReadyPage] = cancelled()
     try:
         readiness = await browser.start(config, lease, state)
+    except asyncio.CancelledError:
+        registry.request_cancel()
+        readiness = cancelled()
     finally:
         cleanup = await browser.close(config, state)
+        if registry.cancel_requested and not isinstance(readiness, Rejected):
+            readiness = cancelled()
         if state.diagnostics:
             state.diagnostics.write(config.run_directory / "diagnostics.json")
     result = StartupResult(
@@ -151,6 +224,17 @@ class RoundTripResult(Value):
     readiness: tuple[Outcome[browser.ReadyPage], ...] = ()
     receipts: tuple[ActionReceipt, ...] = ()
     diagnostics: tuple[browser.Diagnostic, ...] = ()
+
+
+def cancelled() -> Rejected:
+    return Rejected(
+        finding=StageFinding(
+            stage="cancellation",
+            requirements=("7.1",),
+            status="unresolved",
+            observed=("supported-cancellation",),
+        )
+    )
 
 
 async def chart_check(
@@ -257,6 +341,7 @@ async def recorded_workbook(
     state: browser.BrowserState,
 ) -> RoundTripResult:
     config.run_directory.mkdir(parents=True, exist_ok=True)
+    registry.watch()
     driver: interactions.BrowserDriver | None = None
     try:
         ready = await browser.start(config, lease, state)
@@ -266,16 +351,36 @@ async def recorded_workbook(
         else:
             driver = interactions.BrowserDriver(config, state, ready.payload, expected)
             result = await workbook_stages(driver, result, fixture, profile, reopening)
+    except asyncio.CancelledError:
+        registry.request_cancel()
+        result = result.model_copy(update={"primary": cancelled()})
+    except Exception:
+        result = result.model_copy(
+            update={
+                "primary": Rejected(
+                    finding=StageFinding(
+                        stage="journey",
+                        requirements=("7.3",),
+                        status="failed",
+                        observed=("journey-operation-failed",),
+                    )
+                )
+            }
+        )
     finally:
         cleanup = await browser.close(
             config,
             state,
             retain_browser=not reopening
+            and result.primary is None
+            and not registry.cancel_requested
             and isinstance(result.inspection, Succeeded)
             and result.inspection.payload.passed,
         )
-        if not reopening and any(i.status != "graceful" for i in cleanup):
+        if not reopening and (registry.cancel_requested or any(not i.accepted for i in cleanup)):
             cleanup += await browser.close(config, state)
+        if registry.cancel_requested and result.primary is None:
+            result = result.model_copy(update={"primary": cancelled()})
         result = result.model_copy(
             update={
                 "cleanup": (*result.cleanup, *cleanup),
@@ -322,7 +427,7 @@ async def roundtrip(
         result.primary
         or not isinstance(result.inspection, Succeeded)
         or not result.inspection.payload.passed
-        or not all(i.status == "graceful" for i in result.cleanup)
+        or not all(i.accepted for i in result.cleanup)
     ):
         return result
     state.next_context()
