@@ -48,6 +48,28 @@ scoped to its boundary/version. Other future capability budgets require their ow
 
 Exceptions need an exact capability/path/rule, rationale, accountable owner, approval reference and expiry. Expired or overbroad exceptions fail; they do not silently renew. Core library/application code and externally maintained Craft/Rust code have separate ownership.
 
+## Agent Work Allocation
+
+Owner-confirmed on 2026-10-15: at each task start and material bottleneck,
+consider parallel agents, model selection and workflow changes to shorten delivery.
+Delegate independent work when useful; do not add agents merely to fill slots.
+Choose available models to fit the work: a coding model for implementation and
+routine evidence audits, stronger reasoning for difficult contracts and adversarial
+review, and a lightweight model for narrow inventories. Model overrides are
+authorized for this purpose; use fresh contexts and focused task inputs.
+
+Assign nonoverlapping file or responsibility ownership. Run read-only contract
+and evidence audits alongside implementation so findings arrive before expensive
+runtime verification. Freeze source after known fixes, then collect matching
+runtime evidence. Serialize heavy browser, platform and canonical checks when
+shared resources would cause contention. All automated browser work remains
+headless under the owner's current instruction.
+
+Keep Kiro task acceptance sequential: independent final review, fresh evidence,
+selective commit with installed hooks, then push. Parallel support within a task
+does not activate unapproved tasks or replace the required final review. The
+parent owns integration and commits; workers preserve each other's changes.
+
 ## Git Delivery Workflow
 
 Owner-confirmed on 2026-10-14: work directly on `main`; do not create feature
