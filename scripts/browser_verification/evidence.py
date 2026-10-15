@@ -56,7 +56,7 @@ WARNINGS = {
 
 
 class Diagnostic(Value):
-    stage: Literal["readiness", "open", "edit"] = "readiness"
+    stage: Literal["readiness", "open", "edit", "persistence"] = "readiness"
     category: Literal["console", "page", "request", "asset", "evidence"]
     code: str
     asset: str | None = None
@@ -130,7 +130,7 @@ class Diagnostics:
     responses: list[ContentIdentity] = field(default_factory=lambda: list[ContentIdentity]())
     picker: PickerState | None = None
     warning_profile: tuple[str, str] | None = None
-    stage: Literal["readiness", "open", "edit"] = "readiness"
+    stage: Literal["readiness", "open", "edit", "persistence"] = "readiness"
 
     def asset(self, url: str) -> str | None:
         parsed = urlsplit(url)

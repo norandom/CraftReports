@@ -91,7 +91,13 @@ async def acquire(
         profile.require_runtime(driver.ready.build_sha256, driver.ready.profile)
     except ValueError as error:
         raise TargetMismatch("visual-profile-mismatch") from error
-    if target.artifact_sha256 != profile.fixture_sha256:
+    if target.artifact_sha256 != profile.fixture_sha256 and (
+        phase != "after"
+        or driver.reopened_artifact is None
+        or not driver.reopened_artifact.inspection.passed
+        or driver.reopened_artifact.fixture_sha256 != profile.fixture_sha256
+        or driver.reopened_artifact.artifact.sha256 != target.artifact_sha256
+    ):
         raise TargetMismatch("visual-fixture-mismatch")
     driver.guard(target)
     frames = await ensure_home(driver, target, profile)

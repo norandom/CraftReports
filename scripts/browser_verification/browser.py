@@ -121,20 +121,31 @@ class BrowserState:
     ] = "launch"
 
     def acquired(self, kind: Literal["driver", "browser", "context"]) -> None:
-        token = self.registry.register(kind, str(self.context_id) if kind == "context" else kind)
+        token = self.registry.register(kind, kind + "-" + str(self.context_id))
         self.tokens[kind] = token.token_id
         self.registry.mark_acquired(token.token_id)
 
+    def next_context(self) -> None:
+        if not self.context or self.context.pages or not self.video or not self.video.decoded_frame:
+            raise ValueError("previous recording context is not finalized")
+        del self.tokens["context"]
+        self.context_id, self.page_id = uuid4(), uuid4()
+        self.context, self.page, self.video = None, None, None
+        self.interaction_started = False
+        self.checkpoint = "launch"
+
 
 async def launch(config: RunConfig, state: BrowserState) -> Page:
-    state.driver = await async_playwright().start()
-    state.acquired("driver")
-    state.browser = await state.driver.chromium.launch(
-        headless=not config.headed,
-        args=list(GRAPHICS),
-        executable_path=state.driver.chromium.executable_path,
-    )
-    state.acquired("browser")
+    if state.browser is None:
+        state.driver = await async_playwright().start()
+        state.acquired("driver")
+        state.browser = await state.driver.chromium.launch(
+            headless=not config.headed,
+            args=list(GRAPHICS),
+            executable_path=state.driver.chromium.executable_path,
+        )
+        state.acquired("browser")
+    assert state.browser
     state.context = await state.browser.new_context(
         viewport=VIEWPORT,
         device_scale_factor=1,
@@ -303,7 +314,11 @@ async def observe(config: RunConfig, lease: DeploymentLease, state: BrowserState
 async def start(
     config: RunConfig, lease: DeploymentLease, state: BrowserState
 ) -> Outcome[ReadyPage]:
-    if state.tokens or state.registry.run_id != config.run_id or lease.owner_run != config.run_id:
+    if (
+        "context" in state.tokens
+        or state.registry.run_id != config.run_id
+        or lease.owner_run != config.run_id
+    ):
         raise ValueError("browser ownership mismatch or already started")
     state.diagnostics = Diagnostics(lease.origin, lease.assets)
     try:
@@ -338,9 +353,11 @@ async def start(
         )
 
 
-async def close(config: RunConfig, state: BrowserState) -> tuple[CleanupFinding, ...]:
+async def close(
+    config: RunConfig, state: BrowserState, retain_browser: bool = False
+) -> tuple[CleanupFinding, ...]:
     findings: list[CleanupFinding] = []
-    for kind in ("context", "browser", "driver"):
+    for kind in ("context",) if retain_browser else ("context", "browser", "driver"):
         if kind not in state.tokens:
             continue
         status: Literal["graceful", "failed"] = "graceful"

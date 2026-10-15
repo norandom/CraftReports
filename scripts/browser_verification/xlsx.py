@@ -9,7 +9,15 @@ from xml.etree import ElementTree as ET
 from zipfile import BadZipFile, ZipFile
 from zlib import error as CompressionError
 
-from .contracts import ArtifactIdentity, CheckSet, Outcome, Rejected, StageFinding, Succeeded
+from .contracts import (
+    ArtifactCheckSet,
+    ArtifactIdentity,
+    CheckSet,
+    Outcome,
+    Rejected,
+    StageFinding,
+    Succeeded,
+)
 from .fixture import CellExpectation, FixtureExpectation
 from .xlsx_parts import NS, Parts, element, relation_id, require, text_at
 
@@ -301,7 +309,7 @@ def inspect_artifact(
     artifact: ArtifactIdentity,
     expected: FixtureExpectation,
     phase: Literal["before", "after"] = "after",
-) -> Outcome[CheckSet]:
+) -> Outcome[ArtifactCheckSet]:
     """Bind actual retained output bytes to the recorded size/hash before inspection."""
     try:
         require(artifact.size <= 4_000_000, "archive-size")
@@ -313,4 +321,15 @@ def inspect_artifact(
         )
     except (OSError, ValueError):
         return rejected("artifact-identity-rejected")
-    return inspect_bytes(data, expected, phase)
+    checked = inspect_bytes(data, expected, phase)
+    if isinstance(checked, Rejected):
+        return checked
+    return Succeeded[ArtifactCheckSet](
+        payload=ArtifactCheckSet(
+            findings=checked.payload.findings,
+            artifact_sha256=artifact.sha256,
+            artifact_size=len(data),
+            fixture_sha256=expected.fixture.sha256,
+            phase=phase,
+        )
+    )

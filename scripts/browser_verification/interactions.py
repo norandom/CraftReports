@@ -19,6 +19,7 @@ from .config import RunConfig
 from .contracts import (
     ActionReceipt,
     CellCheck,
+    InspectedArtifact,
     ObservationSpec,
     Outcome,
     Rejected,
@@ -108,6 +109,12 @@ async def title(page: Page) -> str:
     return hashlib.sha256(pixels).hexdigest()
 
 
+async def wait_imported(page: Page, previous: str, checkpoint: Path) -> None:
+    while await title(page) == previous:
+        await frame(page)
+    await page.screenshot(path=str(checkpoint))
+
+
 class BrowserDriver:
     def __init__(
         self, config: RunConfig, state: BrowserState, ready: ReadyPage, expected: FixtureExpectation
@@ -126,6 +133,8 @@ class BrowserDriver:
         self.target: TargetIdentity | None = None
         self.stopped = False
         self.edit_attempted = False
+        self.save_attempted = False
+        self.reopened_artifact: InspectedArtifact | None = None
         self.receipts: list[ActionReceipt] = []
         self.observations: list[BrowserObservation] = []
         self.readbacks: list[CellObservation] = []
@@ -237,7 +246,10 @@ class BrowserDriver:
             return result
 
     def receipt(
-        self, target: TargetIdentity, action: Literal["open", "edit"], dispatch: UUID
+        self,
+        target: TargetIdentity,
+        action: Literal["open", "edit", "save", "reopen"],
+        dispatch: UUID,
     ) -> ActionReceipt:
         start = time.monotonic()
         receipt = ActionReceipt(
@@ -277,12 +289,35 @@ class BrowserDriver:
             )
         )
 
-    async def open(self, fixture: Path) -> Outcome[TargetIdentity]:
+    async def open(
+        self, fixture: Path, source: InspectedArtifact | None = None
+    ) -> Outcome[TargetIdentity]:
         try:
             if self.target:
                 raise TargetMismatch("open-already-attempted")
-            data = fixture.read_bytes()
-            if hashlib.sha256(data).hexdigest() != self.expected.fixture.sha256:
+            with fixture.open("rb") as stream:
+                data = stream.read(4_000_001)
+            digest = self.expected.fixture.sha256
+            artifact = source.artifact if source else None
+            if source and artifact:
+                if (
+                    not source.inspection.passed
+                    or source.fixture_sha256 != digest
+                    or artifact.size != len(data)
+                    or artifact.destination != fixture
+                    or artifact.target.run_id != self.config.run_id
+                    or artifact.target.build_sha256 != self.ready.build_sha256
+                    or artifact.target.origin != self.ready.origin
+                    or artifact.target.fixture_marker != self.expected.marker.value
+                    or artifact.target.artifact_sha256 != self.expected.fixture.sha256
+                    or artifact.target.context_id == self.state.context_id
+                    or artifact.target.page_id == self.state.page_id
+                ):
+                    raise TargetMismatch("reopen-artifact-rejected")
+                digest = artifact.sha256
+                self.generation = max(self.generation, artifact.target.generation)
+                self.reopened_artifact = source
+            if hashlib.sha256(data).hexdigest() != digest:
                 raise TargetMismatch("fixture-hash-mismatch")
             self.generation += 1
             target = TargetIdentity(
@@ -295,14 +330,15 @@ class BrowserDriver:
                 build_sha256=self.ready.build_sha256,
                 fixture_id=uuid4(),
                 fixture_marker=self.expected.marker.value,
-                artifact_sha256=self.expected.fixture.sha256,
+                artifact_sha256=digest,
             )
             self.target = target
             self.guard(target)
             assert self.state.diagnostics
             self.state.diagnostics.stage = "open"
-            self.receipt(target, "open", uuid4())
+            self.receipt(target, "reopen" if artifact else "open", uuid4())
             async with asyncio.timeout(self.config.bounds.action):
+                previous_title = await title(self.page)
                 self.opening = True
                 await click(self.page, 40, 53)
                 await click(self.page, 65, 192)
@@ -316,17 +352,38 @@ class BrowserDriver:
                     }
                 )
                 self.opening = False
-                while not selected(await self.page.screenshot(), "A1"):
-                    await asyncio.sleep(0.05)
-                observed = await self.observe(self.checks(target, "before"))
+                await wait_imported(
+                    self.page, previous_title, self.config.run_directory / "imported.png"
+                )
+                await self.navigate("A1")
+                observed = await self.observe(
+                    self.checks(target, "after" if artifact else "before")
+                )
                 self.document_title = await title(self.page)
                 self.guard(target)
             self.receipts[-1] = self.receipts[-1].model_copy(
                 update={"status": "observed", "observation_refs": (observed.screenshot,)}
             )
-            return Succeeded(payload=target)
+            return Succeeded[TargetIdentity](payload=target)
         except (Error, OSError, ValueError, TimeoutError) as error:
-            return await self.rejected("open", error)
+            rejected = await self.rejected("browser-reopen" if source else "open", error)
+            return (
+                Rejected(
+                    finding=rejected.finding.model_copy(update={"requirements": ("4.6", "4.7")})
+                )
+                if source
+                else rejected
+            )
+
+    async def reopened_checkpoint(self, target: TargetIdentity) -> str:
+        async with asyncio.timeout(self.config.bounds.action):
+            self.guard(target)
+            if self.reopened_artifact is None:
+                raise TargetMismatch("reopen-checkpoint-requires-inspected-artifact")
+            path = self.config.run_directory / "reopened.png"
+            await self.page.screenshot(path=str(path))
+            self.guard(target)
+            return str(path)
 
     async def edit(self, edit: CellEdit) -> Outcome[ActionReceipt]:
         try:
@@ -357,9 +414,11 @@ class BrowserDriver:
                 await frame(self.page)
                 await key(self.page, "Enter")
                 observed = await self.observe(self.checks(edit.target, "after"))
+                self.document_title = await title(self.page)
+                self.guard(edit.target)
             self.receipts[-1] = self.receipts[-1].model_copy(
                 update={"status": "observed", "observation_refs": (observed.screenshot,)}
             )
-            return Succeeded(payload=self.receipts[-1])
+            return Succeeded[ActionReceipt](payload=self.receipts[-1])
         except (Error, OSError, ValueError, TimeoutError) as error:
             return await self.rejected("edit", error)

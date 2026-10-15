@@ -113,6 +113,40 @@ class CheckSet(Value):
         return bool(self.findings) and all(item.status == "passed" for item in self.findings)
 
 
+class ArtifactCheckSet(CheckSet):
+    """Inspector-observed identities from the exact retained bounded bytes."""
+
+    artifact_sha256: Sha256
+    artifact_size: Annotated[int, Field(gt=0, le=4_000_000, strict=True)]
+    fixture_sha256: Sha256
+    phase: Literal["before", "after"]
+
+
+class InspectedArtifact(Value):
+    """Journey-owned inspected edited bytes passed between separate adapters."""
+
+    artifact: ArtifactIdentity
+    inspection: ArtifactCheckSet
+    fixture_sha256: Sha256
+    phase: Literal["after"] = "after"
+
+    @model_validator(mode="after")
+    def successful_inspection(self) -> InspectedArtifact:
+        if (
+            not self.inspection.passed
+            or self.inspection.artifact_sha256 != self.artifact.sha256
+            or self.inspection.artifact_size != self.artifact.size
+            or self.inspection.fixture_sha256 != self.fixture_sha256
+            or self.inspection.phase != "after"
+            or any(
+                finding.stage != "byte-inspection" or finding.expected[-1:] != ("after",)
+                for finding in self.inspection.findings
+            )
+        ):
+            raise ValueError("reopen requires passed edited-byte inspection")
+        return self
+
+
 class ActionReceipt(Value):
     dispatch_id: UUID
     target: TargetIdentity

@@ -3,13 +3,16 @@
 from collections import Counter
 from pathlib import Path
 
-from .contracts import CheckSet, StageFinding
+from .contracts import CheckSet, InspectedArtifact, StageFinding
 from .fixture import FixtureExpectation
 from .visual_profile import ChartObservation, VisualProfile, compare_crop
 
 
 def compare_visual(
-    observed: ChartObservation, profile: VisualProfile, expected: FixtureExpectation
+    observed: ChartObservation,
+    profile: VisualProfile,
+    expected: FixtureExpectation,
+    source: InspectedArtifact | None = None,
 ) -> CheckSet:
     phase = observed.phase
     mandatory = {
@@ -46,7 +49,20 @@ def compare_visual(
     identity = (
         observed.profile_id == profile.profile_id
         and observed.target.build_sha256 == profile.build_sha256
-        and observed.target.artifact_sha256 == profile.fixture_sha256
+        and (
+            observed.target.artifact_sha256 == profile.fixture_sha256
+            or (
+                source is not None
+                and source.inspection.passed
+                and source.fixture_sha256 == profile.fixture_sha256
+                and phase == "after"
+                and source.artifact.sha256 == observed.target.artifact_sha256
+                and source.artifact.target.run_id == observed.target.run_id
+                and source.artifact.target.generation < observed.target.generation
+                and source.artifact.target.context_id != observed.target.context_id
+                and source.artifact.target.page_id != observed.target.page_id
+            )
+        )
         and observed.target.fixture_marker == expected.marker.value
         and observed.copy_receipt.target == observed.target
         and observed.copy_receipt.status == "observed"
