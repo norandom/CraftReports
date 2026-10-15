@@ -1,6 +1,6 @@
 """Own explicit deployment providers, activated capabilities and both interfaces."""
 
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Callable
 from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass
 from socket import socket
@@ -201,12 +201,16 @@ def _app(settings: HostSettings, lifetime: _Lifetime) -> FastAPI:
 async def open_application(
     settings: HostSettings,
     providers: AbstractAsyncContextManager[GuaranteeProviders],
+    *,
+    on_activation: Callable[[ActivationSnapshot], AbstractAsyncContextManager[None]] | None = None,
 ) -> AsyncGenerator[HostedApplication]:
     """Keep the context open until the server lifespan and all clients have exited."""
     settings.principal.validate_bind(settings.bind_host)
     async with AsyncExitStack() as stack:
         services = await stack.enter_async_context(providers)
         snapshot = await stack.enter_async_context(activate_snapshot(settings.selections))
+        if on_activation is not None:
+            await stack.enter_async_context(on_activation(snapshot))
         if any(
             item.limits.max_input_bytes > settings.max_raw_bytes
             for item in snapshot.registry.describe()

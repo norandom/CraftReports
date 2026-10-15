@@ -412,7 +412,7 @@ def test_v2_migration_preserves_journal_bytes_and_current_schema_opens_without_w
         with sqlite3.connect(database.path) as independent:
             before = independent.execute("SELECT * FROM commands").fetchall()
             history = independent.execute("SELECT * FROM observations").fetchall()
-            for table in ("results", "evidence", "snapshots", "feeds"):
+            for table in ("handoffs", "results", "evidence", "snapshots", "feeds"):
                 independent.execute("DROP TABLE " + table)
             independent.execute("UPDATE deployment SET schema_version=2")
         migrated = Database(database.path, "deployment-a")

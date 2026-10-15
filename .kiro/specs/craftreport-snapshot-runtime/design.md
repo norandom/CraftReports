@@ -84,7 +84,7 @@ New files are proposals until gate task 1 passes. Files group by responsibility,
 | BindingStore | `src/craftreport/adapters/storage/bindings.py` | New; snapshot-storage |
 | PublicationOperations | `src/craftreport/runtime/publication.py` | New; runtime |
 | BindingRuntime | `src/craftreport/runtime/__init__.py`, `values.py`, `ports.py`, `bindings.py`, `scheduler.py`, `capability.py` | New; runtime |
-| DurableHost | `src/craftreport/composition/snapshot_host.py`; `pyproject.toml`, `uv.lock` | New assembly; explicit entry point; root coordinates shared files |
+| DurableHost | `src/craftreport/composition/snapshot_host.py`, existing `composition/app.py` activation callback; `pyproject.toml`, `uv.lock` | New assembly; explicit entry point; root coordinates shared files |
 | ActivationGate | `scripts/check_imports.py`, `tests/engineering/test_boundary_gates.py`, `quality.toml`, `breadth.toml` | Modify exact owner/import scopes before source; root owns integration |
 | Verification | `tests/snapshot_runtime/test_values.py`, `test_providers.py`, `test_publication.py`, `test_bindings.py`, `test_recovery.py`, `test_installed.py` | New; development-gates, tests reported separately |
 | Adopter workflow | `scripts/examples/publish_and_recover_snapshot.py`, `scripts/examples/snapshot_demo_host.py`, `examples/data/snapshot_runtime.json`, `docs/quickstarts/Quickstart_How_to_publish_and_recover_a_snapshot.md`, `docs/quickstarts/index.md` | New recipe/fixture/guide and index update; exact declared owners before expansion |
@@ -261,3 +261,27 @@ envelope in report-model preparation-scope-amendment.md at SHA256
 12A88B1ACFADCD718791B44E6F0EDE097641F6AE9B553F97F77A9A7BBA536300.
 Stored fact verification is distinct from decision eligibility; storage never
 recomputes policy. The original complete operation pins remain mandatory.
+
+
+### Accepted task 3.4 concrete services integration
+
+Task3.4 follows [services-amendment.md](services-amendment.md), independently
+approved by `/root/review_services_plan` at SHA256
+`5AB8BAA8D9867B6E8051554D397D4A3EB99078B3E55D61250254C37B3B3C39C5`.
+It specifies exact transactional v4-to-v5 handoff retention, original issued
+lease/task authority and truthful omitted/partial precondition semantics.
+Capability decisions reuse the single installed activation; mode-constrained
+requirements remain unsupported until actual mode observation is integrated.
+The optional scoped callback in existing composition/app.py and mandatory
+one-shot binder in planned snapshot_host.py enforce that activation lifetime.
+The concrete assembler, typed current owner probes and fresh retain-all report
+are specified there; no synthetic health defaults or physical whole-database
+scan is introduced. Current source budgets and application kernel stay unchanged.
+Proposal approval authorizes implementation, not working-provider acceptance.
+
+Task3.4's independently reviewed repair also promotes the existing synchronous
+`DurableResults._read` to `read_retained` with identical signature and behavior.
+Existing callers are renamed; bounded health sampling reuses its actual retained
+owner/journal/reference validation within the same transaction. This adds only
+the narrow existing storage/results.py integration seam, not a new endpoint or
+authority. Independent implementation re-review remains mandatory.

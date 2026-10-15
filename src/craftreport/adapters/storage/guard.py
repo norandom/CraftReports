@@ -63,6 +63,17 @@ class DurableGuard:
         self.database, self.read, self.timeout = database, read, timeout
         self._locks: dict[ResourceRef, _Lock] = {}
         self._leases: dict[DurableLease, _Issued] = {}
+        self._claims: dict[DurableLease, str] = {}
+
+    def capture(self, operation_id: str, versions: ports.Preconditions) -> DurableLease:
+        leases = [
+            lease
+            for lease in self._leases
+            if self.is_current(lease) and self.preconditions(lease) == versions
+        ]
+        if len(leases) != 1 or self._claims.setdefault(leases[0], operation_id) != operation_id:
+            raise StorageUnavailable("No unique original operation lease")
+        return leases[0]
 
     def is_active(self, lease: DurableLease) -> bool:
         issued = self._leases.get(lease)
@@ -72,6 +83,7 @@ class DurableGuard:
             and lease.authoritative_versions == issued.versions
             and lease.task is issued.task
             and issued.task is not None
+            and not issued.task.done()
             and not issued.task.cancelling()
         )
 
@@ -129,6 +141,7 @@ class DurableGuard:
                 raise ports.GuardAcquisitionError(reason)
             yield lease
         finally:
+            self._claims.pop(lease, None)
             self._leases.pop(lease, None)
             for _, slot in reversed(held):
                 slot.lock.release()

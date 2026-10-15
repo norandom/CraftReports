@@ -147,6 +147,15 @@ results.append_constraint(
     )
 )
 
+handoffs = Table(
+    "handoffs",
+    metadata,
+    Column("operation_id", String, ForeignKey("commands.operation_id"), primary_key=True),
+    Column("reference", String, primary_key=True),
+    Column("handoff_bytes", LargeBinary, nullable=False),
+    Column("handoff_digest", String, nullable=False),
+)
+
 
 def _objects(connection: Connection) -> dict[tuple[str, str], str | None]:
     catalog = table(
@@ -228,10 +237,12 @@ def _validate_table(connection: Connection, expected: Table) -> None:
 
 def _validate_schema(connection: Connection, version: int) -> None:
     expected = (deployment,) if version == 1 else (deployment, commands, observations)
-    if version in (3, 4):
+    if version in (3, 4, 5):
         expected += (feeds, snapshots, evidence)
-    if version == 4:
+    if version in (4, 5):
         expected += (results,)
+    if version == 5:
+        expected += (handoffs,)
     objects = _objects(connection)
     if set(objects) != {(item.name, "table") for item in expected}:
         raise ValueError("Unrecognized retained schema objects")
@@ -259,7 +270,7 @@ def initialize(connection: Connection, identity: str, existed: bool) -> Deployme
         connection.execute(
             insert(deployment).values(
                 singleton=1,
-                schema_version=4,
+                schema_version=5,
                 identity=identity,
                 epoch=uuid4().hex,
                 retention_profile="retain-all",
@@ -274,6 +285,10 @@ def initialize(connection: Connection, identity: str, existed: bool) -> Deployme
             (item.name, "table")
             for item in (deployment, commands, observations, feeds, snapshots, evidence)
         },
+        {
+            (item.name, "table")
+            for item in (deployment, commands, observations, feeds, snapshots, evidence, results)
+        },
         {(item.name, "table") for item in metadata.tables.values()},
     ):
         raise ValueError("Unrecognized retained schema objects")
@@ -284,7 +299,7 @@ def initialize(connection: Connection, identity: str, existed: bool) -> Deployme
     row = rows[0]
     if (
         row["singleton"] != 1
-        or row["schema_version"] not in (1, 2, 3, 4)
+        or row["schema_version"] not in (1, 2, 3, 4, 5)
         or row["identity"] != identity
         or not isinstance(row["identity"], str)
         or not row["identity"].strip()
@@ -324,3 +339,7 @@ def _upgrade(connection: Connection, version: int) -> None:
         results.create(connection)
         _validate_schema(connection, 4)
         connection.execute(update(deployment).values(schema_version=4))
+    if version in (1, 2, 3, 4):
+        handoffs.create(connection)
+        _validate_schema(connection, 5)
+        connection.execute(update(deployment).values(schema_version=5))

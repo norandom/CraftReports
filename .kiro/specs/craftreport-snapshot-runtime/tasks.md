@@ -66,7 +66,9 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   - _Boundary: DurableProviders results/evidence_
   - _Depends: 3.1_
   - _Requirements: 5.1, 5.5, 6.2, 6.3_
-- [ ] 3.4 Complete handoff, capability and actual health providers
+- [x] 3.4 Complete handoff, capability and actual health providers
+  - Apply the independently approved visibility-only DurableResults.read_retained repair seam in existing storage/results.py, preserving behavior and reusing its selected-row owner/link/reference checks inside bounded health sampling; no parallel validation or new public authority.
+  - Apply independently reviewed services-amendment.md: exact v5 transition and original task/issued-lease handoffs, truthful empty/partial pins, permanently one-shot activation binding and mandatory typed production assembly. Reuse existing retained capability decisions; mode-constrained and external-transfer claims remain unsupported without actual observations. Test current typed owner probes, bounded canonical storage health and fresh retain-all inspection; no physical whole-database scan or synthetic defaults.
   - Persist exact trusted RecordedHandoff and installed capability/version/mode decisions; implement allowlisted actual provider probes and default retain-all policy inspection.
   - Done when all nine GuaranteeProviders are concrete, unavailable names fail closed, old owner strings do not prove liveness and production assembly passes focused existing provider conformance without synthetic defaults.
   - _Boundary: DurableProviders handoffs/capabilities/health_
@@ -218,3 +220,11 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   bytes and reopened preparation/publication facts verified. Observed fact
   verification does not assert release eligibility. Real reporting producer
   conversion remains report-model8; complete provider/host wiring remains open.
+
+- Task 3.4: independently approved after lost-acknowledgement and selected-row
+  health-integrity repairs. Windows focused437 tests and scoped static/import/
+  breadth/quality gates passed on frozen source; independent review evidence
+  is in artifacts/snapshot-runtime/task-3.4/. Storage1152/1500; composition
+  uses the single installed activation with mandatory one-shot provider binding.
+  Historical handoffs do not confer current lease authority. Remaining full
+  storage scope is estimated1467-1602; fit is not established and no cap rises.

@@ -87,5 +87,13 @@
     ],
     "verdict": "PASS",
     "authorization": "owner-directed-bounded-fast-track"
+  },
+  "services_amendment": {
+    "reference": "services-amendment.md",
+    "reviewer": "/root/review_services_plan",
+    "verdict": "PASS",
+    "reviewed_sha256": "5AB8BAA8D9867B6E8051554D397D4A3EB99078B3E55D61250254C37B3B3C39C5",
+    "authorization": "owner-directed-bounded-fast-track",
+    "repair_passes": 1
   }
 }

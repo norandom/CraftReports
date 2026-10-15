@@ -70,7 +70,9 @@ class DurableResults:
                     .one_or_none()
                 )
                 if found is not None:
-                    readback = self._read(connection, principal, operation_id, found["identity"])
+                    readback = self.read_retained(
+                        connection, principal, operation_id, found["identity"]
+                    )
                     if readback.availability is not Availability.AVAILABLE or (
                         found["result_bytes"],
                         found["result_digest"],
@@ -98,12 +100,12 @@ class DurableResults:
     async def read(self, principal: Principal, operation_id: str, reference: str) -> RetainedResult:
         try:
             return await self.database.transaction(
-                lambda c: self._read(c, principal, operation_id, reference)
+                lambda c: self.read_retained(c, principal, operation_id, reference)
             )
         except _STORAGE_FAILURES:
             return RetainedResult(reference, Availability.UNAVAILABLE)
 
-    def _read(
+    def read_retained(
         self, connection: Connection, principal: Principal, operation_id: str, reference: str
     ) -> RetainedResult:
         row = (

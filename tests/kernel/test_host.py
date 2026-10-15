@@ -196,3 +196,70 @@ async def test_supplied_policy_and_unavailable_handoff_prevent_effect(
             result = await http.post("/v1/invoke", json=envelope())
             assert result.json()["diagnostic"]["code"] == "service_unavailable"
     assert fixture.fixture.target.effect_count == 0
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("failure", [None, "activation", "entry", "exit"])
+async def test_activation_callback_is_scoped_after_single_activation_before_execution(
+    monkeypatch: pytest.MonkeyPatch, failure: str | None
+) -> None:
+    from collections.abc import AsyncGenerator
+    from contextlib import asynccontextmanager
+
+    from craftreport.application.execution import Execution
+    from craftreport.composition.plugins import ActivationSnapshot
+
+    fixture = HostFixture(monkeypatch)
+    fixture.fail_open = failure == "activation"
+    original_shutdown = Execution.shutdown
+
+    async def shutdown(execution: Execution) -> bool:
+        fixture.events.append("execution-shutdown")
+        return await original_shutdown(execution)
+
+    monkeypatch.setattr(Execution, "shutdown", shutdown)
+
+    @asynccontextmanager
+    async def bind(snapshot: ActivationSnapshot) -> AsyncGenerator[None]:
+        assert snapshot.manifests == (fixture.manifest,)
+        assert snapshot.registry.describe() == fixture.manifest.operations
+        fixture.events.append("binder-open")
+        if failure == "entry":
+            raise RuntimeError("binder-entry")
+        try:
+            yield
+        finally:
+            fixture.events.append("binder-close")
+            if failure == "exit":
+                raise RuntimeError("binder-exit")
+
+    async def run() -> None:
+        async with open_application(fixture.settings, fixture.providers(), on_activation=bind):
+            fixture.events.append("application-published")
+
+    if failure:
+        with pytest.raises((RuntimeError, ValueError)):
+            await run()
+    else:
+        await run()
+    if failure == "activation":
+        assert fixture.events == ["providers-open", "plugin-open", "providers-close"]
+    elif failure == "entry":
+        assert fixture.events == [
+            "providers-open",
+            "plugin-open",
+            "binder-open",
+            "plugin-close",
+            "providers-close",
+        ]
+    else:
+        assert fixture.events == [
+            "providers-open",
+            "plugin-open",
+            "binder-open",
+            "application-published",
+            "execution-shutdown",
+            "binder-close",
+            "plugin-close",
+            "providers-close",
+        ]

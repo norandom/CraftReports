@@ -327,6 +327,7 @@ def test_exact_v3_transition_rolls_back_and_reopens(tmp_path: Path, cutpoint: st
     asyncio.run(database.close())
     engine = create_engine("sqlite+pysqlite:///" + str(path))
     with engine.begin() as connection:
+        schema.handoffs.drop(connection)
         schema.results.drop(connection)
         connection.execute(update(schema.deployment).values(schema_version=3))
     engine.dispose()
@@ -357,7 +358,7 @@ def test_exact_v3_transition_rolls_back_and_reopens(tmp_path: Path, cutpoint: st
     reopened = Database(path, ALICE.deployment_scope)
     asyncio.run(reopened.close())
     with sqlite3.connect(path) as independent:
-        assert independent.execute("SELECT schema_version FROM deployment").fetchone() == (4,)
+        assert independent.execute("SELECT schema_version FROM deployment").fetchone() == (5,)
         assert independent.execute("SELECT count(*) FROM commands").fetchone() == (1,)
 
 

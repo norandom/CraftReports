@@ -9,11 +9,39 @@ from typing import Literal, cast
 from pydantic import TypeAdapter, ValidationError
 
 from craftreport.adapters.canonical import canonical_bytes
+from craftreport.application.dispatch_ports import RecordedHandoff
 from craftreport.contracts import CommandIntent, EvidenceRef, JsonObject, Receipt
 from craftreport.contracts.values import freeze_object, require_immutable
 
 _receipt = TypeAdapter(Receipt)
 _intent = TypeAdapter(CommandIntent)
+_handoff = TypeAdapter(RecordedHandoff)
+
+
+def encode_handoff(value: RecordedHandoff) -> tuple[bytes, str]:
+    require_immutable(value)
+    data = cast(JsonObject, _handoff.dump_python(value, mode="json", warnings="error"))
+    principal = cast(JsonObject, data["principal"])
+    return _canonical(
+        {
+            **data,
+            "principal": {
+                **principal,
+                "permitted_scopes": tuple(sorted(value.principal.permitted_scopes)),
+            },
+        }
+    )
+
+
+def decode_handoff(payload: bytes, digest: str) -> RecordedHandoff:
+    _check(payload, digest)
+    try:
+        value = _handoff.validate_json(payload, strict=True, extra="forbid")
+        if encode_handoff(value) != (payload, digest):
+            raise ValueError("Noncanonical retained handoff")
+        return value
+    except (ValidationError, TypeError) as error:
+        raise ValueError("Invalid retained handoff") from error
 
 
 def _canonical(value: JsonObject) -> tuple[bytes, str]:
