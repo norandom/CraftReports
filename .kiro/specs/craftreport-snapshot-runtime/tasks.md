@@ -57,6 +57,7 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   - _Requirements: 2.1, 2.4, 2.5, 2.6, 3.3, 5.2, 5.7_
 - [ ] 3.3 Implement immutable result and evidence retention with access-safe readback
   - Persist opaque result/evidence references and exact canonical bytes bound to deployment, subject, operation and versions; independently read and validate digests/pins.
+  - Expose the Design's narrow trusted retain_preparation_fact method in existing storage results/evidence files for reporting composition: generic kernel values/canonical closed fact bytes only, retained-command ownership, full declared pins including report-owned resources and independent exact readback. Reuse the evidence table/reader; no reporting imports, public trusted-fact submission, new table or second completion authority.
   - Done when content survives reopen, unauthorized callers cannot inspect private content, deliberate missing differs from unavailable/corrupt storage and unsupported evidence is never marked passed.
   - _Boundary: DurableProviders results/evidence_
   - _Depends: 3.1_
@@ -108,6 +109,7 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   - _Requirements: 3.3, 3.4, 3.5, 6.3_
 - [ ] 5.3 Implement single-binding scheduling and public start/pause/resume/stop
   - Use one asyncio owner with monotonic 10-second reference opportunities and at most one in-flight preparation/update; select highest complete, obtain new prepared pins for that snapshot through injected RunPreparer, recheck generation plus lifecycle revision/running intent before run commit/start, coalesce arrivals and preserve run pins. A pause while preparation awaits prevents target start.
+  - Implement the local lifecycle start fence separately from SQL transactions/kernel leases. Serialize final recheck/run commit plus the actual bounded facade start/operation-ID handoff with pause/stop; release all selection transactions/leases before nested invoke, exclude mutable binding resources from app-start admission, and release the fence before inspection/polling. Record pending pause behind an earlier start; failures/lost acknowledgement retain truthful admission uncertainty without replay.
   - Expose pause pending immediately, preserve accepted publications, stop until explicit start, request cancellation and retain distinct lifecycle/effect/last-error/attempt/completion/version facts.
   - Own runtime.control codec/OperationBinding registration and capability/host updates in the existing reviewed files; controls use the shared facade and existing interfaces/application remain unchanged.
   - Done when ordinary REST/MCP discovery and invocation expose control with retained intent readback, deterministic tests cover every transition and one bounded real 10-second smoke observes selection without claiming apply-latency guarantees or visible app completion.
@@ -134,6 +136,7 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
 - [ ] 6.2 Verify installed lifecycle and shared-interface contracts
   - Use ordinary REST/MCP clients, real durable providers, a clearly synthetic preparation collaborator retaining fixture results and a synthetic effect collaborator with independently inspected local durable output; do not require report-model completion. Exercise incomplete newest input, pause during preparation, pause/publish/latest-resume, stale completion, stop, restart and ambiguous acknowledgement.
   - Verify permission denials, pending/stage distinctions, no duplicate target effect and exact run/binding/target identities; add affected journey to existing integration command.
+  - Race pause against final start handoff in both orders, including a runtime.control binding lease held during app admission: prove no lease inversion/deadlock, no new start after acknowledged pause, truthful pending for the earlier in-flight start, and fence release on start rejection/exception.
   - Done when canonical fast/integration checks and reference journeys pass with retained commands/exit codes/source/dependency/evidence identities; real browser/export acceptance remains explicitly downstream.
   - _Boundary: Explicit installed integration validation_
   - _Depends: 6.1_

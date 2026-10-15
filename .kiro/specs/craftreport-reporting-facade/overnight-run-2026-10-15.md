@@ -125,3 +125,20 @@ feature acceptance. The computer, application and WSL must remain running.
 - Snapshot task 1.2 is implementing actual SQLAlchemy/SQLite database lifetime
   and process exclusion. GridCraft Design is drafting against accepted upstream
   contracts, with an early real same-document/app-save feasibility gate.
+
+### Upstream implementation and app phase checkpoint
+
+- Snapshot task 1.2 accepted by independent review and installed hook; committed
+  `dc88abb`, pushed. Real file transactions, rollback/DDL/FK enforcement,
+  process exclusion/release and cancellation lifetime verified; installed wheel
+  matches source. Added 134 storage LLOC and 200 test LLOC. Provider tables and
+  publication/recovery remain later work.
+- GridCraft Design accepted after complete evidence-pin and private staging /
+  final publication corrections; committed `74f1402`. Its 16-task plan passed
+  after assigning export operation activation explicitly, committed `895e5b7`.
+  Installed hooks passed; both pushed. All three bounded child phase plans are
+  now complete; this does not establish runtime/browser feature acceptance.
+- Snapshot task 2.1 immutable values implementation started. Final cross-spec
+  audit runs independently. The custom spec-reviewer model was unavailable on
+  this account; its failed launch performed no review. A fresh supported-model
+  reviewer handles the same read-only consistency audit instead.
