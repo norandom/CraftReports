@@ -102,5 +102,13 @@
     "reviewed_sha256": "684335e16561ec8208ccbb30fbe14492fe90a84dc0bebad83e112550b673863f",
     "post_review_change": "status paragraph only: task5accepted and boundedplanapproved",
     "authorization": "owner-directed-bounded-fast-track"
+  },
+  "preparation_wire_amendment": {
+    "reference": "preparation-wire-amendment.md",
+    "reviewer": "/root/review_preparation_wire",
+    "verdict": "PASS",
+    "reviewed_sha256": "4D5D61F89AD64C3C66E61914C38BFFD1F8C1F20BB9EE44F2041560E6863B7359",
+    "authorization": "owner-directed-bounded-fast-track",
+    "scope": "bounded task7 only; actual unchanged limits and complete residual forecast; no future-fit claim"
   }
 }

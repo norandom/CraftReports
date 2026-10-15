@@ -356,3 +356,22 @@ privacy, immutable activation, path containment and compatibility checks remain.
 No new dependency/ownership/cap is approved. The full remaining adapter forecast
 is1488/1500 including future7/8; refresh actual measurements after task6 and
 simplify before any excess rather than moving ownership or omitting obligations.
+
+
+### Accepted task 7 preparation wire integration
+
+Task7 follows [preparation-wire-amendment.md](preparation-wire-amendment.md),
+independently approved by `/root/review_preparation_wire` at SHA256
+`4D5D61F89AD64C3C66E61914C38BFFD1F8C1F20BB9EE44F2041560E6863B7359`.
+Use installed Pydantic fixed model derivation, exact existing scalar conversions,
+shared SnapshotRefWire and the opt-in strict JSON codec seam. The bounded
+compatibility refactor must preserve the four upstream published schemas,
+normalization/defaults and canonical assets exactly. The narrow pure API values
+in reporting/ports.py and support-shape validator are brought forward; task8
+still owns operation activation and evidence. Retain the independently counted
+6S+512KiB size proof, authoritative constructors and exact content/policy identities.
+The whole-owner forecast1455-1548 is uncertain. Root authorizes bounded task7
+implementation under unchanged actual1500/300/50/10 limits, with fresh measured
+owner totals and a complete residual forecast before acceptance. Future tasks
+require capacity/dependency reassessment; no ownership move or cap rise is allowed.
+This supersedes the earlier report-only future-fit estimates, not actual gates.

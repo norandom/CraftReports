@@ -126,7 +126,7 @@ class ThemeFailure:
                 raise ValueError("Expected text or nonnegative location index")
 
 
-def _support_shape(support: tuple[CapabilityStatus, ...]) -> ThemeFailure | None:
+def validate_support(support: tuple[CapabilityStatus, ...]) -> ThemeFailure | None:
     if type(support) is not tuple:
         return ThemeFailure("invalid_support", ("support",))
     seen: set[str] = set()
@@ -158,7 +158,7 @@ def _mapping_failure(status: MappingStatus, location: tuple[str | int, ...]) -> 
 def _support_failure(
     theme: Theme, support: tuple[CapabilityStatus, ...], is_compatible: CompatibilityCheck | None
 ) -> ThemeFailure | None:
-    shape = _support_shape(support)
+    shape = validate_support(support)
     if shape is not None:
         return shape
     if is_compatible is None:

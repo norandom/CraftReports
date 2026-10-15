@@ -1,12 +1,13 @@
 """Strict shared decoded-object validation with explicit domain serializers."""
 
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass, replace
-from typing import Self, cast
+from dataclasses import MISSING, dataclass, fields, is_dataclass, replace
+from typing import Self, cast, get_type_hints
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, create_model
 
-from craftreport.adapters.canonical import WireFailure, bounded_object
+from craftreport.adapters.canonical import WireFailure, bounded_object, canonical_bytes
+from craftreport.adapters.schema_embedding import close_schema
 from craftreport.contracts import (
     ExpectedVersion,
     InvocationEnvelope,
@@ -31,22 +32,54 @@ class StrictWireModel(BaseModel):
     )
 
 
-def _reject_numeric_coercion(before: JsonValue, after: object) -> None:
+def model_shape[T](
+    cls: type[T],
+    overrides: dict[str, object],
+    omit: tuple[str, ...] = (),
+    defaults: dict[str, object] | None = None,
+) -> type[StrictWireModel]:
+    """Project fixed dataclass fields; callers explicitly declare wire differences."""
+    assert is_dataclass(cls)
+    hints = get_type_hints(cls)
+    definitions = {
+        f.name: (hints[f.name], ... if f.default is MISSING else f.default)
+        for f in fields(cls)
+        if f.name not in omit
+    }
+    definitions.update(
+        {name: (annotation, definitions[name][1]) for name, annotation in overrides.items()}
+    )
+    definitions.update(
+        {name: (definitions[name][0], value) for name, value in (defaults or {}).items()}
+    )
+    factory = cast(Callable[..., type[StrictWireModel]], create_model)
+    return factory(cls.__name__ + "Boundary", __base__=StrictWireModel, **definitions)
+
+
+def construct[T](cls: type[T], model: StrictWireModel, replacements: dict[str, object]) -> T:
+    assert is_dataclass(cls)
+    values: dict[str, object] = {f.name: getattr(model, f.name) for f in fields(cls)}
+    values.update(replacements)
+    return cls(**values)
+
+
+def _reject_numeric_coercion(before: JsonValue, after: object, json_mode: bool = False) -> None:
     """Pydantic strict floats still accept ints; preserve wire numeric kinds."""
     if type(before) in (bool, int, float) and type(before) is not type(after):
-        raise WireFailure("invalid_input")
+        if not (json_mode and type(before) is int and type(after) is float):
+            raise WireFailure("invalid_input")
     if isinstance(before, Mapping):
         for key, value in before.items():
-            _reject_numeric_coercion(value, _member(after, key))
+            _reject_numeric_coercion(value, _member(after, key), json_mode)
     elif isinstance(before, (list, tuple)) and isinstance(after, (list, tuple)):
         for value, validated in zip(
             before, cast(list[object] | tuple[object, ...], after), strict=True
         ):
-            _reject_numeric_coercion(value, validated)
+            _reject_numeric_coercion(value, validated, json_mode)
 
 
 def _member(value: object, key: str) -> object:
-    if isinstance(value, BaseModel):
+    if isinstance(value, BaseModel) or is_dataclass(value) and not isinstance(value, type):
         return getattr(value, key)
     if isinstance(value, Mapping):
         return cast(Mapping[str, object], value)[key]
@@ -65,6 +98,7 @@ class PydanticCodec[T, M: StrictWireModel]:
     from_wire: Callable[[M], T]
     to_wire: Callable[[T], JsonObject]
     limits: OperationLimits = OperationLimits()
+    json_mode: bool = False
 
     def __post_init__(self) -> None:
         if any(
@@ -83,13 +117,22 @@ class PydanticCodec[T, M: StrictWireModel]:
             self, limits=replace(self.limits, max_output_bytes=self.limits.max_input_bytes)
         )
 
+    def _validate(self, value: JsonObject) -> M:
+        if self.json_mode:
+            model = self.model.model_validate_json(
+                canonical_bytes(value), strict=True, extra="forbid", by_alias=False, by_name=True
+            )
+        else:
+            model = self.model.model_validate(
+                value, strict=True, extra="forbid", by_alias=False, by_name=True
+            )
+        _reject_numeric_coercion(value, model, self.json_mode)
+        return model
+
     def decode(self, value: JsonObject) -> T:
         checked = bounded_object(value, self.limits.max_input_bytes, self.limits.max_nesting_depth)
         try:
-            model = self.model.model_validate(
-                checked, strict=True, extra="forbid", by_alias=False, by_name=True
-            )
-            _reject_numeric_coercion(checked, model)
+            model = self._validate(checked)
             result = self.from_wire(model)
             require_immutable(result)
             return result
@@ -111,19 +154,13 @@ class PydanticCodec[T, M: StrictWireModel]:
             output = bounded_object(
                 self.to_wire(value), self.limits.max_output_bytes, self.limits.max_nesting_depth
             )
-            model = self.model.model_validate(
-                output, strict=True, extra="forbid", by_alias=False, by_name=True
-            )
-            _reject_numeric_coercion(output, model)
+            model = self._validate(output)
             resolved = bounded_object(
-                model.model_dump(mode="python", by_alias=False),
+                model.model_dump(mode="json" if self.json_mode else "python", by_alias=False),
                 self.limits.max_output_bytes,
                 self.limits.max_nesting_depth,
             )
-            serialized = self.model.model_validate(
-                resolved, strict=True, extra="forbid", by_alias=False, by_name=True
-            )
-            _reject_numeric_coercion(resolved, serialized)
+            self._validate(resolved)
             return freeze_object(resolved)
         except WireFailure as error:
             limit = "max_output_bytes" if error.limit == "max_input_bytes" else error.limit
@@ -132,7 +169,8 @@ class PydanticCodec[T, M: StrictWireModel]:
             raise WireFailure("result_contract_failure") from None
 
     def schema(self) -> JsonObject:
-        return freeze_object(self.model.model_json_schema(by_alias=False))
+        schema = self.model.model_json_schema(by_alias=False)
+        return freeze_object(close_schema(schema) if self.json_mode else schema)
 
 
 class _ResourceWire(StrictWireModel):

@@ -7,50 +7,82 @@ from typing import Annotated, Literal, cast
 from pydantic import Field as WireField
 
 from craftreport.adapters.canonical import WireFailure
-from craftreport.adapters.validation import StrictWireModel
+from craftreport.adapters.validation import StrictWireModel, model_shape
 from craftreport.contracts import JsonObject, OperationLimits
 from craftreport.contracts.values import JsonValue
-from craftreport.data.values import ScalarKind
+from craftreport.data.values import Dataset, Field, ImportedMetric, ScalarKind, SnapshotRef
 
 type Text = str
 type ScalarWire = Text | bool | None
 type VersionWire = Annotated[str, WireField(pattern=r"^[1-9][0-9]{0,18}$")]
 
 
-class FieldWire(StrictWireModel):
-    name: Text
-    label: Text
-    kind: ScalarKind
-    nullable: bool
-    unit: Text | None = None
-    precision: Annotated[int, WireField(ge=1, le=38)] | None = None
-    scale: Annotated[int, WireField(ge=0, le=38)] | None = None
+class FieldWire(
+    model_shape(
+        Field,
+        {
+            "name": Text,
+            "label": Text,
+            "unit": Text | None,
+            "precision": Annotated[int | None, WireField(ge=1, le=38)],
+            "scale": Annotated[int | None, WireField(ge=0, le=38)],
+        },
+    )
+):
+    pass
 
 
-class DatasetWire(StrictWireModel):
-    name: Text
-    label: Text
-    fields: list[FieldWire]
-    rows: list[list[ScalarWire]]
-    keys: list[Text]
-    source_ref: Text
-    producer_id: Text
-    source_version: Text | None = None
+class DatasetWire(
+    model_shape(
+        Dataset,
+        {
+            "name": Text,
+            "label": Text,
+            "fields": list[FieldWire],
+            "rows": list[list[ScalarWire]],
+            "keys": list[Text],
+            "source_ref": Text,
+            "producer_id": Text,
+            "source_version": Text | None,
+        },
+        defaults={"source_version": None},
+    )
+):
+    pass
 
 
-class MetricWire(StrictWireModel):
-    identity: Text
-    unit: Text
-    period: Text | None = None
-    as_of: Text | None = None
-    source_ref: Text
-    producer_id: Text
-    method_version: Text
-    shape: Literal["scalar", "series"]
-    value_schema: FieldWire
-    labels: list[Text]
-    values: list[ScalarWire]
-    external_evidence: list[Text]
+class MetricWire(
+    model_shape(
+        ImportedMetric,
+        {
+            "identity": Text,
+            "unit": Text,
+            "period": Text | None,
+            "as_of": Text | None,
+            "source_ref": Text,
+            "producer_id": Text,
+            "method_version": Text,
+            "value_schema": FieldWire,
+            "labels": list[Text],
+            "values": list[ScalarWire],
+            "external_evidence": list[Text],
+        },
+        defaults={"period": None, "as_of": None},
+    )
+):
+    pass
+
+
+class SnapshotRefWire(
+    model_shape(
+        SnapshotRef,
+        {
+            "producer_version": VersionWire,
+            "content_digest": Annotated[str, WireField(pattern=r"^[0-9a-f]{64}$")],
+        },
+    )
+):
+    pass
 
 
 class PublicationWire(StrictWireModel):

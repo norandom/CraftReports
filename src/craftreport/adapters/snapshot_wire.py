@@ -248,6 +248,11 @@ def _encode_cell(value: Scalar, field: Field) -> JsonValue:
     return encode_scalar(_scaled_decimal(value, field) if isinstance(value, Decimal) else value)
 
 
+encode_cell = _encode_cell
+decode_metric = _metric
+encode_metric = _metric_object
+
+
 def _normalize(content: JsonObject) -> JsonObject:
     datasets = tuple(_dataset(raw) for raw in cast(tuple[JsonObject, ...], content["datasets"]))
     metrics = tuple(_metric(raw) for raw in cast(tuple[JsonObject, ...], content["metrics"]))

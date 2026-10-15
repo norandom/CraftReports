@@ -1,0 +1,1774 @@
+{
+  "DatasetWire": {
+    "$defs": {
+      "FieldWire": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "$ref": "#/$defs/ScalarKind"
+          },
+          "label": {
+            "$ref": "#/$defs/Text"
+          },
+          "name": {
+            "$ref": "#/$defs/Text"
+          },
+          "nullable": {
+            "title": "Nullable",
+            "type": "boolean"
+          },
+          "precision": {
+            "anyOf": [
+              {
+                "maximum": 38,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Precision"
+          },
+          "scale": {
+            "anyOf": [
+              {
+                "maximum": 38,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Scale"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Text"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "name",
+          "label",
+          "kind",
+          "nullable"
+        ],
+        "title": "FieldWire",
+        "type": "object"
+      },
+      "ScalarKind": {
+        "enum": [
+          "text",
+          "bool",
+          "int64",
+          "decimal",
+          "date",
+          "datetime"
+        ],
+        "type": "string"
+      },
+      "ScalarWire": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Text"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "Text": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "fields": {
+        "items": {
+          "$ref": "#/$defs/FieldWire"
+        },
+        "title": "Fields",
+        "type": "array"
+      },
+      "keys": {
+        "items": {
+          "$ref": "#/$defs/Text"
+        },
+        "title": "Keys",
+        "type": "array"
+      },
+      "label": {
+        "$ref": "#/$defs/Text"
+      },
+      "name": {
+        "$ref": "#/$defs/Text"
+      },
+      "producer_id": {
+        "$ref": "#/$defs/Text"
+      },
+      "rows": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/ScalarWire"
+          },
+          "type": "array"
+        },
+        "title": "Rows",
+        "type": "array"
+      },
+      "source_ref": {
+        "$ref": "#/$defs/Text"
+      },
+      "source_version": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Text"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      }
+    },
+    "required": [
+      "name",
+      "label",
+      "fields",
+      "rows",
+      "keys",
+      "source_ref",
+      "producer_id"
+    ],
+    "title": "DatasetWire",
+    "type": "object"
+  },
+  "DefinitionWire": {
+    "$defs": {
+      "CheckId": {
+        "enum": [
+          "definition",
+          "bindings",
+          "semantic_resolution",
+          "layout_fit",
+          "target_consistency",
+          "artifact_consistency",
+          "artifact_reopen",
+          "metric_methodology",
+          "compliance_statement"
+        ],
+        "title": "CheckId",
+        "type": "string"
+      },
+      "ColumnSelection": {
+        "additionalProperties": false,
+        "properties": {
+          "display_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Display Label"
+          },
+          "field": {
+            "title": "Field",
+            "type": "string"
+          },
+          "format": {
+            "$ref": "#/$defs/ValueFormat"
+          },
+          "role": {
+            "$ref": "#/$defs/SemanticRole"
+          }
+        },
+        "required": [
+          "field",
+          "role",
+          "format"
+        ],
+        "title": "ColumnSelection",
+        "type": "object"
+      },
+      "DatasetRef": {
+        "additionalProperties": false,
+        "properties": {
+          "fields": {
+            "items": {
+              "$ref": "#/$defs/FieldRequirement"
+            },
+            "title": "Fields",
+            "type": "array"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/ParameterRef"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "required": [
+          "name",
+          "fields"
+        ],
+        "title": "DatasetRef",
+        "type": "object"
+      },
+      "EmptyBehavior": {
+        "const": "headers_and_note",
+        "type": "string"
+      },
+      "EvidenceRef": {
+        "additionalProperties": false,
+        "properties": {
+          "content_digest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Content Digest"
+          },
+          "identity": {
+            "title": "Identity",
+            "type": "string"
+          },
+          "operation": {
+            "$ref": "#/$defs/OperationKey"
+          },
+          "operation_id": {
+            "title": "Operation Id",
+            "type": "string"
+          },
+          "resource_versions": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/ExpectedVersion"
+            },
+            "title": "Resource Versions",
+            "type": "array"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "string"
+          }
+        },
+        "required": [
+          "identity",
+          "scope",
+          "operation_id",
+          "operation"
+        ],
+        "title": "EvidenceRef",
+        "type": "object"
+      },
+      "ExpectedVersion": {
+        "additionalProperties": false,
+        "properties": {
+          "resource": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "resource",
+          "version"
+        ],
+        "title": "ExpectedVersion",
+        "type": "object"
+      },
+      "ExternalStatement": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "items": {
+              "$ref": "#/$defs/EvidenceRef"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "issuer": {
+            "title": "Issuer",
+            "type": "string"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "scope",
+          "issuer",
+          "evidence"
+        ],
+        "title": "ExternalStatement",
+        "type": "object"
+      },
+      "FieldRequirement": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "$ref": "#/$defs/ScalarKind"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "nullable": {
+            "default": true,
+            "title": "Nullable",
+            "type": "boolean"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Unit"
+          }
+        },
+        "required": [
+          "name",
+          "kind"
+        ],
+        "title": "FieldRequirement",
+        "type": "object"
+      },
+      "FormatKind": {
+        "enum": [
+          "text",
+          "bool",
+          "int64",
+          "decimal",
+          "date",
+          "datetime"
+        ],
+        "type": "string"
+      },
+      "LineChartDefinition": {
+        "additionalProperties": false,
+        "properties": {
+          "category_field": {
+            "title": "Category Field",
+            "type": "string"
+          },
+          "identity": {
+            "title": "Identity",
+            "type": "string"
+          },
+          "null_behavior": {
+            "const": "gap",
+            "default": "gap",
+            "title": "Null Behavior",
+            "type": "string"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/$defs/SeriesSelection"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/DatasetRef"
+              },
+              {
+                "$ref": "#/$defs/MetricRef"
+              }
+            ],
+            "title": "Source"
+          }
+        },
+        "required": [
+          "identity",
+          "source",
+          "category_field",
+          "series"
+        ],
+        "title": "LineChartDefinition",
+        "type": "object"
+      },
+      "MetricRef": {
+        "additionalProperties": false,
+        "properties": {
+          "identity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/ParameterRef"
+              }
+            ],
+            "title": "Identity"
+          },
+          "kinds": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/ScalarKind"
+            },
+            "title": "Kinds",
+            "type": "array"
+          },
+          "nullable": {
+            "default": true,
+            "title": "Nullable",
+            "type": "boolean"
+          },
+          "shape": {
+            "anyOf": [
+              {
+                "enum": [
+                  "scalar",
+                  "series"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Shape"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Unit"
+          }
+        },
+        "required": [
+          "identity"
+        ],
+        "title": "MetricRef",
+        "type": "object"
+      },
+      "OperationKey": {
+        "additionalProperties": false,
+        "properties": {
+          "contract_version": {
+            "title": "Contract Version",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "contract_version"
+        ],
+        "title": "OperationKey",
+        "type": "object"
+      },
+      "OptionalParameter": {
+        "$ref": "#/$defs/ParameterWire"
+      },
+      "ParameterDeclarationWire": {
+        "additionalProperties": false,
+        "properties": {
+          "choices": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/ParameterWire"
+            },
+            "title": "Choices",
+            "type": "array"
+          },
+          "default": {
+            "$ref": "#/$defs/OptionalParameter"
+          },
+          "kind": {
+            "$ref": "#/$defs/ScalarKind"
+          },
+          "maximum": {
+            "$ref": "#/$defs/OptionalParameter"
+          },
+          "minimum": {
+            "$ref": "#/$defs/OptionalParameter"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "required"
+        ],
+        "title": "ParameterDeclarationWire",
+        "type": "object"
+      },
+      "ParameterRef": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "ParameterRef",
+        "type": "object"
+      },
+      "ParameterWire": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ScalarKind"
+              },
+              {
+                "const": "null",
+                "type": "string"
+              }
+            ],
+            "title": "Kind"
+          },
+          "value": {
+            "$ref": "#/$defs/ScalarWire"
+          }
+        },
+        "required": [
+          "kind",
+          "value"
+        ],
+        "title": "ParameterWire",
+        "type": "object"
+      },
+      "ReleasePolicy": {
+        "additionalProperties": false,
+        "properties": {
+          "required_checks": {
+            "items": {
+              "$ref": "#/$defs/CheckId"
+            },
+            "title": "Required Checks",
+            "type": "array"
+          },
+          "scope_label": {
+            "title": "Scope Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "required_checks",
+          "scope_label"
+        ],
+        "title": "ReleasePolicy",
+        "type": "object"
+      },
+      "ResourceRef": {
+        "additionalProperties": false,
+        "properties": {
+          "identity": {
+            "title": "Identity",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "identity"
+        ],
+        "title": "ResourceRef",
+        "type": "object"
+      },
+      "ScalarKind": {
+        "enum": [
+          "text",
+          "bool",
+          "int64",
+          "decimal",
+          "date",
+          "datetime"
+        ],
+        "type": "string"
+      },
+      "ScalarWire": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Text"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "SemanticRole": {
+        "enum": [
+          "title",
+          "header",
+          "row_label",
+          "source",
+          "input",
+          "constant",
+          "external_result",
+          "output",
+          "key_result",
+          "note",
+          "check_pass",
+          "check_warn",
+          "check_fail",
+          "draft"
+        ],
+        "title": "SemanticRole",
+        "type": "string"
+      },
+      "SeriesSelection": {
+        "additionalProperties": false,
+        "properties": {
+          "field": {
+            "title": "Field",
+            "type": "string"
+          },
+          "format": {
+            "$ref": "#/$defs/ValueFormat"
+          },
+          "identity": {
+            "title": "Identity",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/$defs/SemanticRole"
+          }
+        },
+        "required": [
+          "identity",
+          "label",
+          "field",
+          "role",
+          "format"
+        ],
+        "title": "SeriesSelection",
+        "type": "object"
+      },
+      "TableDefinition": {
+        "additionalProperties": false,
+        "properties": {
+          "columns": {
+            "items": {
+              "$ref": "#/$defs/ColumnSelection"
+            },
+            "title": "Columns",
+            "type": "array"
+          },
+          "empty_behavior": {
+            "$ref": "#/$defs/EmptyBehavior",
+            "default": "headers_and_note"
+          },
+          "identity": {
+            "title": "Identity",
+            "type": "string"
+          },
+          "long_labels": {
+            "const": "wrap",
+            "default": "wrap",
+            "title": "Long Labels",
+            "type": "string"
+          },
+          "null_text": {
+            "default": "\u2014",
+            "title": "Null Text",
+            "type": "string"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/DatasetRef"
+              },
+              {
+                "$ref": "#/$defs/MetricRef"
+              }
+            ],
+            "title": "Source"
+          }
+        },
+        "required": [
+          "identity",
+          "source",
+          "columns"
+        ],
+        "title": "TableDefinition",
+        "type": "object"
+      },
+      "Text": {
+        "type": "string"
+      },
+      "ValueFormat": {
+        "additionalProperties": false,
+        "properties": {
+          "date_pattern": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Date Pattern"
+          },
+          "decimal_places": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Decimal Places"
+          },
+          "kind": {
+            "$ref": "#/$defs/FormatKind"
+          },
+          "negative_style": {
+            "const": "leading_minus",
+            "default": "leading_minus",
+            "title": "Negative Style",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "ValueFormat",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "chart": {
+        "$ref": "#/$defs/LineChartDefinition"
+      },
+      "compliance_statement": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/ExternalStatement"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "parameters": {
+        "items": {
+          "$ref": "#/$defs/ParameterDeclarationWire"
+        },
+        "title": "Parameters",
+        "type": "array"
+      },
+      "release_policy": {
+        "$ref": "#/$defs/ReleasePolicy"
+      },
+      "report_id": {
+        "title": "Report Id",
+        "type": "string"
+      },
+      "schema_version": {
+        "const": "1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "table": {
+        "$ref": "#/$defs/TableDefinition"
+      },
+      "title": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "$ref": "#/$defs/ParameterRef"
+          }
+        ],
+        "title": "Title"
+      },
+      "version": {
+        "title": "Version",
+        "type": "string"
+      }
+    },
+    "required": [
+      "schema_version",
+      "report_id",
+      "version",
+      "title",
+      "parameters",
+      "table",
+      "chart",
+      "release_policy"
+    ],
+    "title": "DefinitionWire",
+    "type": "object"
+  },
+  "FieldWire": {
+    "$defs": {
+      "ScalarKind": {
+        "enum": [
+          "text",
+          "bool",
+          "int64",
+          "decimal",
+          "date",
+          "datetime"
+        ],
+        "type": "string"
+      },
+      "Text": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "kind": {
+        "$ref": "#/$defs/ScalarKind"
+      },
+      "label": {
+        "$ref": "#/$defs/Text"
+      },
+      "name": {
+        "$ref": "#/$defs/Text"
+      },
+      "nullable": {
+        "title": "Nullable",
+        "type": "boolean"
+      },
+      "precision": {
+        "anyOf": [
+          {
+            "maximum": 38,
+            "minimum": 1,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Precision"
+      },
+      "scale": {
+        "anyOf": [
+          {
+            "maximum": 38,
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Scale"
+      },
+      "unit": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Text"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      }
+    },
+    "required": [
+      "name",
+      "label",
+      "kind",
+      "nullable"
+    ],
+    "title": "FieldWire",
+    "type": "object"
+  },
+  "MetricWire": {
+    "$defs": {
+      "FieldWire": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "$ref": "#/$defs/ScalarKind"
+          },
+          "label": {
+            "$ref": "#/$defs/Text"
+          },
+          "name": {
+            "$ref": "#/$defs/Text"
+          },
+          "nullable": {
+            "title": "Nullable",
+            "type": "boolean"
+          },
+          "precision": {
+            "anyOf": [
+              {
+                "maximum": 38,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Precision"
+          },
+          "scale": {
+            "anyOf": [
+              {
+                "maximum": 38,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Scale"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Text"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "name",
+          "label",
+          "kind",
+          "nullable"
+        ],
+        "title": "FieldWire",
+        "type": "object"
+      },
+      "ScalarKind": {
+        "enum": [
+          "text",
+          "bool",
+          "int64",
+          "decimal",
+          "date",
+          "datetime"
+        ],
+        "type": "string"
+      },
+      "ScalarWire": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Text"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "Text": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "as_of": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Text"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "external_evidence": {
+        "items": {
+          "$ref": "#/$defs/Text"
+        },
+        "title": "External Evidence",
+        "type": "array"
+      },
+      "identity": {
+        "$ref": "#/$defs/Text"
+      },
+      "labels": {
+        "items": {
+          "$ref": "#/$defs/Text"
+        },
+        "title": "Labels",
+        "type": "array"
+      },
+      "method_version": {
+        "$ref": "#/$defs/Text"
+      },
+      "period": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Text"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "producer_id": {
+        "$ref": "#/$defs/Text"
+      },
+      "shape": {
+        "enum": [
+          "scalar",
+          "series"
+        ],
+        "title": "Shape",
+        "type": "string"
+      },
+      "source_ref": {
+        "$ref": "#/$defs/Text"
+      },
+      "unit": {
+        "$ref": "#/$defs/Text"
+      },
+      "value_schema": {
+        "$ref": "#/$defs/FieldWire"
+      },
+      "values": {
+        "items": {
+          "$ref": "#/$defs/ScalarWire"
+        },
+        "title": "Values",
+        "type": "array"
+      }
+    },
+    "required": [
+      "identity",
+      "unit",
+      "source_ref",
+      "producer_id",
+      "method_version",
+      "shape",
+      "value_schema",
+      "labels",
+      "values",
+      "external_evidence"
+    ],
+    "title": "MetricWire",
+    "type": "object"
+  },
+  "PublicationWire": {
+    "$defs": {
+      "DatasetWire": {
+        "additionalProperties": false,
+        "properties": {
+          "fields": {
+            "items": {
+              "$ref": "#/$defs/FieldWire"
+            },
+            "title": "Fields",
+            "type": "array"
+          },
+          "keys": {
+            "items": {
+              "$ref": "#/$defs/Text"
+            },
+            "title": "Keys",
+            "type": "array"
+          },
+          "label": {
+            "$ref": "#/$defs/Text"
+          },
+          "name": {
+            "$ref": "#/$defs/Text"
+          },
+          "producer_id": {
+            "$ref": "#/$defs/Text"
+          },
+          "rows": {
+            "items": {
+              "items": {
+                "$ref": "#/$defs/ScalarWire"
+              },
+              "type": "array"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "source_ref": {
+            "$ref": "#/$defs/Text"
+          },
+          "source_version": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Text"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "name",
+          "label",
+          "fields",
+          "rows",
+          "keys",
+          "source_ref",
+          "producer_id"
+        ],
+        "title": "DatasetWire",
+        "type": "object"
+      },
+      "FieldWire": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "$ref": "#/$defs/ScalarKind"
+          },
+          "label": {
+            "$ref": "#/$defs/Text"
+          },
+          "name": {
+            "$ref": "#/$defs/Text"
+          },
+          "nullable": {
+            "title": "Nullable",
+            "type": "boolean"
+          },
+          "precision": {
+            "anyOf": [
+              {
+                "maximum": 38,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Precision"
+          },
+          "scale": {
+            "anyOf": [
+              {
+                "maximum": 38,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Scale"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Text"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "name",
+          "label",
+          "kind",
+          "nullable"
+        ],
+        "title": "FieldWire",
+        "type": "object"
+      },
+      "MetricWire": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Text"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "external_evidence": {
+            "items": {
+              "$ref": "#/$defs/Text"
+            },
+            "title": "External Evidence",
+            "type": "array"
+          },
+          "identity": {
+            "$ref": "#/$defs/Text"
+          },
+          "labels": {
+            "items": {
+              "$ref": "#/$defs/Text"
+            },
+            "title": "Labels",
+            "type": "array"
+          },
+          "method_version": {
+            "$ref": "#/$defs/Text"
+          },
+          "period": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Text"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "producer_id": {
+            "$ref": "#/$defs/Text"
+          },
+          "shape": {
+            "enum": [
+              "scalar",
+              "series"
+            ],
+            "title": "Shape",
+            "type": "string"
+          },
+          "source_ref": {
+            "$ref": "#/$defs/Text"
+          },
+          "unit": {
+            "$ref": "#/$defs/Text"
+          },
+          "value_schema": {
+            "$ref": "#/$defs/FieldWire"
+          },
+          "values": {
+            "items": {
+              "$ref": "#/$defs/ScalarWire"
+            },
+            "title": "Values",
+            "type": "array"
+          }
+        },
+        "required": [
+          "identity",
+          "unit",
+          "source_ref",
+          "producer_id",
+          "method_version",
+          "shape",
+          "value_schema",
+          "labels",
+          "values",
+          "external_evidence"
+        ],
+        "title": "MetricWire",
+        "type": "object"
+      },
+      "ScalarKind": {
+        "enum": [
+          "text",
+          "bool",
+          "int64",
+          "decimal",
+          "date",
+          "datetime"
+        ],
+        "type": "string"
+      },
+      "ScalarWire": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Text"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "Text": {
+        "type": "string"
+      },
+      "VersionWire": {
+        "pattern": "^[1-9][0-9]{0,18}$",
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "datasets": {
+        "items": {
+          "$ref": "#/$defs/DatasetWire"
+        },
+        "title": "Datasets",
+        "type": "array"
+      },
+      "feed_id": {
+        "$ref": "#/$defs/Text"
+      },
+      "generation_time": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Text"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "metrics": {
+        "items": {
+          "$ref": "#/$defs/MetricWire"
+        },
+        "title": "Metrics",
+        "type": "array"
+      },
+      "observation_time": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Text"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "producer_version": {
+        "$ref": "#/$defs/VersionWire"
+      },
+      "schema_version": {
+        "const": "1",
+        "title": "Schema Version",
+        "type": "string"
+      }
+    },
+    "required": [
+      "schema_version",
+      "feed_id",
+      "producer_version",
+      "datasets",
+      "metrics"
+    ],
+    "title": "PublicationWire",
+    "type": "object"
+  },
+  "SnapshotWire": {
+    "$defs": {
+      "DatasetWire": {
+        "additionalProperties": false,
+        "properties": {
+          "fields": {
+            "items": {
+              "$ref": "#/$defs/FieldWire"
+            },
+            "title": "Fields",
+            "type": "array"
+          },
+          "keys": {
+            "items": {
+              "$ref": "#/$defs/Text"
+            },
+            "title": "Keys",
+            "type": "array"
+          },
+          "label": {
+            "$ref": "#/$defs/Text"
+          },
+          "name": {
+            "$ref": "#/$defs/Text"
+          },
+          "producer_id": {
+            "$ref": "#/$defs/Text"
+          },
+          "rows": {
+            "items": {
+              "items": {
+                "$ref": "#/$defs/ScalarWire"
+              },
+              "type": "array"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "source_ref": {
+            "$ref": "#/$defs/Text"
+          },
+          "source_version": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Text"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "name",
+          "label",
+          "fields",
+          "rows",
+          "keys",
+          "source_ref",
+          "producer_id"
+        ],
+        "title": "DatasetWire",
+        "type": "object"
+      },
+      "FieldWire": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "$ref": "#/$defs/ScalarKind"
+          },
+          "label": {
+            "$ref": "#/$defs/Text"
+          },
+          "name": {
+            "$ref": "#/$defs/Text"
+          },
+          "nullable": {
+            "title": "Nullable",
+            "type": "boolean"
+          },
+          "precision": {
+            "anyOf": [
+              {
+                "maximum": 38,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Precision"
+          },
+          "scale": {
+            "anyOf": [
+              {
+                "maximum": 38,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Scale"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Text"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "name",
+          "label",
+          "kind",
+          "nullable"
+        ],
+        "title": "FieldWire",
+        "type": "object"
+      },
+      "MetricWire": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Text"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "external_evidence": {
+            "items": {
+              "$ref": "#/$defs/Text"
+            },
+            "title": "External Evidence",
+            "type": "array"
+          },
+          "identity": {
+            "$ref": "#/$defs/Text"
+          },
+          "labels": {
+            "items": {
+              "$ref": "#/$defs/Text"
+            },
+            "title": "Labels",
+            "type": "array"
+          },
+          "method_version": {
+            "$ref": "#/$defs/Text"
+          },
+          "period": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Text"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "producer_id": {
+            "$ref": "#/$defs/Text"
+          },
+          "shape": {
+            "enum": [
+              "scalar",
+              "series"
+            ],
+            "title": "Shape",
+            "type": "string"
+          },
+          "source_ref": {
+            "$ref": "#/$defs/Text"
+          },
+          "unit": {
+            "$ref": "#/$defs/Text"
+          },
+          "value_schema": {
+            "$ref": "#/$defs/FieldWire"
+          },
+          "values": {
+            "items": {
+              "$ref": "#/$defs/ScalarWire"
+            },
+            "title": "Values",
+            "type": "array"
+          }
+        },
+        "required": [
+          "identity",
+          "unit",
+          "source_ref",
+          "producer_id",
+          "method_version",
+          "shape",
+          "value_schema",
+          "labels",
+          "values",
+          "external_evidence"
+        ],
+        "title": "MetricWire",
+        "type": "object"
+      },
+      "ScalarKind": {
+        "enum": [
+          "text",
+          "bool",
+          "int64",
+          "decimal",
+          "date",
+          "datetime"
+        ],
+        "type": "string"
+      },
+      "ScalarWire": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Text"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "Text": {
+        "type": "string"
+      },
+      "VersionWire": {
+        "pattern": "^[1-9][0-9]{0,18}$",
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "accepted_at": {
+        "$ref": "#/$defs/Text"
+      },
+      "content_digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Content Digest",
+        "type": "string"
+      },
+      "datasets": {
+        "items": {
+          "$ref": "#/$defs/DatasetWire"
+        },
+        "title": "Datasets",
+        "type": "array"
+      },
+      "feed_id": {
+        "$ref": "#/$defs/Text"
+      },
+      "generation_time": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Text"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "metrics": {
+        "items": {
+          "$ref": "#/$defs/MetricWire"
+        },
+        "title": "Metrics",
+        "type": "array"
+      },
+      "observation_time": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Text"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "producer_version": {
+        "$ref": "#/$defs/VersionWire"
+      },
+      "received_at": {
+        "$ref": "#/$defs/Text"
+      },
+      "schema_version": {
+        "const": "1",
+        "title": "Schema Version",
+        "type": "string"
+      }
+    },
+    "required": [
+      "schema_version",
+      "feed_id",
+      "producer_version",
+      "datasets",
+      "metrics",
+      "content_digest",
+      "received_at",
+      "accepted_at"
+    ],
+    "title": "SnapshotWire",
+    "type": "object"
+  },
+  "definition_bytes": "{\"chart\":{\"category_field\":\"day\",\"identity\":\"chart\",\"null_behavior\":\"gap\",\"series\":[{\"field\":\"count\",\"format\":{\"kind\":\"int64\",\"negative_style\":\"leading_minus\"},\"identity\":\"count\",\"label\":\"Count\",\"role\":\"input\"},{\"field\":\"amount\",\"format\":{\"kind\":\"decimal\",\"negative_style\":\"leading_minus\"},\"identity\":\"usd\",\"label\":\"USD\",\"role\":\"output\"}],\"source\":{\"fields\":[{\"kind\":\"date\",\"name\":\"day\",\"nullable\":false},{\"kind\":\"decimal\",\"name\":\"amount\",\"nullable\":true,\"unit\":\"USD\"},{\"kind\":\"int64\",\"name\":\"count\",\"nullable\":false},{\"kind\":\"text\",\"name\":\"note\",\"nullable\":false}],\"name\":\"input\"}},\"parameters\":[{\"choices\":[],\"default\":{\"kind\":\"text\",\"value\":\"Literal title\"},\"kind\":\"text\",\"name\":\"title\",\"required\":false}],\"release_policy\":{\"required_checks\":[\"definition\",\"bindings\"],\"scope_label\":\"scope\"},\"report_id\":\"public/report\",\"schema_version\":\"1\",\"table\":{\"columns\":[{\"display_label\":\"Display only\",\"field\":\"note\",\"format\":{\"kind\":\"text\",\"negative_style\":\"leading_minus\"},\"role\":\"row_label\"},{\"field\":\"count\",\"format\":{\"kind\":\"int64\",\"negative_style\":\"leading_minus\"},\"role\":\"input\"},{\"field\":\"amount\",\"format\":{\"decimal_places\":2,\"kind\":\"decimal\",\"negative_style\":\"leading_minus\"},\"role\":\"output\"},{\"field\":\"day\",\"format\":{\"kind\":\"date\",\"negative_style\":\"leading_minus\"},\"role\":\"input\"}],\"empty_behavior\":\"headers_and_note\",\"identity\":\"table\",\"long_labels\":\"wrap\",\"null_text\":\"missing\",\"source\":{\"fields\":[{\"kind\":\"date\",\"name\":\"day\",\"nullable\":false},{\"kind\":\"decimal\",\"name\":\"amount\",\"nullable\":true,\"unit\":\"USD\"},{\"kind\":\"int64\",\"name\":\"count\",\"nullable\":false},{\"kind\":\"text\",\"name\":\"note\",\"nullable\":false}],\"name\":\"input\"}},\"title\":{\"name\":\"title\"},\"version\":\"1\"}"
+}

@@ -1,6 +1,7 @@
 """Embed standard JSON Schema payloads without traversing instance-valued data."""
 
 from collections.abc import Mapping
+from typing import cast
 
 from craftreport.contracts.values import JsonObject, JsonValue
 
@@ -84,4 +85,22 @@ def embed_payload_schema(schema: JsonObject) -> JsonObject:
     """
     result = _schema(schema, False)
     assert isinstance(result, Mapping)
+    return result
+
+
+def close_schema(schema: JsonObject) -> JsonObject:
+    """Declare runtime extra-field rejection on borrowed dataclass schemas."""
+    result = cast(dict[str, JsonValue], _copy(schema))
+
+    def close(value: JsonValue) -> None:
+        if isinstance(value, dict):
+            if value.get("type") == "object":
+                value["additionalProperties"] = False
+            for child in value.values():
+                close(child)
+        elif isinstance(value, (list, tuple)):
+            for child in value:
+                close(child)
+
+    close(result)
     return result

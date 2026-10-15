@@ -77,7 +77,8 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
   - _Depends: 3, 5_
   - _Requirements: 1.3, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 6.2_
 
-- [ ] 7. Encode the preparation contracts with exact public wire values
+- [x] 7. Encode the preparation contracts with exact public wire values
+  - Apply independently reviewed preparation-wire-amendment.md: fixed library-derived wire shapes and exact upstream schema compatibility, opt-in strict JSON codec, pure typed API values, shared SnapshotRef/scalar converters and field-local absent omission. Enforce actual unchanged limits; retain the whole residual owner forecast and independently count maximal supported result bytes. Task8 activation remains separate.
   - Reuse and complete task6 asset codecs/identifiers from pack-input-reuse-amendment.md; do not create a second pack-only schema or fingerprint convention.
   - Carry mixed original/current finding scopes unchanged; encode the exact version1 ReleasePolicy scope envelope with existing canonical bytes and prove digest change sensitivity.
   - Roundtrip the prepared-content-amendment.md explicit pins, per-table null_text/long_labels and virtual metric field metadata; use the existing canonical identifier and reject invalid final digests.
@@ -213,3 +214,12 @@ No `(P)` marker is used: the first preparation slice reuses shared value contrac
   Remaining adapter forecast1490 is provisional, not a cap increase or proof
   of future fit. Public operation activation, remaining codecs, installed
   example and guide remain tasks7 onward; no live app effect is claimed.
+
+- Task 7: independently approved on the final frozen source. Exact existing
+  schemas/canonical assets and default codec behavior are preserved; fixed
+  library-derived preparation/request/result projections reuse authoritative
+  constructors and exact scalar conversions. Fresh focused/static/owner gates
+  and independently counted large result bounds passed. Evidence, actual counts,
+  RED chronology and final LLOC: artifacts/report-model-packs/task-7/.
+  The complete residual adapters forecast remains uncertain; no future fit,
+  activation, installed report operation or visible app effect is claimed here.
