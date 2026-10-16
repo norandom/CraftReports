@@ -367,7 +367,7 @@ Use installed Pydantic fixed model derivation, exact existing scalar conversions
 shared SnapshotRefWire and the opt-in strict JSON codec seam. The bounded
 compatibility refactor must preserve the four upstream published schemas,
 normalization/defaults and canonical assets exactly. The narrow pure API values
-in reporting/ports.py and support-shape validator are brought forward; task8
+in reporting/ports.py and support-shape validator are brought forward; task 8
 still owns operation activation and evidence. Retain the independently counted
 6S+512KiB size proof, authoritative constructors and exact content/policy identities.
 The whole-owner forecast1455-1548 is uncertain. Root authorizes bounded task7
@@ -387,3 +387,13 @@ failed-stage contracts. Original paragraphs remain historical design context.
 Implementation is pending; unchanged engineering limits and all real-effect
 acceptance gates remain required. The source/file and verification boundaries
 are specified in the amendment and tracked in the task checklist.
+
+### Approved shared adapter calibration
+
+The owner-approved [adapter calibration](adapter-budget-calibration-approval.md)
+supersedes only the shared adapters 1,500 aggregate with 1,800 for the existing
+first-release responsibilities. Task7.2 installs and independently verifies the
+exact enforcing gate before task 8. Local50/300/10, every other owner, immutable
+contracts, source ownership and all behavioral acceptance gates remain unchanged.
+The measured candidate and residual forecast are in the reviewed amendment;
+neither is evidence of task 8 or runtime implementation acceptance.

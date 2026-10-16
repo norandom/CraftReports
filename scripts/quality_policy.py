@@ -8,6 +8,11 @@ from typing import cast
 
 RULES = {"function-lloc", "module-lloc", "capability-lloc", "C901"}
 CAPABILITY_LIMITS = {
+    "adapters": (
+        1800,
+        "adapter-calibration",
+        ".kiro/specs/craftreport-report-model-packs/adapter-budget-calibration-amendment.md",
+    ),
     "browser-verification": (
         3400,
         "browser-verification",
@@ -133,6 +138,7 @@ def validate_limit_approval(
         fields.get("approved") is not True
         or scope.get("approved") is not True
         or not identity_matches
+        or (owner == "adapters" and fields.get("owner") != "project-owner")
         or scope.get("budget_amendment_reference") != reference
         or fields.get("approval_reference") != reference
     ):

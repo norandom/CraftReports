@@ -101,8 +101,17 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
   - _Depends: 7; craftreport-operation-kernel 10.1_
   - _Requirements: 1.1-1.4, 3.2, 3.5, 4.3-4.7, 5.3-5.4, 6.1-6.4_
 
+- [x] 7.2 Enforce the approved shared adapter calibration
+  - Apply adapter-budget-calibration-amendment.md and its recorded owner approval using the existing exact-limit gate. Set only adapters aggregate to 1800; retain defaults 1500, browser 3400, snapshot-storage 2000 and all local 50/300/10 limits.
+  - Own quality.toml, scripts/quality_policy.py, affected tests/engineering and matching approval/steering metadata; add no gate framework or ownership transfer.
+  - Prove actual adapters 1800 passes and 1801 fails, absent override restores 1500, other owner/local limits stay exact, and invalid scope/reference/approval/value metadata rejects. Capture RED/GREEN, scoped static checks and canonical hooked verification with independent review.
+  - Done when the exact approved gate is independently accepted, committed and pushed; this does not complete report task 8 or any public feature.
+  - _Boundary: Development-gates adapter calibration integration_
+  - _Depends: 7.1; adapter-budget-calibration-approval.md_
+  - _Requirements: 6.3; approved engineering budget calibration_
+
 - [ ] 8. Register guarded validation, discovery and preparation operations
-  - _Blocked: Kernel task 10.1 and report task 7.1 are accepted. Measured candidate adapters1529/1500 before remaining runtime codecs; see adapter-budget-calibration-amendment.md (proposed, owner approval pending). The integration correction itself was approved on 2026-10-16; no adapter cap increase is yet approved._
+  - _Prerequisites: Kernel10.1, report7.1 and adapter gate7.2 accepted. Owner-approved adapters1800 is enforced; actual aggregate fit remains required for every candidate._
   - Apply preparation-scope-amendment.md producer obligations: exact three-source scope from guarded inputs, verified full original receipt stage refs, closed six-field facts and same preselected policy. Stage observation is distinct from release eligibility; no public trusted-fact submission.
   - Honor prepared-content-amendment.md typed failure and validated selection contracts; operation evidence remains separate from deterministic prepared-content identity.
   - Follow theme-support-amendment.md: composition/reporting.py injects the packaging-based compatibility callable through preparation into theme resolution. InvalidVersion becomes False/incompatible_version, never an exception through pure themes. Operation tests must reject incompatible and untested supplied support without granting mapping or release assurance.
@@ -114,7 +123,7 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
   - Revalidate exact pack/template/snapshot pins and bindings on execution. Reusing retry identity/content returns the same operation; changed content conflicts; missing input never switches to latest. Honor draft/validated requested designation; missing required checks produce release_blocked with retained preparation/findings and no validated label.
   - Done when operation discovery, authorization, structured stage/recovery failure and retained result/evidence readback work through the real kernel, with no source disclosure or alternate journal; correct full-set evidence completes, omitted/altered pack pins and unavailable preparation evidence prevent completion.
   - _Boundary: PreparationOperations integration_
-  - _Depends: 6, 7, 7.1; craftreport-operation-kernel 10.1; craftreport-snapshot-runtime 4.1_
+  - _Depends: 6, 7, 7.1, 7.2; craftreport-operation-kernel 10.1; craftreport-snapshot-runtime 4.1_
   - _Requirements: 1.1, 1.4, 1.5, 3.1, 3.2, 3.5, 4.3, 4.5, 4.7, 5.4, 6.1, 6.2, 6.3, 6.4_
 
 - [ ] 9. Add public table/chart content and the ordinary caller recipe
@@ -190,7 +199,7 @@ No `(P)` marker is used: the first preparation slice reuses shared value contrac
   theme tests plus scoped Ruff/format/Pyright passed. Resolver148 LLOC, themes
   aggregate369/1500. Evidence: `artifacts/report-model-packs/task-3/`.
   Accepted support-descriptor amendment preserves task7 strict wire validation
-  and task8 real packaging callable/malformed-version operation tests. Pure
+  and task 8 real packaging callable/malformed-version operation tests. Pure
   declaration support does not establish observed app fidelity or release status.
 
 - Task 4: independently approved by `/root/review_report_projection_4`;27 focused
@@ -212,7 +221,7 @@ No `(P)` marker is used: the first preparation slice reuses shared value contrac
   transitions and scoped static/import/breadth/quality checks passed. Evaluator
   68LLOC; policies267/1500. Evidence: `artifacts/report-model-packs/task-5/`.
   Original source findings retain provenance; app observations remain exact
-  current scope. Actual receipt/result/fact producers remain task8/app gates.
+  current scope. Actual receipt/result/fact producers remain task 8/app gates.
 
 - Task 6: independently approved by `/root/review_pack_6` after the real
   Windows root-handle repair. Pydantic-derived closed asset schemas and exact
@@ -240,5 +249,15 @@ No `(P)` marker is used: the first preparation slice reuses shared value contrac
   checks passed. Evidence: `artifacts/report-task-7.1/independent-review.md`
   and `artifacts/report-7-1-review/hook.txt`. Adapters1455/1500 (+24 LLOC),
   reporting721/1500; unchanged success serialization and input acceptance.
-  Bounded typed failures are accepted; task8 activation, authorization and
+  Bounded typed failures are accepted; task 8 activation, authorization and
   remaining adapter budget fit remain open. No feature GO is claimed.
+
+- Task 7.2: independently APPROVED and VERIFIED by `/root/review_adapter_gate7_2`.
+  Exact adapters 1800/1801, default restoration, metadata rejection and unchanged
+  owner/local boundaries passed: 73 tests and 28 subtests. Ruff/format/Pyright
+  and the isolated canonical fast hook passed. Evidence:
+  `artifacts/adapter-gate7.2/independent-review.md` and
+  `artifacts/adapter-gate7-2-review/hook.txt`. The earlier full engineering run
+  encountered six unrelated package-count fixture failures from preexisting WIP;
+  all canonical candidate checks passed with that WIP safely isolated/restored.
+  This accepts the numeric gate only; report integration remains task 8.

@@ -126,3 +126,13 @@ Fast engineering checks, runtime/browser behavior, numerical evidence and artifa
 Use the project's documented canonical commands and record their real results. Until tools/scripts are implemented, list them as pending rather than inventing a passing run. Engineering policy does not waive the Kiro approval workflow or authorize publishing/merging.
 
 Sources: [Ruff integration](https://docs.astral.sh/ruff/integrations/#pre-commit), [Ruff FAQ](https://docs.astral.sh/ruff/faq/), [Ruff C901](https://docs.astral.sh/ruff/rules/complex-structure/), [Radon metrics](https://radon.readthedocs.io/en/stable/api.html), [pre-commit](https://pre-commit.com/).
+
+## Shared adapter calibration approved 2026-10-16
+
+The owner approved the [adapter-only 1,800-LLOC calibration](../specs/craftreport-report-model-packs/adapter-budget-calibration-approval.md)
+after independent review. Report task 7.2 implemented exact enforcement; independent review and matching
+canonical fast checks passed. Its acceptance is recorded in that spec. This supersedes only the
+adapters aggregate default, covering the existing report/runtime interfaces.
+Function 50/module 300/McCabe 10, default 1500 for other unexcepted owners,
+browser 3400 and snapshot-storage 2000 remain unchanged. No new feature, ownership
+transfer, generic codec framework or release acceptance waiver is authorized.

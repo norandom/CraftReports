@@ -98,6 +98,13 @@ documentation_owner = "documentation"
 documentation_paths = ["docs/quickstarts/Quickstart_How_to_publish_and_recover_a_snapshot.md", "docs/quickstarts/index.md"]
 implementation_authorization_source = ".kiro/specs/craftreport-snapshot-runtime/spec.json"
 
+[scope_approval.adapter-calibration]
+approved = true
+approved_at = "2026-10-16"
+capability_id = "adapters"
+budget_amendment_reference = ".kiro/specs/craftreport-report-model-packs/adapter-budget-calibration-amendment.md"
+limits = "50 function / 300 module / 1800 adapters capability LLOC and McCabe 10"
+
 [scope_approval.report-model-packs]
 approved = true
 approved_at = "2026-10-15"
@@ -165,3 +172,12 @@ approved = true
 owner = "project-owner"
 rationale = "Owner approved storage-only calibration on 2026-10-16; all other global and local limits remain unchanged"
 approval_reference = ".kiro/specs/craftreport-snapshot-runtime/storage-budget-calibration-amendment.md"
+
+[[capability_limits.entries]]
+capability_id = "adapters"
+rule = "capability-lloc"
+value = 1800
+approved = true
+owner = "project-owner"
+rationale = "Owner approved adapters-only calibration on 2026-10-16; all other global and local limits remain unchanged"
+approval_reference = ".kiro/specs/craftreport-report-model-packs/adapter-budget-calibration-amendment.md"

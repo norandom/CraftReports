@@ -138,9 +138,9 @@
   "adapter_budget_calibration_proposal": {
     "reference": "adapter-budget-calibration-amendment.md",
     "review_reference": "adapter-budget-calibration-review.md",
-    "status": "proposed-owner-approval-pending",
-    "approved": false,
-    "current_limit": 1500,
+    "status": "implemented-task7.2-accepted",
+    "approved": true,
+    "current_limit": 1800,
     "proposed_limit": 1800,
     "accepted_adapter_lloc": 1455,
     "isolated_report_candidate_lloc": 74,
@@ -148,9 +148,18 @@
       120,
       200
     ],
-    "blocked_task": "8",
     "reviewer": "/root/review_adapter_budget",
     "review_verdict": "PASS for owner consideration",
-    "reviewed_sha256": "60C0F34477BCBD66B071459FDCB73CE56546EF68F16B0FCB859514B9178D62FD"
+    "reviewed_sha256": "60C0F34477BCBD66B071459FDCB73CE56546EF68F16B0FCB859514B9178D62FD",
+    "approval_reference": "adapter-budget-calibration-approval.md",
+    "approved_on": "2026-10-16",
+    "implementation_task": "7.2",
+    "implementation_review": {
+      "reviewer": "/root/review_adapter_gate7_2",
+      "verdict": "APPROVED",
+      "verification": "VERIFIED",
+      "reference": "artifacts/adapter-gate7.2/independent-review.md",
+      "canonical_fast_checks": "passed"
+    }
   }
 }
