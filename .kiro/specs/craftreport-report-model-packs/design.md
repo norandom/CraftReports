@@ -397,3 +397,14 @@ exact enforcing gate before task 8. Local50/300/10, every other owner, immutable
 contracts, source ownership and all behavioral acceptance gates remain unchanged.
 The measured candidate and residual forecast are in the reviewed amendment;
 neither is evidence of task 8 or runtime implementation acceptance.
+
+### Task 8 registration responsibility split
+
+Task 8 uses `reporting/operations.py` for report orchestration and
+`reporting/registration.py` for the existing three descriptors/bindings and safe
+diagnostic policy. Both remain in the reporting aggregate. This registers the
+responsibility split permitted by the approved facade amendment before expansion;
+no public operation, contract or feature is added. Registration consumes the
+existing kernel Codec/BoundOperation/DiagnosticPolicy values; operations reads
+resources through the existing contexts and consumes ResourceSnapshot/GuardCurrent.
+The exact import gate keeps these members local to their integration modules.

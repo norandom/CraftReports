@@ -110,7 +110,7 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
   - _Depends: 7.1; adapter-budget-calibration-approval.md_
   - _Requirements: 6.3; approved engineering budget calibration_
 
-- [ ] 8. Register guarded validation, discovery and preparation operations
+- [x] 8. Register guarded validation, discovery and preparation operations
   - _Prerequisites: Kernel10.1, report7.1 and adapter gate7.2 accepted. Owner-approved adapters1800 is enforced; actual aggregate fit remains required for every candidate._
   - Apply preparation-scope-amendment.md producer obligations: exact three-source scope from guarded inputs, verified full original receipt stage refs, closed six-field facts and same preselected policy. Stage observation is distinct from release eligibility; no public trusted-fact submission.
   - Honor prepared-content-amendment.md typed failure and validated selection contracts; operation evidence remains separate from deterministic prepared-content identity.
@@ -261,3 +261,16 @@ No `(P)` marker is used: the first preparation slice reuses shared value contrac
   encountered six unrelated package-count fixture failures from preexisting WIP;
   all canonical candidate checks passed with that WIP safely isolated/restored.
   This accepts the numeric gate only; report integration remains task 8.
+
+- Task 8: independently APPROVED by `/root/review_report_task8` and VERIFIED
+  against real durable-host preparation, exact three-resource facts, restart
+  readback, separate source/artifact scopes, truthful draft/release-blocked
+  stages, retry identity/conflicts and admission-time theme rejection. Corrupt
+  or unavailable evidence prevents completion; recovery does not promote a
+  failed receipt. The single durable guard and existing journal remain shared.
+  Canonical fast/integration checks passed after updating the installed-entrypoint
+  test for reporting while retaining lazy discovery. Evidence:
+  `artifacts/report-task8/independent-review.md`,
+  `artifacts/report-task8-review2/hook.txt`; first failure retained separately.
+  Adapters1567/1800 and reporting963/1500; local limits unchanged.
+  Tasks 9-12 remain open. No live app, XLSX or feature GO is claimed.

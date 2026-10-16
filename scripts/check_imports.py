@@ -63,6 +63,10 @@ RUNTIME_APPLICATION_MODULES = {
 }
 SNAPSHOT_READ_RESULTS = {"Missing", "VersionConflict", "ServiceUnavailable"}
 EXACT_CONTRACT_IMPORTS = {
+    ("adapters", "craftreport.adapters.report_resources"): {
+        "craftreport.adapters.storage.providers.DurableResources",
+        "craftreport.adapters.storage.results.DurableResults",
+    },
     ("data", "craftreport.data.ports"): {
         f"craftreport.application.service_values.{value}" for value in SNAPSHOT_READ_RESULTS
     },
@@ -72,7 +76,22 @@ EXACT_CONTRACT_IMPORTS = {
         "craftreport.adapters.canonical.canonical_bytes",
     },
 }
-REPORTING_INTEGRATION = {"craftreport.reporting.operations", "craftreport.reporting.ports"}
+REPORTING_INTEGRATION = {
+    "craftreport.reporting.operations",
+    "craftreport.reporting.ports",
+    "craftreport.reporting.registration",
+}
+REPORTING_LOCAL_VALUES = {
+    "craftreport.reporting.operations": {
+        "craftreport.application.service_values.ResourceSnapshot",
+        "craftreport.application.service_values.GuardCurrent",
+    },
+    "craftreport.reporting.registration": {
+        "craftreport.application.registry.Codec",
+        "craftreport.application.registry.BoundOperation",
+        "craftreport.application.service_values.DiagnosticPolicy",
+    },
+}
 REPORTING_KERNEL_VALUES = {
     "registry": {"OperationBinding", "CommandBehavior", "QueryBehavior"},
     "ports": {"CommandContext", "ReadContext"},
@@ -196,11 +215,14 @@ def reporting_forbidden(target: str, module: str) -> bool | None:
     integration = module in REPORTING_INTEGRATION
     layer = target_layer(target)
     if layer == "application":
-        return not integration or target not in {
-            f"craftreport.application.{name}.{value}"
-            for name, values in REPORTING_KERNEL_VALUES.items()
-            for value in values
-        }
+        return not integration or target not in (
+            {
+                f"craftreport.application.{name}.{value}"
+                for name, values in REPORTING_KERNEL_VALUES.items()
+                for value in values
+            }
+            | REPORTING_LOCAL_VALUES.get(module, set())
+        )
     if layer == "data":
         if (
             module == "craftreport.reporting.prepared"

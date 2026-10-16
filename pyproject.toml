@@ -18,6 +18,7 @@ dependencies = [
 
 [project.entry-points."craftreport.capabilities"]
 snapshot = "craftreport.composition.snapshot_host:snapshot_factory"
+reporting = "craftreport.composition.reporting:reporting_factory"
 
 [dependency-groups]
 dev = [

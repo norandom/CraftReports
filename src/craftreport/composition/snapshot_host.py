@@ -2,11 +2,12 @@
 
 from collections.abc import AsyncGenerator, Callable, Mapping
 from contextlib import AsyncExitStack, asynccontextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from hashlib import sha256
 from importlib.metadata import distribution
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.version import Version
@@ -22,6 +23,7 @@ from craftreport.adapters.snapshot_wire import (
 )
 from craftreport.adapters.storage.database import Database
 from craftreport.adapters.storage.evidence import DurableEvidence
+from craftreport.adapters.storage.guard import DurableGuard
 from craftreport.adapters.storage.journal import DurableJournal
 from craftreport.adapters.storage.providers import (
     DurableHandoffs,
@@ -58,6 +60,9 @@ from craftreport.runtime.capability import (
 )
 from craftreport.runtime.ports import SnapshotQueries
 from craftreport.runtime.publication import PublicationOperations
+
+if TYPE_CHECKING:
+    from craftreport.composition.reporting import ReportingActivation
 
 
 def snapshot_operation_bindings(
@@ -103,16 +108,20 @@ SNAPSHOT_SETTINGS = PydanticCodec(
 ).for_input()
 
 
+def implementation_digest() -> str:
+    digest = sha256()
+    root = Path(__file__).resolve().parents[1]
+    for entry in sorted(root.rglob("*.py")):
+        content = entry.read_bytes()
+        name = entry.relative_to(root).as_posix().encode()
+        digest.update(len(name).to_bytes(8, "big") + name)
+        digest.update(len(content).to_bytes(8, "big") + content)
+    return "sha256:" + digest.hexdigest()
+
+
 class SnapshotFactory:
     def describe(self) -> CapabilityManifest:
         installed = distribution("craftreport")
-        digest = sha256()
-        root = Path(__file__).resolve().parents[1]
-        for entry in sorted(root.rglob("*.py")):
-            content = entry.read_bytes()
-            name = entry.relative_to(root).as_posix().encode()
-            digest.update(len(name).to_bytes(8, "big") + name)
-            digest.update(len(content).to_bytes(8, "big") + content)
         return CapabilityManifest(
             "snapshot",
             "craftreport",
@@ -122,7 +131,7 @@ class SnapshotFactory:
             (),
             SNAPSHOT_SETTINGS.schema(),
             publication_descriptors(_publication_codecs()),
-            "sha256:" + digest.hexdigest(),
+            implementation_digest(),
         )
 
     @asynccontextmanager
@@ -236,6 +245,7 @@ async def open_snapshot_application(
     fingerprint: Fingerprint,
     normalization_policy: str,
     owner_probes: Mapping[str, HealthProbe],
+    reporting: Callable[[Database, DurableResources], "ReportingActivation"] | None = None,
 ) -> AsyncGenerator[HostedApplication]:
     if not {"access", "capabilities"} <= owner_probes.keys():
         raise ValueError("Explicit access and capability health owners required")
@@ -243,11 +253,22 @@ async def open_snapshot_application(
         database = Database(path, deployment_id)
         stack.push_async_callback(database.close)
         resources = DurableResources(database, codec, fingerprint, normalization_policy)
+        activation = reporting(database, resources) if reporting is not None else None
+        if activation is not None:
+            if activation.resources.upstream is not resources or "report_packs" in owner_probes:
+                raise ValueError("Reporting provider identity or health owner differs")
+            resources.guard = DurableGuard(database, activation.resources.combined_read)
         resolver = ActivatedCapabilities(owner_probes["capabilities"])
         handoffs = DurableHandoffs(database, resources.guard)
         stack.callback(handoffs.close)
         health = DurableHealth(
-            database, resources, {**owner_probes, "capabilities": resolver.probe}
+            database,
+            resources,
+            {
+                **owner_probes,
+                "capabilities": resolver.probe,
+                **({"report_packs": activation.resources.health} if activation is not None else {}),
+            },
         )
         stack.callback(health.close)
         services = GuaranteeProviders(
@@ -255,13 +276,26 @@ async def open_snapshot_application(
             resources.guard,
             DurableEvidence(database),
             resolver,
-            resources,
+            activation.resources if activation is not None else resources,
             resources,
             DurableResults(database),
             handoffs,
             health,
         )
         configured = settings(database, resources)
+        if activation is not None:
+            from craftreport.adapters.report_resources import ReportAccessPolicy
+
+            configured = replace(
+                configured,
+                selections=(*configured.selections, activation.capability),
+                principal=replace(
+                    configured.principal,
+                    policy=ReportAccessPolicy(
+                        configured.principal.access_policy, activation.resources
+                    ),
+                ),
+            )
         if (
             configured.principal.deployment_scope,
             configured.deployment_epoch,

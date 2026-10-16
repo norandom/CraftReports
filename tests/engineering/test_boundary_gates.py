@@ -540,10 +540,15 @@ class BoundaryGateTests(unittest.TestCase):
                 "from ..application.registry import OperationBinding, CommandBehavior\n"
                 "from ..application.registry import QueryBehavior\n"
                 "from ..application.ports import CommandContext, ReadContext\n"
-                "from ..application.service_values import Missing, VersionConflict\n"
+                "from ..application.service_values import Missing, VersionConflict, "
+                "ResourceSnapshot, GuardCurrent\n"
                 "from ..application.service_values import ServiceUnavailable\n"
                 "from ..contracts.outcomes import OutcomeProposal\n"
                 "from ..data.ports import SnapshotReader\nfrom .ports import PackReader\n"
+            ),
+            "reporting/registration.py": (
+                "from ..application.registry import Codec, BoundOperation, OperationBinding\n"
+                "from ..application.service_values import DiagnosticPolicy\n"
             ),
             "adapters/report_models.py": "from ..reporting import definitions\nimport pydantic\n",
             "adapters/pack_reader.py": "from ..themes import values\nimport packaging\n",
@@ -619,6 +624,34 @@ class BoundaryGateTests(unittest.TestCase):
                 self.write(path, "import os\n")
                 report = str(self.run_gate("imports", 1))
                 self.assertIn(f"unapproved import layer: public-packs: {path}", report)
+                (self.root / path).unlink()
+
+    def test_report_resource_adapter_exact_storage_ports(self) -> None:
+        self.write(
+            "src/craftreport/adapters/report_resources.py",
+            "from craftreport.adapters.storage.providers import DurableResources\n"
+            "from .storage.results import DurableResults as Results\n",
+        )
+        self.run_gate("imports", cli=True)
+
+    def test_report_resource_storage_allowance_stays_narrow(self) -> None:
+        cases = (
+            ("report_resources", "from .storage.providers import DurableHandoffs"),
+            ("report_resources", "from .storage.results import other"),
+            ("report_resources", "from .storage.providers import *"),
+            ("report_resources", "import craftreport.adapters.storage.providers as storage"),
+            ("report_resources", "from .storage import results"),
+            ("report_resources", "from .storage.schema import commands"),
+            ("report_resources", "from .storage.journal import DurableJournal"),
+            ("other_adapter", "from .storage.providers import DurableResources"),
+            ("other_adapter", "from .storage.results import DurableResults"),
+        )
+        for module, source in cases:
+            with self.subTest(module=module, source=source):
+                path = f"src/craftreport/adapters/{module}.py"
+                self.write(path, source + "\n")
+                report = str(self.run_gate("imports", 1))
+                self.assertIn(f"{path}:1: forbidden import: adapters ->", report)
                 (self.root / path).unlink()
 
     def test_invalid_syntax_and_unresolved_relative_imports(self) -> None:

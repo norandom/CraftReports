@@ -4,13 +4,19 @@ import json
 from dataclasses import asdict, dataclass
 from typing import Literal, Protocol, get_args
 
-from craftreport.contracts.identity import CapabilityRequirement, Principal
-from craftreport.contracts.outcomes import RecoveryDisposition
+from craftreport.application.service_values import ServiceUnavailable
+from craftreport.contracts.identity import (
+    CapabilityRequirement,
+    ExpectedVersion,
+    OperationKey,
+    Principal,
+)
+from craftreport.contracts.outcomes import EvidenceRef, RecoveryDisposition
 from craftreport.contracts.pins import VersionPin
 from craftreport.contracts.values import require_immutable
 from craftreport.data.requirements import BindingIssue, InputRequirements
 from craftreport.data.values import Scalar, SnapshotRef
-from craftreport.policies.values import QualityEvaluation
+from craftreport.policies.values import CheckId, CheckOrigin, CheckStatus, QualityEvaluation
 from craftreport.reporting.definitions import (
     DefinitionCode,
     DefinitionIssue,
@@ -203,3 +209,39 @@ class PreparationResult:
 
     def __post_init__(self) -> None:
         require_immutable(self)
+
+
+@dataclass(frozen=True, slots=True)
+class PreparationCheck:
+    check_id: CheckId
+    status: CheckStatus
+    origin: CheckOrigin
+    reason_code: str
+
+
+@dataclass(frozen=True, slots=True)
+class PreparationDecision:
+    requested_designation: Literal["draft", "validated"]
+    draft_eligible: bool
+    validated_release_eligible: bool
+    blocking_checks: tuple[CheckId, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class PreparationFact:
+    operation_id: str
+    operation: OperationKey
+    resource_versions: tuple[ExpectedVersion, ...]
+    schema_version: Literal["1"]
+    stage: Literal["prepared", "quality_evaluated"]
+    prepared_digest: str
+    validation_scope_digest: str
+    checks: tuple[PreparationCheck, ...]
+    decision: PreparationDecision | None
+
+    def __post_init__(self) -> None:
+        require_immutable(self)
+
+
+class PreparationFactWriter(Protocol):
+    async def record(self, fact: PreparationFact) -> EvidenceRef | ServiceUnavailable: ...
