@@ -94,3 +94,54 @@ def test_discovery_does_not_upgrade_requested_contract() -> None:
     }
     with pytest.raises(ExampleFailure, match="exact operation/version"):
         require_operation(catalog, {"operation": "synthetic.write", "contract_version": "1"})
+
+
+@pytest.mark.anyio
+async def test_failed_readback_opt_in_preserves_failure_and_never_replays() -> None:
+    calls: list[str] = []
+    failed = receipt("failed")
+    expected: JsonObject = {"receipt": failed, "value": {"failure": {"code": "release_blocked"}}}
+
+    async def execute(action: str, value: JsonObject) -> JsonObject:
+        calls.append(action)
+        return failed if action == "inspect" else expected
+
+    assert await workflow(execute, None, "operation-1", allow_failed=True) == expected
+    assert calls == ["inspect", "result"]
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("state", ["pending", "partial", "ambiguous"])
+async def test_failed_opt_in_does_not_admit_other_incomplete_states(state: str) -> None:
+    async def execute(action: str, value: JsonObject) -> JsonObject:
+        raise AssertionError("No command or inspection expected")
+
+    with pytest.raises(ExampleFailure, match="not complete"):
+        await complete(receipt(state), execute, attempts=0, allow_failed=True)
+
+
+@pytest.mark.anyio
+async def test_failed_opt_in_requires_available_retained_result() -> None:
+    async def execute(action: str, value: JsonObject) -> JsonObject:
+        raise AssertionError("No command or inspection expected")
+
+    with pytest.raises(ExampleFailure, match="no available retained result"):
+        await complete(
+            {**receipt("failed"), "result_availability": "unavailable"}, execute, allow_failed=True
+        )
+
+
+@pytest.mark.parametrize("readback", [False, True])
+def test_mcp_error_opt_in_recognizes_only_available_failed_receipts(readback: bool) -> None:
+    from scripts.examples.call_mcp import failed_result_available
+
+    failed = receipt("failed")
+    content: JsonObject = {"receipt": failed, "value": {}} if readback else failed
+    assert failed_result_available(content)
+    for state in ("complete", "partial", "ambiguous", "pending"):
+        other = receipt(state)
+        assert not failed_result_available({"receipt": other, "value": {}} if readback else other)
+    assert not failed_result_available({"diagnostic": {"code": "access_denied"}})
+    assert not failed_result_available({**failed, "result_availability": "unavailable"})
+    assert not failed_result_available({**failed, "result_ref": None})
+    assert not failed_result_available({"receipt": failed})

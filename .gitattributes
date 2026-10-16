@@ -1,0 +1,2 @@
+# Public pack assets are byte-pinned; keep their hashes stable across platforms.
+/examples/**/*.json text eol=lf

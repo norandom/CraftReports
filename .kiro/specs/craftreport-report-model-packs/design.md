@@ -408,3 +408,18 @@ no public operation, contract or feature is added. Registration consumes the
 existing kernel Codec/BoundOperation/DiagnosticPolicy values; operations reads
 resources through the existing contexts and consumes ResourceSnapshot/GuardCurrent.
 The exact import gate keeps these members local to their integration modules.
+
+### Task 9 caller and demo responsibilities
+
+The ordinary caller remains `scripts/examples/prepare_reusable_report.py`.
+`tests/reporting/report_demo.py` owns the installed example bootstrap and independent
+content comparison, reusing the accepted snapshot installed-host/process harness.
+Both stay under development-gates; neither adds a server or client SDK. The demo
+stages exact public definition/template/theme bytes beside their manifest in one
+owned root, retaining asset hashes and the loader's existing containment rules.
+The existing REST/MCP example clients gain an explicit failed-result readback option
+for demonstrating typed rejection/recovery; their default complete-only behavior
+and genuine receipt states remain unchanged. Task 11 owns the verified quickstart.
+
+Public JSON asset checkout uses LF via `.gitattributes` so byte-pinned pack hashes
+remain stable across Windows and Linux. This configuration stays under development-gates.

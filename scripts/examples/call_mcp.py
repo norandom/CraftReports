@@ -6,10 +6,13 @@ import json
 import httpx2
 from mcp import Client
 from mcp.client.streamable_http import streamable_http_client
+from pydantic import ValidationError
 
 from scripts.examples.common import (
     ExampleFailure,
     JsonObject,
+    Readback,
+    Receipt,
     cli,
     configuration,
     parse_object,
@@ -27,7 +30,27 @@ def tool_name(action: str, value: JsonObject) -> str:
     return f"{operation}.v{version}"
 
 
-async def run(request: JsonObject | None, identity: str | None) -> JsonObject:
+def failed_result_available(response: JsonObject) -> bool:
+    """MCP marks genuine failed receipts as errors; preserve their inspectable result."""
+    try:
+        receipt = (
+            Readback.model_validate(response).receipt
+            if "receipt" in response
+            else Receipt.model_validate(response)
+        )
+    except ValidationError:
+        return False
+    return (
+        "diagnostic" not in response
+        and receipt.state == "failed"
+        and receipt.result_availability == "available"
+        and bool(receipt.result_ref)
+    )
+
+
+async def run(
+    request: JsonObject | None, identity: str | None, *, allow_failed: bool = False
+) -> JsonObject:
     url, token = configuration()
     async with (
         asyncio.timeout(30),
@@ -42,7 +65,7 @@ async def run(request: JsonObject | None, identity: str | None) -> JsonObject:
             if result.structured_content is None:
                 raise ExampleFailure("MCP returned no structured JSON result")
             response = parse_object(json.dumps(result.structured_content))
-            if result.is_error:
+            if result.is_error and not (allow_failed and failed_result_available(response)):
                 raise ExampleFailure(
                     "MCP tool returned an error; inspect retained diagnostics", response
                 )
@@ -56,7 +79,7 @@ async def run(request: JsonObject | None, identity: str | None) -> JsonObject:
             require_operation(catalog, request)
             if tool_name("invoke", request) not in {tool.name for tool in tools.tools}:
                 raise ExampleFailure("Requested exact tool is not in authorized MCP discovery")
-        return await workflow(execute, request, identity)
+        return await workflow(execute, request, identity, allow_failed=allow_failed)
 
 
 if __name__ == "__main__":

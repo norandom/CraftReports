@@ -15,7 +15,9 @@ from scripts.examples.common import (
 )
 
 
-async def run(request: JsonObject | None, identity: str | None) -> JsonObject:
+async def run(
+    request: JsonObject | None, identity: str | None, *, allow_failed: bool = False
+) -> JsonObject:
     url, token = configuration()
     async with httpx.AsyncClient(
         base_url=url, headers={"Authorization": f"Bearer {token}"}, timeout=10, trust_env=False
@@ -44,7 +46,7 @@ async def run(request: JsonObject | None, identity: str | None) -> JsonObject:
             if request is None:
                 return catalog
             require_operation(catalog, request)
-        return await workflow(execute, request, identity)
+        return await workflow(execute, request, identity, allow_failed=allow_failed)
 
 
 if __name__ == "__main__":

@@ -126,7 +126,7 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
   - _Depends: 6, 7, 7.1, 7.2; craftreport-operation-kernel 10.1; craftreport-snapshot-runtime 4.1_
   - _Requirements: 1.1, 1.4, 1.5, 3.1, 3.2, 3.5, 4.3, 4.5, 4.7, 5.4, 6.1, 6.2, 6.3, 6.4_
 
-- [ ] 9. Add public table/chart content and the ordinary caller recipe
+- [x] 9. Add public table/chart content and the ordinary caller recipe
   - Add examples/reports/supplied_portfolio.json, examples/templates/public_report/manifest.json and examples/themes/house.json under declared public-packs ownership and scripts/examples/prepare_reusable_report.py under the existing development-gates executable owner.
   - Use the accepted production snapshot-runtime host, SnapshotReader and durable journal providers with synthetic data published through their public operation. Reuse installed-host lifecycle helpers where applicable; do not create a synthetic journal/reader or a new test-only host capability. Supply explicit roots and credentials outside transcripts, two snapshots and bounded owned resource lifecycle.
   - Exercise REST and MCP using the same adopter caller path, inspect retained typed values/pins/findings and demonstrate corrected missing-binding failure plus required-unevaluated draft/release rejection with AI disabled.
@@ -274,3 +274,21 @@ No `(P)` marker is used: the first preparation slice reuses shared value contrac
   `artifacts/report-task8-review2/hook.txt`; first failure retained separately.
   Adapters1567/1800 and reporting963/1500; local limits unchanged.
   Tasks 9-12 remain open. No live app, XLSX or feature GO is claimed.
+
+- Task 9: independently APPROVED by `/root/review_report_task9` and VERIFIED.
+  The public definition/theme/manifest and ordinary Python caller run through
+  REST and MCP against installed production snapshot/report providers. Both
+  transports return the same two snapshot references and prepared content;
+  independent checks preserve date order, exact decimal values, null gaps and
+  literal text. Missing binding and blocked validated release retain truthful
+  failed results, with draft eligibility and complete evidence pins.
+  Existing clients retain complete-only defaults; explicit failed-result
+  readback handles MCP's error flag without relabeling receipts or bypassing
+  diagnostics. Demo lifecycle reuses the installed snapshot harness, with
+  hidden Windows startup, bounded run IDs and verified cleanup. LF attributes
+  preserve public asset hashes across checkout platforms.
+  Evidence: `artifacts/report-task9/independent-review.md`,
+  `artifacts/report-task9-recipe/final-verification.json`, and
+  `artifacts/report-task9-review/hook.txt`. Final recipe suite: eight passed;
+  unchanged snapshot restart regression passed; canonical fast checks passed.
+  Tasks 10-12 remain open; no rendering, XLSX or feature GO is claimed.

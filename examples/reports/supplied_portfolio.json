@@ -1,0 +1,155 @@
+{
+  "chart": {
+    "category_field": "date",
+    "identity": "portfolio_chart",
+    "null_behavior": "gap",
+    "series": [
+      {
+        "field": "nav",
+        "format": {
+          "decimal_places": 2,
+          "kind": "decimal",
+          "negative_style": "leading_minus"
+        },
+        "identity": "nav",
+        "label": "NAV",
+        "role": "source"
+      },
+      {
+        "field": "benchmark",
+        "format": {
+          "decimal_places": 2,
+          "kind": "decimal",
+          "negative_style": "leading_minus"
+        },
+        "identity": "benchmark",
+        "label": "Benchmark",
+        "role": "source"
+      }
+    ],
+    "source": {
+      "fields": [
+        {
+          "kind": "date",
+          "name": "date",
+          "nullable": false
+        },
+        {
+          "kind": "decimal",
+          "name": "nav",
+          "nullable": true,
+          "unit": "USD"
+        },
+        {
+          "kind": "decimal",
+          "name": "benchmark",
+          "nullable": true,
+          "unit": "USD"
+        },
+        {
+          "kind": "text",
+          "name": "note",
+          "nullable": false
+        }
+      ],
+      "name": "portfolio"
+    }
+  },
+  "parameters": [
+    {
+      "choices": [],
+      "default": {
+        "kind": "text",
+        "value": "Synthetic portfolio"
+      },
+      "kind": "text",
+      "name": "title",
+      "required": false
+    }
+  ],
+  "release_policy": {
+    "required_checks": [
+      "definition",
+      "bindings",
+      "semantic_resolution",
+      "layout_fit"
+    ],
+    "scope_label": "Synthetic supplied portfolio: definition, bindings, semantic resolution and observed layout only"
+  },
+  "report_id": "public/supplied_portfolio",
+  "schema_version": "1",
+  "table": {
+    "columns": [
+      {
+        "field": "date",
+        "format": {
+          "date_pattern": "yyyy-mm-dd",
+          "kind": "date",
+          "negative_style": "leading_minus"
+        },
+        "role": "source"
+      },
+      {
+        "field": "nav",
+        "format": {
+          "decimal_places": 2,
+          "kind": "decimal",
+          "negative_style": "leading_minus"
+        },
+        "role": "source"
+      },
+      {
+        "field": "benchmark",
+        "format": {
+          "decimal_places": 2,
+          "kind": "decimal",
+          "negative_style": "leading_minus"
+        },
+        "role": "source"
+      },
+      {
+        "field": "note",
+        "format": {
+          "kind": "text",
+          "negative_style": "leading_minus"
+        },
+        "role": "note"
+      }
+    ],
+    "empty_behavior": "headers_and_note",
+    "identity": "portfolio_table",
+    "long_labels": "wrap",
+    "null_text": "—",
+    "source": {
+      "fields": [
+        {
+          "kind": "date",
+          "name": "date",
+          "nullable": false
+        },
+        {
+          "kind": "decimal",
+          "name": "nav",
+          "nullable": true,
+          "unit": "USD"
+        },
+        {
+          "kind": "decimal",
+          "name": "benchmark",
+          "nullable": true,
+          "unit": "USD"
+        },
+        {
+          "kind": "text",
+          "name": "note",
+          "nullable": false
+        }
+      ],
+      "name": "portfolio"
+    }
+  },
+  "title": {
+    "name": "title"
+  },
+  "version": "1.0.0"
+}

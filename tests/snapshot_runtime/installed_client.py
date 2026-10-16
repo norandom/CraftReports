@@ -19,7 +19,16 @@ from tests.kernel.fixture_packaging import InstalledFixture
 
 
 class SnapshotProcess:
-    def __init__(self, installed: InstalledFixture, database: Path, directory: Path) -> None:
+    def __init__(
+        self,
+        installed: InstalledFixture,
+        database: Path,
+        directory: Path,
+        *,
+        pack_root: Path | None = None,
+        source_scope: str = "public_source",
+        artifact_scope: str = "public_artifact",
+    ) -> None:
         self.directory = directory
         directory.mkdir()
         self.log = (directory / "server.log").open("w", encoding="utf-8")
@@ -29,6 +38,7 @@ class SnapshotProcess:
                 "-I",
                 str(Path(__file__).with_name("installed_host.py")),
                 str(database),
+                *([str(pack_root), source_scope, artifact_scope] if pack_root is not None else []),
             ],
             env={
                 key: os.environ[key]
@@ -40,6 +50,7 @@ class SnapshotProcess:
             stdout=subprocess.PIPE,
             stderr=self.log,
             text=True,
+            creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
         )
         self.lines: queue.Queue[str] = queue.Queue()
         assert self.process.stdout is not None

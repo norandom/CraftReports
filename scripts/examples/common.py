@@ -69,7 +69,12 @@ def receipt_from(response: JsonObject) -> Receipt:
 
 
 async def complete(
-    response: JsonObject, execute: Execute, *, attempts: int = 20, interval: float = 0.25
+    response: JsonObject,
+    execute: Execute,
+    *,
+    attempts: int = 20,
+    interval: float = 0.25,
+    allow_failed: bool = False,
 ) -> JsonObject:
     original_id = receipt_from(response).operation_id
     for _ in range(attempts):
@@ -83,22 +88,28 @@ async def complete(
     receipt = receipt_from(response)
     if receipt.operation_id != original_id:
         raise ExampleFailure("Inspection returned a different operation identity", response)
-    if receipt.state != "complete":
+    if receipt.state != "complete" and not (allow_failed and receipt.state == "failed"):
         raise ExampleFailure(
             "Operation is not complete; inspect retained state before recovery", response
         )
     if not receipt.result_ref or receipt.result_availability != "available":
-        raise ExampleFailure("Complete receipt has no available retained result", response)
+        raise ExampleFailure("Receipt has no available retained result", response)
     return response
 
 
 async def workflow(
-    execute: Execute, request: JsonObject | None, identity: str | None
+    execute: Execute,
+    request: JsonObject | None,
+    identity: str | None,
+    *,
+    allow_failed: bool = False,
 ) -> JsonObject:
     if request is not None:
-        return await complete(await execute("invoke", request), execute)
+        return await complete(await execute("invoke", request), execute, allow_failed=allow_failed)
     assert identity is not None
-    inspected = await complete(await execute("inspect", {"operation_id": identity}), execute)
+    inspected = await complete(
+        await execute("inspect", {"operation_id": identity}), execute, allow_failed=allow_failed
+    )
     if receipt_from(inspected).operation_id != identity:
         raise ExampleFailure("Inspection returned a different operation identity", inspected)
     response = await execute("result", {"operation_id": identity})
@@ -109,7 +120,12 @@ async def workflow(
     readback = Readback.model_validate(response)
     if readback.receipt.operation_id != identity:
         raise ExampleFailure("Readback returned a different operation identity", response)
-    await complete(JSON_OBJECT.validate_python(response["receipt"]), execute, attempts=0)
+    await complete(
+        JSON_OBJECT.validate_python(response["receipt"]),
+        execute,
+        attempts=0,
+        allow_failed=allow_failed,
+    )
     return response
 
 

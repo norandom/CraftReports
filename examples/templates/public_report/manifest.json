@@ -1,0 +1,221 @@
+{
+  "artifact_visibility_scope": "public_artifact",
+  "attribution": "CraftReport public synthetic portfolio example; supplied demonstration values only",
+  "definition": {
+    "path": "definition.json",
+    "sha256": "f7e9d25f95c87eb364225d7f175c96893f79ecfd4d6245a567397aa8e78d367a"
+  },
+  "engine_version_range": ">=0.1,<1",
+  "name": "supplied_portfolio",
+  "namespace": "public",
+  "permitted_overrides": [
+    [
+      "title",
+      "font_family"
+    ],
+    [
+      "title",
+      "size_pt"
+    ],
+    [
+      "title",
+      "wrap"
+    ],
+    [
+      "header",
+      "font_family"
+    ],
+    [
+      "header",
+      "size_pt"
+    ],
+    [
+      "header",
+      "wrap"
+    ],
+    [
+      "row_label",
+      "font_family"
+    ],
+    [
+      "row_label",
+      "size_pt"
+    ],
+    [
+      "row_label",
+      "wrap"
+    ],
+    [
+      "source",
+      "font_family"
+    ],
+    [
+      "source",
+      "size_pt"
+    ],
+    [
+      "source",
+      "wrap"
+    ],
+    [
+      "input",
+      "font_family"
+    ],
+    [
+      "input",
+      "size_pt"
+    ],
+    [
+      "input",
+      "wrap"
+    ],
+    [
+      "constant",
+      "font_family"
+    ],
+    [
+      "constant",
+      "size_pt"
+    ],
+    [
+      "constant",
+      "wrap"
+    ],
+    [
+      "external_result",
+      "font_family"
+    ],
+    [
+      "external_result",
+      "size_pt"
+    ],
+    [
+      "external_result",
+      "wrap"
+    ],
+    [
+      "output",
+      "font_family"
+    ],
+    [
+      "output",
+      "size_pt"
+    ],
+    [
+      "output",
+      "wrap"
+    ],
+    [
+      "key_result",
+      "font_family"
+    ],
+    [
+      "key_result",
+      "size_pt"
+    ],
+    [
+      "key_result",
+      "wrap"
+    ],
+    [
+      "note",
+      "font_family"
+    ],
+    [
+      "note",
+      "size_pt"
+    ],
+    [
+      "note",
+      "wrap"
+    ],
+    [
+      "check_pass",
+      "font_family"
+    ],
+    [
+      "check_pass",
+      "size_pt"
+    ],
+    [
+      "check_pass",
+      "wrap"
+    ],
+    [
+      "check_warn",
+      "font_family"
+    ],
+    [
+      "check_warn",
+      "size_pt"
+    ],
+    [
+      "check_warn",
+      "wrap"
+    ],
+    [
+      "check_fail",
+      "font_family"
+    ],
+    [
+      "check_fail",
+      "size_pt"
+    ],
+    [
+      "check_fail",
+      "wrap"
+    ],
+    [
+      "draft",
+      "font_family"
+    ],
+    [
+      "draft",
+      "size_pt"
+    ],
+    [
+      "draft",
+      "wrap"
+    ],
+    [
+      "title",
+      "fill"
+    ],
+    [
+      "header",
+      "fill"
+    ],
+    [
+      "source",
+      "fill"
+    ]
+  ],
+  "required_capabilities": [
+    {
+      "identity": "report.table",
+      "target_mode": null,
+      "version_range": ">=1,<2"
+    },
+    {
+      "identity": "report.line_chart",
+      "target_mode": null,
+      "version_range": ">=1,<2"
+    },
+    {
+      "identity": "report.semantic_style",
+      "target_mode": null,
+      "version_range": ">=1,<2"
+    }
+  ],
+  "schema_version": "1",
+  "source_visibility_scope": "public_source",
+  "template": {
+    "path": "template.json",
+    "sha256": "f7e9d25f95c87eb364225d7f175c96893f79ecfd4d6245a567397aa8e78d367a"
+  },
+  "theme": {
+    "path": "theme.json",
+    "sha256": "e649eaa03aa9cee092c9282e91ccb518e60f47246e9aa0cd20d11b87f953d9b1"
+  },
+  "version": "1.0.0"
+}
