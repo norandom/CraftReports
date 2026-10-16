@@ -102,7 +102,7 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
   - _Requirements: 1.1-1.4, 3.2, 3.5, 4.3-4.7, 5.3-5.4, 6.1-6.4_
 
 - [ ] 8. Register guarded validation, discovery and preparation operations
-  - _Blocked: Kernel task 10.1 and report task 7.1 are accepted. Await measured shared adapter budget fit for integration. The owner approved the integration correction on 2026-10-16; approval is no longer pending._
+  - _Blocked: Kernel task 10.1 and report task 7.1 are accepted. Measured candidate adapters1529/1500 before remaining runtime codecs; see adapter-budget-calibration-amendment.md (proposed, owner approval pending). The integration correction itself was approved on 2026-10-16; no adapter cap increase is yet approved._
   - Apply preparation-scope-amendment.md producer obligations: exact three-source scope from guarded inputs, verified full original receipt stage refs, closed six-field facts and same preselected policy. Stage observation is distinct from release eligibility; no public trusted-fact submission.
   - Honor prepared-content-amendment.md typed failure and validated selection contracts; operation evidence remains separate from deterministic prepared-content identity.
   - Follow theme-support-amendment.md: composition/reporting.py injects the packaging-based compatibility callable through preparation into theme resolution. InvalidVersion becomes False/incompatible_version, never an exception through pure themes. Operation tests must reject incompatible and untested supplied support without granting mapping or release assurance.
