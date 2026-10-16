@@ -102,7 +102,7 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   - _Boundary: Explicit integration of PublicationOperations and SnapshotStore_
   - _Depends: 2.3, 3.5, 4.0_
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 3.1, 6.1, 6.3_
-- [ ] 4.2 Assemble and verify installed REST publish and MCP read after restart
+- [x] 4.2 Assemble and verify installed REST publish and MCP read after restart
   - Compose the explicit provider lifetime/capability with open_application/settings.configure, trusted principal policy and installed entry point; no alternate dispatcher or transport route.
   - Start isolated installed host, publish via REST, inspect result/read bytes, stop/reopen same retained database and retrieve/retry through ordinary MCP with AI disabled.
   - Done when identities/digests/exact typed values survive restart and duplicates/stale/conflicts behave as promised; record real storage readback and owned non-forced shutdown. This closes only the first slice, not all lifecycle/app acceptance.
@@ -271,3 +271,13 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   Publication and exact/latest queries use real retained storage through the
   shared facade. Installed REST/MCP restart acceptance remains task4.2; this
   acceptance makes no visible dashboard, exported XLSX or full-release claim.
+
+- Task 4.2: independently approved by `/root/review_installed_publication`.
+  Canonical integration passed 624 kernel tests, fresh installed catalog proof,
+  and the durable REST-publication/MCP-restart journey. Installed fast hook
+  passed on matching source. Independent retained-byte, catalog and cleanup
+  audits passed; evidence: `artifacts/installed-publication-review/independent-review.md`.
+  Windows launcher exit and runtime closed-record evidence remain distinct.
+  Composition516/1500, runtime210/1500; storage/adapters unchanged. The first
+  installed publication slice is accepted; binding lifecycle, live dashboard,
+  XLSX release verification and adopter documentation remain open.

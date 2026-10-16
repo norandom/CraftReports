@@ -76,7 +76,9 @@ from importlib.metadata import entry_points
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 points = {p.name: p for p in entry_points(group="craftreport.capabilities")}
-assert set(points) == {"synthetic", "unselected", "incompatible", "collision"}
+assert set(points) == {"snapshot", "synthetic", "unselected", "incompatible", "collision"}
+assert points["snapshot"].value == "craftreport.composition.snapshot_host:snapshot_factory"
+assert "craftreport.composition.snapshot_host" not in sys.modules
 assert not any(n.startswith("craftreport_kernel_fixture") for n in sys.modules)
 base = points["synthetic"].load()().describe()
 assert "craftreport_kernel_fixture_unselected" not in sys.modules
@@ -88,6 +90,7 @@ assert collision.operations == base.operations
 assert len({base.implementation_digest, bad.implementation_digest,
             collision.implementation_digest}) == 3
 assert "craftreport_kernel_fixture_unselected" not in sys.modules
+assert "craftreport.composition.snapshot_host" not in sys.modules
 print("isolated variants verified")
 """)
     assert "verified" in output

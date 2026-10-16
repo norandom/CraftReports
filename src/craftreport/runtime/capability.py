@@ -64,6 +64,22 @@ def _descriptor[Q, R](
     )
 
 
+def publication_descriptors(
+    codecs: PublicationCodecs, limits: OperationLimits = OperationLimits()
+) -> tuple[OperationDescriptor, ...]:
+    return (
+        _descriptor(
+            "snapshot.publish", codecs.publication, codecs.publication_result, True, "feed", limits
+        ),
+        _descriptor(
+            "snapshot.read", codecs.reference, codecs.read_result, False, "snapshot", limits
+        ),
+        _descriptor(
+            "snapshot.latest", codecs.latest_request, codecs.latest_result, False, "feed", limits
+        ),
+    )
+
+
 def publication_operations(
     handlers: PublicationOperations,
     codecs: PublicationCodecs,
@@ -86,39 +102,24 @@ def publication_operations(
             return ServiceUnavailable("snapshot_selection_content")
         return result
 
+    descriptors = publication_descriptors(codecs, limits)
     return (
         OperationBinding(
-            _descriptor(
-                "snapshot.publish",
-                codecs.publication,
-                codecs.publication_result,
-                True,
-                "feed",
-                limits,
-            ),
+            descriptors[0],
             codecs.publication,
             codecs.publication_result,
             CommandBehavior(handlers.publish),
             lambda value: (ResourceRef("feed", cast(str, value["feed_id"])),),
         ).bind(),
         OperationBinding(
-            _descriptor(
-                "snapshot.read", codecs.reference, codecs.read_result, False, "snapshot", limits
-            ),
+            descriptors[1],
             codecs.reference,
             codecs.read_result,
             QueryBehavior(handlers.read),
             lambda value: (ResourceRef("snapshot", f"{value.feed_id}:{value.producer_version}"),),
         ).bind(),
         OperationBinding(
-            _descriptor(
-                "snapshot.latest",
-                codecs.latest_request,
-                codecs.latest_result,
-                False,
-                "feed",
-                limits,
-            ),
+            descriptors[2],
             codecs.latest_request,
             codecs.latest_result,
             QueryBehavior(latest),

@@ -22,7 +22,7 @@ class BootstrapTests(unittest.TestCase):
     def test_integration_routes_to_separate_installed_client_suite(self) -> None:
         directory = ROOT / "artifacts" / "routing-only"
         steps = integration_steps(ROOT, directory)
-        self.assertEqual(len(steps), 2)
+        self.assertEqual(len(steps), 3)
         command = steps[0][1]
         self.assertEqual(command[0], sys.executable)
         self.assertIn(str(ROOT / "tests/kernel"), command)
@@ -34,6 +34,11 @@ class BootstrapTests(unittest.TestCase):
             steps[1][1],
             [sys.executable, str(ROOT / "tests/kernel/catalog_proof.py"), str(directory)],
         )
+        durable = steps[2][1]
+        self.assertIn(str(ROOT / "tests/snapshot_runtime/test_installed.py"), durable)
+        self.assertEqual(durable[durable.index("-m", 3) + 1], "integration")
+        self.assertIn(str(directory / "snapshot-junit.xml"), durable)
+        self.assertNotIn("-n", durable)
 
     def test_command_requires_exactly_one_mode(self) -> None:
         for modes in ([], ["--fast", "--integration"]):

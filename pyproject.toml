@@ -16,6 +16,9 @@ dependencies = [
     "uvicorn==0.54.0",
 ]
 
+[project.entry-points."craftreport.capabilities"]
+snapshot = "craftreport.composition.snapshot_host:snapshot_factory"
+
 [dependency-groups]
 dev = [
     "hatchling==1.32.4",

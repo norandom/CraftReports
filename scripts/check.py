@@ -77,6 +77,20 @@ def integration_steps(root: Path, directory: Path) -> list[tuple[str, list[str]]
             "Fresh installed catalog verification of the completed packet",
             [sys.executable, str(root / "tests/kernel/catalog_proof.py"), str(directory)],
         ),
+        (
+            "Installed durable snapshot publication and restart",
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "-q",
+                "-m",
+                "integration",
+                str(root / "tests/snapshot_runtime/test_installed.py"),
+                "--junitxml",
+                str(directory / "snapshot-junit.xml"),
+            ],
+        ),
     ]
 
 

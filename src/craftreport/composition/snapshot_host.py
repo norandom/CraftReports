@@ -2,7 +2,10 @@
 
 from collections.abc import AsyncGenerator, Callable, Mapping
 from contextlib import AsyncExitStack, asynccontextmanager
+from dataclasses import dataclass
 from datetime import UTC, datetime
+from hashlib import sha256
+from importlib.metadata import distribution
 from pathlib import Path
 
 from packaging.specifiers import InvalidSpecifier, SpecifierSet
@@ -28,14 +31,31 @@ from craftreport.adapters.storage.providers import (
 )
 from craftreport.adapters.storage.results import DurableResults
 from craftreport.adapters.storage.snapshots import Fingerprint
+from craftreport.adapters.validation import PydanticCodec, StrictWireModel
 from craftreport.application import ports
+from craftreport.application.capabilities import CapabilityInstance
 from craftreport.application.registry import BoundOperation, Codec
 from craftreport.composition.app import HostedApplication, open_application
 from craftreport.composition.plugins import ActivationSnapshot
-from craftreport.composition.settings import GuaranteeProviders, HostSettings
-from craftreport.contracts import CapabilityRequirement, Principal, ResourceRef
+from craftreport.composition.settings import (
+    ConfiguredCapability,
+    GuaranteeProviders,
+    HostSettings,
+    configure,
+)
+from craftreport.contracts import (
+    CapabilityManifest,
+    CapabilityRequirement,
+    CapabilityVersion,
+    Principal,
+    ResourceRef,
+)
 from craftreport.data.values import Snapshot
-from craftreport.runtime.capability import PublicationCodecs, publication_operations
+from craftreport.runtime.capability import (
+    PublicationCodecs,
+    publication_descriptors,
+    publication_operations,
+)
 from craftreport.runtime.ports import SnapshotQueries
 from craftreport.runtime.publication import PublicationOperations
 
@@ -59,7 +79,11 @@ def snapshot_operation_bindings(
         resources.store.codec,
         lambda: datetime.now(UTC),
     )
-    codecs = PublicationCodecs(
+    return publication_operations(handlers, _publication_codecs())
+
+
+def _publication_codecs() -> PublicationCodecs:
+    return PublicationCodecs(
         publication_codec(),
         publication_result_codec(),
         snapshot_reference_codec(),
@@ -67,7 +91,72 @@ def snapshot_operation_bindings(
         latest_request_codec(),
         latest_result_codec(),
     )
-    return publication_operations(handlers, codecs)
+
+
+@dataclass(frozen=True, slots=True)
+class SnapshotSettings:
+    """No caller-controlled provider or ownership settings in the first profile."""
+
+
+SNAPSHOT_SETTINGS = PydanticCodec(
+    StrictWireModel, lambda value: SnapshotSettings(), lambda value: {}
+).for_input()
+
+
+class SnapshotFactory:
+    def describe(self) -> CapabilityManifest:
+        installed = distribution("craftreport")
+        digest = sha256()
+        root = Path(__file__).resolve().parents[1]
+        for entry in sorted(root.rglob("*.py")):
+            content = entry.read_bytes()
+            name = entry.relative_to(root).as_posix().encode()
+            digest.update(len(name).to_bytes(8, "big") + name)
+            digest.update(len(content).to_bytes(8, "big") + content)
+        return CapabilityManifest(
+            "snapshot",
+            "craftreport",
+            installed.version,
+            ">=1.0,<2.0",
+            (CapabilityVersion("snapshot", "1.0.0"),),
+            (),
+            SNAPSHOT_SETTINGS.schema(),
+            publication_descriptors(_publication_codecs()),
+            "sha256:" + digest.hexdigest(),
+        )
+
+    @asynccontextmanager
+    async def open(
+        self, services: tuple[BoundOperation, ...], settings: SnapshotSettings
+    ) -> AsyncGenerator[CapabilityInstance]:
+        SNAPSHOT_SETTINGS.decode(SNAPSHOT_SETTINGS.encode(settings))
+
+        async def close() -> None:
+            pass  # Providers own resources; these immutable bindings acquire none.
+
+        yield CapabilityInstance(services, close)
+
+
+def snapshot_factory() -> SnapshotFactory:
+    return SnapshotFactory()
+
+
+def configure_snapshot(
+    resources: DurableResources, *, owner_policy: Callable[[Principal], bool]
+) -> ConfiguredCapability:
+    def adapt(loaded: object) -> SnapshotFactory:
+        if loaded is not snapshot_factory:
+            raise ValueError("Unexpected snapshot capability factory")
+        return snapshot_factory()
+
+    return configure(
+        "craftreport",
+        "snapshot",
+        adapt,
+        snapshot_operation_bindings(resources, owner_policy=owner_policy),
+        SNAPSHOT_SETTINGS,
+        {},
+    )
 
 
 class ActivatedCapabilities:
