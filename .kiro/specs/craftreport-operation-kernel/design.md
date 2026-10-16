@@ -483,3 +483,15 @@ If dependency resolution or the wheel-installed smoke exposes an SDK incompatibi
 
 - [Research and decision log](research.md) records current official SDK, packaging, validation and tooling sources.
 - [Approved kernel requirements](requirements.md), [umbrella acceptance baseline](../craftreport-reporting-facade/requirements.md), [roadmap](../../steering/roadmap.md).
+
+
+## Owner-approved facade integration correction (2026-10-16)
+
+The [approved amendment](../craftreport-report-model-packs/facade-integration-amendment.md), its
+[approval record](../craftreport-report-model-packs/facade-integration-approval.md) and
+[independent review](../craftreport-report-model-packs/facade-integration-review.md) supersede conflicting
+original text only within the named guard, result, eligibility, diagnostic and
+failed-stage contracts. Original paragraphs remain historical design context.
+Implementation is pending; unchanged engineering limits and all real-effect
+acceptance gates remain required. The source/file and verification boundaries
+are specified in the amendment and tracked in the task checklist.

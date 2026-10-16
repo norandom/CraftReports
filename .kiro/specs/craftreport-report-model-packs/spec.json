@@ -1,7 +1,7 @@
 {
   "feature_name": "craftreport-report-model-packs",
   "created_at": "2026-10-15T19:42:20.182967+02:00",
-  "updated_at": "2026-10-15T19:55:20.4824441+00:00",
+  "updated_at": "2026-10-16",
   "language": "en",
   "phase": "tasks-generated",
   "approvals": {
@@ -110,5 +110,21 @@
     "reviewed_sha256": "4D5D61F89AD64C3C66E61914C38BFFD1F8C1F20BB9EE44F2041560E6863B7359",
     "authorization": "owner-directed-bounded-fast-track",
     "scope": "bounded task7 only; actual unchanged limits and complete residual forecast; no future-fit claim"
+  },
+  "facade_integration_amendment": {
+    "reference": "facade-integration-amendment.md",
+    "approval_reference": "facade-integration-approval.md",
+    "review_reference": "facade-integration-review.md",
+    "reviewed_sha256": "EF79A5C361EB58052BBE618446E753F1962DE480410949617D7D0452D0520ECB",
+    "reviewer": "/root/review_report_correction",
+    "verdict": "APPROVED",
+    "design_approved": true,
+    "tasks_approved": true,
+    "approved_on": "2026-10-16",
+    "implementation_status": "pending",
+    "tasks": [
+      "7.1",
+      "8"
+    ]
   }
 }

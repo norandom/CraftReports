@@ -92,11 +92,21 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
   - _Depends: 4, 5, 6_
   - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 3.1, 3.2, 3.5, 6.3, 6.4_
 
+- [ ] 7.1 Apply the approved bounded report failure result alternatives
+  - Extend only the existing validation/preparation result contracts and codecs as specified in facade-integration-amendment.md; preserve successful wire shapes and unpublished operation version 1.
+  - Reuse existing issue vocabularies with exact first-64 issue details, exact total/omitted counts and the approved 263168-byte maximum envelope. Preserve authorization boundaries and existing admitted source inputs; no silent truncation, invented evidence or generic error framework.
+  - Own reporting/ports.py, adapters/report_models.py, adapters/report_codecs.py and affected reporting tests. Measure actual aggregate fit before expansion; no budget increase is approved.
+  - Verify zero/64/65/many issues, maximum names/indices, disjoint typed roundtrips, unknown fields/codes, inconsistent counts and overflow; run affected success regressions and mandatory canonical hook. Independent review and fresh evidence precede acceptance.
+  - _Boundary: Reopened task-7 result contracts under facade-integration-approval.md_
+  - _Depends: 7; craftreport-operation-kernel 10.1_
+  - _Requirements: 1.1-1.4, 3.2, 3.5, 4.3-4.7, 5.3-5.4, 6.1-6.4_
+
 - [ ] 8. Register guarded validation, discovery and preparation operations
+  - _Blocked: Await accepted kernel task 10.1, report task 7.1 and measured shared adapter budget fit. The owner approved the integration correction on 2026-10-16; approval is no longer pending._
   - Apply preparation-scope-amendment.md producer obligations: exact three-source scope from guarded inputs, verified full original receipt stage refs, closed six-field facts and same preselected policy. Stage observation is distinct from release eligibility; no public trusted-fact submission.
   - Honor prepared-content-amendment.md typed failure and validated selection contracts; operation evidence remains separate from deterministic prepared-content identity.
   - Follow theme-support-amendment.md: composition/reporting.py injects the packaging-based compatibility callable through preparation into theme resolution. InvalidVersion becomes False/incompatible_version, never an exception through pure themes. Operation tests must reject incompatible and untested supplied support without granting mapping or release assurance.
-  - Inject the accepted upstream data.ports SnapshotReader and existing journal/result services plus reporting PackReader/PreparationFactWriter into feature-owned reporting.operations handlers and the composition provider; keep kernel application and HTTP/MCP transport files unchanged. Implement the typed fact conversion and immutable pack ResourceReader/delegating ExecutionGuard in adapters/report_resources.py; storage owns the restricted retention method from upstream 3.3 and imports no reporting types.
+  - Inject the accepted upstream data.ports SnapshotReader and existing journal/result services plus reporting PackReader/PreparationFactWriter into feature-owned reporting.operations handlers and the composition provider; consume the accepted kernel task 10.1 correction; HTTP/MCP transport files remain unchanged. Implement the typed fact conversion and immutable pack ResourceReader and single existing DurableGuard assembly in adapters/report_resources.py; storage owns the restricted retention method from upstream 3.3 and imports no reporting types.
   - Require accepted upstream 4.1 concrete SnapshotStore/publication/read behavior and its finalized retained-snapshot size invariant before exposing the preparation capability; fail closed when a reader cannot establish S <=1 MiB across restart. The protocol alone or a later post-activation check cannot establish this admission-proof prerequisite.
   - Register the three versioned contracts behind existing authentication/resource guards. Preparation creates a retained result with kernel retry identity and separate preparation/quality stages; target mutation/export/reopen stay absent.
   - Use unversioned registry operation names with contract version 1 and `.v1` MCP tool names. Declare exactly the Design's two immutable pack resources for validation, no resources for filtered discovery, and snapshot plus both pack resources for preparation. Wire separate source/artifact-scope authorization, authoritative token readback and actual provider health before exposing the capability; reject pack mutations/reloads during a host lifetime.
@@ -104,7 +114,7 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
   - Revalidate exact pack/template/snapshot pins and bindings on execution. Reusing retry identity/content returns the same operation; changed content conflicts; missing input never switches to latest. Honor draft/validated requested designation; missing required checks produce release_blocked with retained preparation/findings and no validated label.
   - Done when operation discovery, authorization, structured stage/recovery failure and retained result/evidence readback work through the real kernel, with no source disclosure or alternate journal; correct full-set evidence completes, omitted/altered pack pins and unavailable preparation evidence prevent completion.
   - _Boundary: PreparationOperations integration_
-  - _Depends: 6, 7_
+  - _Depends: 6, 7, 7.1; craftreport-operation-kernel 10.1; craftreport-snapshot-runtime 4.1_
   - _Requirements: 1.1, 1.4, 1.5, 3.1, 3.2, 3.5, 4.3, 4.5, 4.7, 5.4, 6.1, 6.2, 6.3, 6.4_
 
 - [ ] 9. Add public table/chart content and the ordinary caller recipe

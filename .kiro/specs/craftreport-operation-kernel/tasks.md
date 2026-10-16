@@ -246,6 +246,15 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 8.4_
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 2.1, 2.2, 2.3, 2.4, 2.5, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 4.1, 4.2, 4.3, 4.4, 4.5, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 6.1, 6.2, 6.3, 6.4, 6.5, 7.1, 7.2, 7.3, 7.4_
 
+- [ ] 10.1 Apply the approved shared-kernel facade integration correction
+  - Implement only the approved optional command eligibility callback, exact post-authorization/guard/retry ordering, original lease recheck, existing DiagnosticPolicy relocation/plumbing and truthful failed-stage classification.
+  - Scope: application/service_values.py, registry.py, admission.py, execution.py, outcomes.py and existing affected kernel tests. No reporting imports, new middleware framework, transport changes or guard wrapper.
+  - Preserve default behavior for existing bindings, equivalent/conflicting retry identity, authorization ordering, safe diagnostic allowlists and mandatory evidence for passed stages. Rejection creates no accepted operation or effect.
+  - Verify requirement-based failing tests then focused kernel regressions; run canonical fast/integration checks including installed snapshot publication/restart. Independent review and fresh evidence precede acceptance and hooked commit/push. Reconcile reopened kernel validation without relabeling historical evidence.
+  - _Boundary: Upstream kernel correction; facade-integration-amendment.md as approved in ../craftreport-report-model-packs/facade-integration-approval.md_
+  - _Depends: 9_
+  - _Requirements: 2.3, 2.4, 3.1, 3.2, 3.3, 3.4, 3.5, 4.1, 4.2, 4.3, 4.4, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 7.1, 7.2, 7.4; downstream report 3.2, 3.5, 4.3-4.7, 6.1-6.4_
+
 ## Execution Notes
 
 The approved Design owns concrete file paths and signatures. Each implementer receives its task boundary and those paths, including exclusive test-file ownership for parallel tasks. Required reviews and engineering checks are not bypassed by (P). No runtime or external deployment occurs during task generation.

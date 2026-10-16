@@ -23,8 +23,8 @@ actual_plugin_packages = 0
 planned_plugin_packages = 19
 plugin_root = "packages"
 planned_module_capabilities = 14
-open_fronts = 5
-open_front_ids = ["spec.craftreport-browser-verification", "spec.craftreport-gridcraft-web-reports", "spec.craftreport-report-model-packs", "spec.craftreport-reporting-facade", "spec.craftreport-snapshot-runtime"]
+open_fronts = 6
+open_front_ids = ["spec.craftreport-operation-kernel", "spec.craftreport-browser-verification", "spec.craftreport-gridcraft-web-reports", "spec.craftreport-report-model-packs", "spec.craftreport-reporting-facade", "spec.craftreport-snapshot-runtime"]
 source_root = "src/craftreport"
 work_lines_source = ".kiro/steering/overview.md"
 retirement_limit_days = 14
@@ -45,18 +45,18 @@ close_targets = []
 # A more-specific extension entry overrides general parent ownership/lifecycle.
 
 [spec.craftreport-operation-kernel]
-status = "done"
+status = "active"
 line = "shared-reporting"
 phase_source = ".kiro/specs/craftreport-operation-kernel/spec.json"
 phase_at_draft = "tasks-generated"
-status_since = "2026-10-14"
+status_since = "2026-10-16"
 owner = [".kiro/specs/craftreport-operation-kernel"]
 path_state = "existing-documents"
-closes = "Kernel acceptance closed with independent synthetic-scope validation; retained code remains capability-owned."
+closes = "Reopened for owner-approved facade integration task 10.1; prior synthetic acceptance remains historical evidence."
 closure_required = false
 close_targets = []
-closure_executed = true
-closure_evidence = ".kiro/specs/craftreport-operation-kernel/closure-evidence.json"
+closure_executed = false
+historical_closure_evidence = ".kiro/specs/craftreport-operation-kernel/closure-evidence.json"
 
 [spec.craftreport-browser-verification]
 status = "active"

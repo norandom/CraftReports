@@ -1,9 +1,9 @@
 {
   "feature_name": "craftreport-operation-kernel",
   "created_at": "2026-10-13T16:59:00.6089508Z",
-  "updated_at": "2026-10-14T14:18:18.087326Z",
+  "updated_at": "2026-10-16",
   "language": "en",
-  "phase": "implementation-complete",
+  "phase": "implementation-in-progress",
   "approvals": {
     "requirements": {
       "generated": true,
@@ -31,6 +31,22 @@
     "reference": "implementation-validation.md",
     "decision": "GO",
     "scope": "synthetic operation kernel; temporary test providers",
-    "closure_evidence": "closure-evidence.json"
+    "closure_evidence": "closure-evidence.json",
+    "status": "historical-baseline; amendment revalidation pending"
+  },
+  "facade_integration_amendment": {
+    "reference": "../craftreport-report-model-packs/facade-integration-amendment.md",
+    "approval_reference": "../craftreport-report-model-packs/facade-integration-approval.md",
+    "review_reference": "../craftreport-report-model-packs/facade-integration-review.md",
+    "reviewed_sha256": "EF79A5C361EB58052BBE618446E753F1962DE480410949617D7D0452D0520ECB",
+    "reviewer": "/root/review_report_correction",
+    "verdict": "APPROVED",
+    "design_approved": true,
+    "tasks_approved": true,
+    "approved_on": "2026-10-16",
+    "implementation_status": "pending",
+    "tasks": [
+      "10.1"
+    ]
   }
 }

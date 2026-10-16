@@ -375,3 +375,15 @@ implementation under unchanged actual1500/300/50/10 limits, with fresh measured
 owner totals and a complete residual forecast before acceptance. Future tasks
 require capacity/dependency reassessment; no ownership move or cap rise is allowed.
 This supersedes the earlier report-only future-fit estimates, not actual gates.
+
+
+## Owner-approved facade integration correction (2026-10-16)
+
+The [approved amendment](facade-integration-amendment.md), its
+[approval record](facade-integration-approval.md) and
+[independent review](facade-integration-review.md) supersede conflicting
+original text only within the named guard, result, eligibility, diagnostic and
+failed-stage contracts. Original paragraphs remain historical design context.
+Implementation is pending; unchanged engineering limits and all real-effect
+acceptance gates remain required. The source/file and verification boundaries
+are specified in the amendment and tracked in the task checklist.
