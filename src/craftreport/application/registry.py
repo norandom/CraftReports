@@ -11,6 +11,7 @@ from dataclasses import dataclass, replace
 from typing import Protocol
 
 from craftreport.application.ports import CommandContext, ReadContext
+from craftreport.application.service_values import DiagnosticPolicy
 from craftreport.contracts import (
     Diagnostic,
     EffectDisposition,
@@ -19,6 +20,7 @@ from craftreport.contracts import (
     OperationDescriptor,
     OperationKind,
     OutcomeProposal,
+    Principal,
     ResourceRef,
     StageResult,
 )
@@ -47,6 +49,7 @@ class QueryBehavior[Q, R]:
 @dataclass(frozen=True, slots=True)
 class CommandBehavior[Q, R]:
     handler: CommandHandler[Q, R]
+    eligibility: Callable[[Q, Principal], Awaitable[Diagnostic | None]] | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -87,6 +90,7 @@ class PreparedCommand:
     canonical_content: JsonObject
     resources: tuple[ResourceRef, ...]
     _invoke: Callable[[CommandContext], Awaitable[ObservedCommand]]
+    eligibility: Callable[[Principal], Awaitable[Diagnostic | None]] | None = None
 
     async def invoke(self, context: CommandContext) -> ObservedCommand:
         if type(context) is not CommandContext:
@@ -101,6 +105,7 @@ type PreparedCall = PreparedQuery | PreparedCommand
 class BoundOperation:
     descriptor: OperationDescriptor
     _prepare: Callable[[JsonObject], PreparedCall]
+    diagnostic_policy: DiagnosticPolicy = DiagnosticPolicy()
 
     def prepare(self, payload: JsonObject) -> PreparedCall:
         return self._prepare(payload)
@@ -129,6 +134,7 @@ class OperationBinding[Q, R]:
     result_codec: Codec[R]
     behavior: QueryBehavior[Q, R] | CommandBehavior[Q, R]
     resource_refs: Callable[[Q], tuple[ResourceRef, ...]]
+    diagnostic_policy: DiagnosticPolicy = DiagnosticPolicy()
 
     def bind(self) -> BoundOperation:
         descriptor = replace(self.descriptor)
@@ -143,7 +149,7 @@ class OperationBinding[Q, R]:
             raise ValueError("Input codec schema does not match descriptor")
         if freeze_object(self.result_codec.schema()) != descriptor.result_schema:
             raise ValueError("Result codec schema does not match descriptor")
-        return BoundOperation(descriptor, self._prepare)
+        return BoundOperation(descriptor, self._prepare, self.diagnostic_policy)
 
     def _prepare(self, payload: JsonObject) -> PreparedCall:
         request = self.input_codec.decode(freeze_object(payload))
@@ -182,7 +188,13 @@ class OperationBinding[Q, R]:
             proposal = await behavior.handler(request, context)
             return _observed_command(proposal, self.result_codec)
 
-        return PreparedCommand(canonical, resources, invoke)
+        callback = behavior.eligibility
+        return PreparedCommand(
+            canonical,
+            resources,
+            invoke,
+            (lambda principal: callback(request, principal)) if callback is not None else None,
+        )
 
 
 class OperationRegistry(Protocol):

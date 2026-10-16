@@ -84,6 +84,24 @@ is a query receiving only `ReadContext`; mutation ports exist only on
 `CommandContext`. Resource extraction is pure and declares the same kinds as
 the manifest. Factory services are purpose-specific, not a global container.
 
+For a command that must check an authorized selection before acceptance, supply
+`CommandBehavior.eligibility`. This optional async callback receives the decoded
+request and authenticated principal. Return `None` to allow admission or a
+`Diagnostic` to reject it. It runs after resource authorization, retained-retry
+lookup and guard acquisition; the kernel rechecks the original lease before
+creating an operation. Equivalent retained retries return their receipt without
+rerunning this check. The callback must not mutate a target or create evidence.
+Queries have no eligibility callback.
+
+Supply an explicit `OperationBinding.diagnostic_policy` to expose approved
+diagnostic codes, recovery dispositions and public locations. The default policy
+is empty. Use fixed public field locations; keep private source names and values
+out of receipt diagnostics. The same policy filters eligibility rejections and
+command outcomes. A reported failed stage remains failed even when its evidence
+is absent; this never makes an unverified stage successful. The regression cases
+in `tests/kernel/test_admission.py`, `test_execution.py` and `test_outcomes.py`
+exercise these contracts through the kernel.
+
 The write operation calls the supplied runtime effect port with its guard and
 returns the provider's effect observation, version, and evidence references.
 Missing evidence keeps its required effect stage pending; an acknowledgement

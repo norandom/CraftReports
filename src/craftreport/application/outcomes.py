@@ -5,6 +5,7 @@ from enum import StrEnum
 
 from craftreport.application.journal_values import ReceiptUpdate
 from craftreport.application.registry import ObservedCommand
+from craftreport.application.service_values import DiagnosticPolicy as DiagnosticPolicy
 from craftreport.contracts import (
     Availability,
     Diagnostic,
@@ -59,18 +60,6 @@ class OutcomeFacts:
                 require_text(reference, "observation reference")
         if self.result_availability is Availability.AVAILABLE and self.result_ref is None:
             raise ValueError("Available results require a result reference")
-
-
-@dataclass(frozen=True, slots=True)
-class DiagnosticPolicy:
-    """Operator-authorized diagnostic tokens and complete public locations."""
-
-    allowed: frozenset[tuple[str, str, RecoveryDisposition]] = frozenset()
-    locations: frozenset[tuple[str | int, ...]] = frozenset({()})
-
-    def __post_init__(self) -> None:
-        object.__setattr__(self, "allowed", frozenset(self.allowed))
-        object.__setattr__(self, "locations", frozenset(tuple(item) for item in self.locations))
 
 
 def outcome_update(
@@ -165,12 +154,12 @@ def _completion_failures(
         if len(stages) > 1:
             failures.append((name, "evidence_invalid"))
             continue
+        if stages and stages[0].state is not StageState.PASSED:
+            failures.append((name, f"stage_{stages[0].state.value}"))
         if not stages or not stages[0].evidence:
             failures.append((name, "evidence_missing"))
             continue
         stage = stages[0]
-        if stage.state is not StageState.PASSED:
-            failures.append((name, f"stage_{stage.state.value}"))
         for reference in stage.evidence:
             code = _evidence_failure(current, reference, observation, facts)
             if code is not None:

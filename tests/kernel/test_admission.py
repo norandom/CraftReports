@@ -1,21 +1,27 @@
 """Retry acceptance is proven by actual handler effects and independent readback."""
 
 import asyncio
+from collections.abc import Awaitable, Callable
 from dataclasses import replace
 
 import pytest
-from fixture_admission import AdmissionFixture
+from fixture_admission import KEY, AdmissionFixture
 from fixture_controls import Checkpoint
 from fixture_dispatch import ALICE, RESOURCE
 from fixture_journal import FixtureJournal
 
 from craftreport.application import ports
 from craftreport.application.admission import AdmittedCommand
+from craftreport.application.outcomes import DiagnosticPolicy
+from craftreport.application.registry import CommandBehavior, ImmutableOperationRegistry
 from craftreport.contracts import (
     CommandIntent,
+    Diagnostic,
     ExpectedVersion,
+    Principal,
     Receipt,
     ReceiptState,
+    RecoveryDisposition,
     Rejection,
     RetryKey,
 )
@@ -293,3 +299,178 @@ async def test_missing_retry_key_rejected_before_admission() -> None:
     assert isinstance(result, Rejection)
     assert not fixture.journal.owners
     assert fixture.calls == 0
+
+
+POLICY = DiagnosticPolicy(
+    frozenset({("prepared", "unsupported", RecoveryDisposition.CORRECT_REQUEST)}),
+    frozenset({("target_support",)}),
+)
+
+
+def eligible_fixture(
+    fixture: AdmissionFixture,
+    callback: Callable[[str, Principal], Awaitable[Diagnostic | None]],
+    policy: DiagnosticPolicy = POLICY,
+) -> None:
+    binding = replace(
+        fixture.command_binding,
+        behavior=CommandBehavior(fixture.write, eligibility=callback),
+        diagnostic_policy=policy,
+    )
+    fixture.registry = ImmutableOperationRegistry((binding.bind(),))
+    fixture.guards = replace(fixture.guards, registry=fixture.registry)
+    fixture.admission = replace(fixture.admission, guards=fixture.guards)
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("unsafe", [False, True])
+async def test_eligibility_rejection_is_sanitized_without_admission(unsafe: bool) -> None:
+    fixture = AdmissionFixture()
+    calls: list[tuple[str, Principal]] = []
+
+    async def check(value: str, principal: Principal) -> Diagnostic:
+        calls.append((value, principal))
+        assert fixture.target.active_lease is not None
+        assert not fixture.journal.owners
+        return Diagnostic(
+            KEY,
+            "prepared",
+            "unsupported",
+            RecoveryDisposition.CORRECT_REQUEST,
+            ("private-name",) if unsafe else ("target_support",),
+        )
+
+    eligible_fixture(fixture, check)
+    result = await fixture.run()
+    assert isinstance(result, Rejection)
+    assert result.diagnostic.code == ("rejected" if unsafe else "unsupported")
+    assert "private-name" not in repr(result)
+    assert calls == [("changed", ALICE)]
+    assert not fixture.journal.owners and fixture.calls == fixture.target.effect_count == 0
+    assert fixture.target.active_lease is None
+
+
+@pytest.mark.anyio
+async def test_eligibility_runs_once_before_effect_and_never_for_retained_retry() -> None:
+    fixture = AdmissionFixture()
+    calls: list[str] = []
+
+    async def check(value: str, principal: Principal) -> None:
+        assert principal == ALICE and fixture.calls == 0
+        assert fixture.target.active_lease is not None
+        calls.append(value)
+
+    eligible_fixture(fixture, check)
+    first = await fixture.run()
+    assert isinstance(first, Receipt)
+    assert await fixture.run() == first
+    conflict = await fixture.run(fixture.request(payload={"value": "different"}))
+    assert isinstance(conflict, Rejection) and conflict.diagnostic.code == "retry_conflict"
+    assert calls == ["changed"] and fixture.target.effect_count == 1
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("mode", ["lost", "unavailable", "exception", "cancel"])
+async def test_eligibility_failure_releases_original_lease_without_acceptance(mode: str) -> None:
+    fixture = AdmissionFixture()
+    point = Checkpoint()
+
+    async def check(value: str, principal: Principal) -> None:
+        assert value == "changed" and principal == ALICE
+        lease = fixture.target.active_lease
+        assert lease is not None
+        if mode == "lost":
+            lease.lost = True
+        elif mode == "unavailable":
+            fixture.target.available = False
+        elif mode == "exception":
+            raise RuntimeError("private-exception")
+        else:
+            await point.wait()
+
+    eligible_fixture(fixture, check)
+    task = asyncio.create_task(fixture.run())
+    if mode == "cancel":
+        await point.wait_until_reached()
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+    else:
+        result = await task
+        assert isinstance(result, Rejection) and result.diagnostic.code == "service_unavailable"
+        assert "private-exception" not in repr(result)
+    assert not fixture.journal.owners and fixture.calls == fixture.target.effect_count == 0
+    assert fixture.target.active_lease is None
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("mode", ["coarse", "resource", "health", "stale"])
+async def test_eligibility_never_runs_before_shared_guards(mode: str) -> None:
+    fixture = AdmissionFixture()
+
+    async def check(value: str, principal: Principal) -> None:
+        pytest.fail("Eligibility reached before required guard")
+
+    eligible_fixture(fixture, check)
+    principal = ALICE
+    request = fixture.request()
+    if mode == "coarse":
+        principal = replace(ALICE, permitted_scopes=frozenset())
+    elif mode == "resource":
+        fixture.access.grants = tuple(
+            replace(g, resources=frozenset()) for g in fixture.access.grants
+        )
+    elif mode == "health":
+        fixture.results.available = False
+    else:
+        request = fixture.request(expected_versions=(ExpectedVersion(RESOURCE, "0"),))
+    async with fixture.admission.open(principal, request) as result:
+        assert isinstance(result, Rejection)
+    assert not fixture.journal.owners and fixture.calls == fixture.target.effect_count == 0
+
+
+@pytest.mark.anyio
+async def test_second_retry_lookup_skips_eligibility_for_concurrent_losers() -> None:
+    fixture = AdmissionFixture()
+    journal = RacingJournal()
+    fixture.access.journal = journal
+    fixture.admission = replace(fixture.admission, journal=journal)
+    checks: list[str] = []
+
+    async def check(value: str, principal: Principal) -> None:
+        checks.append(value)
+        assert principal == ALICE and fixture.target.active_lease is not None
+
+    eligible_fixture(fixture, check)
+    # A work-only command leaves its pins unchanged, so losers acquire a guard
+    # and must perform the second retry lookup rather than use conflict recovery.
+    fixture.command_binding = replace(
+        fixture.command_binding,
+        descriptor=replace(fixture.command_binding.descriptor, changes_business_state=False),
+    )
+    eligible_fixture(fixture, check)
+    results = await asyncio.gather(
+        *(fixture.run(fixture.request(expected_versions=())) for _ in range(20))
+    )
+    assert all(isinstance(result, Receipt) for result in results)
+    assert len({result.operation_id for result in results if isinstance(result, Receipt)}) == 1
+    assert checks == ["changed"] and fixture.calls == fixture.target.effect_count == 1
+    assert fixture.target.active_lease is None
+
+
+@pytest.mark.anyio
+async def test_changed_version_during_eligibility_rejects_before_journal_admission() -> None:
+    fixture = AdmissionFixture()
+
+    async def check(value: str, principal: Principal) -> None:
+        lease = fixture.target.active_lease
+        assert lease is not None and principal == ALICE
+        # Inject an independent provider version change while its check awaits.
+        await fixture.target.apply(RESOURCE, {"value": value}, lease)
+        await asyncio.sleep(0)
+
+    eligible_fixture(fixture, check)
+    result = await fixture.run()
+    assert isinstance(result, Rejection) and result.diagnostic.code == "version_conflict"
+    assert not fixture.journal.owners and fixture.calls == 0
+    assert fixture.target.active_lease is None

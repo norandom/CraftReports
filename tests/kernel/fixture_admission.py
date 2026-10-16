@@ -51,6 +51,7 @@ class AdmissionFixture(DispatchFixture):
         binding = OperationBinding(
             descriptor, codec, result, CommandBehavior(self.write), lambda _: (RESOURCE,)
         )
+        self.command_binding = binding
         self.registry = ImmutableOperationRegistry((binding.bind(),))
         self.access = FixtureAccessPolicy(
             self.journal,

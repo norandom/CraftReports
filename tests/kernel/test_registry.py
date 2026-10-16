@@ -330,3 +330,27 @@ async def invalid_context(call: PreparedQuery, context: CommandContext) -> None:
     for invalid_lines in ({10, 11}, {12, 13}, {14, 15}, {16}, {19}):
         assert invalid_lines & lines, diagnostics
     assert all(entry["rule"] != "reportMissingImports" for entry in diagnostics), diagnostics
+
+
+@pytest.mark.anyio
+async def test_eligibility_closes_over_decoded_immutable_request_only_for_commands() -> None:
+    binding = command_binding([])
+    assert isinstance(binding.behavior, registry.CommandBehavior)
+    requests: list[SetRequest] = []
+    principal = contexts()[1].principal
+
+    async def check(request: SetRequest, caller: Principal) -> None:
+        assert caller is principal
+        requests.append(request)
+
+    bound = replace(binding, behavior=replace(binding.behavior, eligibility=check)).bind()
+    payload: dict[str, str] = {"amount": "12.50"}
+    prepared = bound.prepare(payload)
+    payload["amount"] = "99"
+    assert isinstance(prepared, registry.PreparedCommand) and prepared.eligibility is not None
+    assert await prepared.eligibility(principal) is None
+    assert requests == [SetRequest(Decimal("12.50"))]
+    query = query_binding([]).bind().prepare({"text": "hello"})
+    assert isinstance(query, registry.PreparedQuery) and not hasattr(query, "eligibility")
+    default = binding.bind().prepare({"amount": "1"})
+    assert isinstance(default, registry.PreparedCommand) and default.eligibility is None

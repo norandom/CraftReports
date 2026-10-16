@@ -7,6 +7,7 @@ from typing import Protocol
 
 from craftreport.application import ports
 from craftreport.application.guards import GuardedCall, InvocationGuards, authorize, rejection
+from craftreport.application.outcomes import reject_request
 from craftreport.application.registry import ObservedCommand, PreparedCommand
 from craftreport.contracts import (
     CommandIntent,
@@ -138,7 +139,36 @@ class CommandAdmission:
         retained = await self._find(principal, intent)
         if retained is not None:
             return retained
-        return await self._admit(principal, intent, guarded.prepared, lease)
+        denied = await self._eligibility(principal, request, guarded.prepared, lease)
+        return denied or await self._admit(principal, intent, guarded.prepared, lease)
+
+    async def _eligibility(
+        self,
+        principal: Principal,
+        request: InvocationEnvelope,
+        prepared: PreparedCommand,
+        lease: ports.GuardLease,
+    ) -> Rejection | None:
+        if prepared.eligibility is None:
+            return None
+        diagnostic = await prepared.eligibility(principal)
+        if diagnostic is not None:
+            bound = self.guards.registry.resolve(
+                request.operation.name, request.operation.contract_version
+            )
+            assert bound is not None
+            return reject_request(
+                request.operation, request.correlation_id, diagnostic, bound.diagnostic_policy
+            )
+        current = await lease.assert_current()
+        if not isinstance(current, ports.GuardCurrent):
+            code = (
+                "version_conflict"
+                if isinstance(current, ports.VersionConflict)
+                else "service_unavailable"
+            )
+            return rejection(request.operation, request.correlation_id, "guard", code)
+        return None
 
     def _intent(
         self,

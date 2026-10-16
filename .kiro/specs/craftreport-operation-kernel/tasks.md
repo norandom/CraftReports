@@ -246,7 +246,7 @@ The kernel covers 36 criteria using synthetic capability effects and actual soft
   - _Depends: 8.4_
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 2.1, 2.2, 2.3, 2.4, 2.5, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 4.1, 4.2, 4.3, 4.4, 4.5, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 6.1, 6.2, 6.3, 6.4, 6.5, 7.1, 7.2, 7.3, 7.4_
 
-- [ ] 10.1 Apply the approved shared-kernel facade integration correction
+- [x] 10.1 Apply the approved shared-kernel facade integration correction
   - Implement only the approved optional command eligibility callback, exact post-authorization/guard/retry ordering, original lease recheck, existing DiagnosticPolicy relocation/plumbing and truthful failed-stage classification.
   - Scope: application/service_values.py, registry.py, admission.py, execution.py, outcomes.py and existing affected kernel tests. No reporting imports, new middleware framework, transport changes or guard wrapper.
   - Preserve default behavior for existing bindings, equivalent/conflicting retry identity, authorization ordering, safe diagnostic allowlists and mandatory evidence for passed stages. Rejection creates no accepted operation or effect.
@@ -313,3 +313,11 @@ Browser verification remains the next bounded spec: latest official GridCraft do
 - 2026-10-14 hosted-CI cold-cache follow-up accepted and committed as `44d3101` at the fixture-packaging boundary (Tasks 1.1/1.4 and supporting 4.1/8.1/8.4): frozen URL/hash-aware pylock offline sync precedes the original constrained wheel installation and dependency check. No lock/dependency/runtime API changes. Baseline cold Linux install failed; repaired and independent fresh Linux checks each passed 11 packaging/activation/fault tests with unchanged registry metadata. Canonical fast 741 passed/88 subtests; integration 620 passed plus ten catalog proofs. Independent audit checked 31 runtime versions, 160 locked artifacts, 660 conformance hashes and 76 cleanup records (two intentional lifecycle failures). Evidence `artifacts/ci-first-push/kernel-cache` and `artifacts/kernel-20261014T183324-32f94ff4`. Hosted workflow confirmation remains pending.
 
 - 2026-10-15 hosted-CI confirmation: read-only GitHub CLI inspection verified [run 38617747132](https://github.com/norandom/CraftReports/actions/runs/38617747132) completed successfully on 2026-10-14 at head `44d31011deb906e273e46eace195486ea0ccdaa6`. Both jobs, **Fast checks and retirement aging** and **Installed-wheel synthetic conformance**, succeeded, including their canonical fast/integration commands and conformance artifact upload. This supersedes earlier hosted-execution-pending notes for that revision only. The integration evidence remains synthetic with temporary providers; browser CI, reporting acceptance and production persistence remain pending.
+
+
+- Task 10.1: independent review APPROVED and task completion VERIFIED; 130
+  focused tests, canonical 648-test kernel suite, ten fresh catalog proofs,
+  installed durable snapshot restart and staged fast hook passed. Exact evidence
+  and scope are in facade-integration-validation.md. Application1476/1500, net+27;
+  no cap change. Original kernel acceptance remains historical; this amendment
+  closes the reopened kernel scope only. Downstream report/runtime/app work remains.

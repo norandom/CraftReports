@@ -1,15 +1,32 @@
 """Execution ownership and retained effects through the real admission path."""
 
 import asyncio
+from dataclasses import replace
 
 import pytest
-from fixture_admission import AdmissionFixture
+from fixture_admission import KEY, AdmissionFixture
 from fixture_controls import Checkpoint
 from fixture_dispatch import ALICE, RESOURCE
 from fixture_execution import ExecutionFixture, FixtureHandoffs, executor
+from test_admission import eligible_fixture
 
 from craftreport.application import ports
-from craftreport.contracts import Receipt, ReceiptState, RecoveryDisposition, Rejection, RetryKey
+from craftreport.application.registry import CommandBehavior, ImmutableOperationRegistry
+from craftreport.application.service_values import DiagnosticPolicy
+from craftreport.contracts import (
+    Diagnostic,
+    EffectDisposition,
+    EvidencePolicy,
+    OutcomeProposal,
+    Principal,
+    Receipt,
+    ReceiptState,
+    RecoveryDisposition,
+    Rejection,
+    RetryKey,
+    StageResult,
+    StageState,
+)
 
 
 def test_complete_has_retained_result_and_independent_effect() -> None:
@@ -232,4 +249,92 @@ async def test_retained_complete_retry_reports_missing_content_without_replay() 
     retry = await owner.invoke(ALICE, fixture.request())
     assert isinstance(retry, Rejection) and retry.diagnostic.code == "result_missing"
     assert fixture.target.effect_count == 1
+    assert await owner.shutdown()
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "mode", ["allowed", "default", "operation", "code", "recovery", "location"]
+)
+async def test_execution_uses_only_trusted_binding_diagnostics_for_failed_stage(mode: str) -> None:
+    fixture = AdmissionFixture()
+    diagnostic = Diagnostic(
+        KEY, "prepared", "invalid_definition", RecoveryDisposition.CORRECT_REQUEST, ("definition",)
+    )
+    if mode == "operation":
+        diagnostic = replace(diagnostic, operation=replace(KEY, name="private.operation"))
+    elif mode == "code":
+        diagnostic = replace(diagnostic, code="private-code")
+    elif mode == "recovery":
+        diagnostic = replace(diagnostic, recovery=RecoveryDisposition.RETRY)
+    elif mode == "location":
+        diagnostic = replace(diagnostic, location=("private-location",))
+
+    async def fail(request: str, context: ports.CommandContext) -> OutcomeProposal[str]:
+        assert context.guard is fixture.target.active_lease
+        return OutcomeProposal(
+            request,
+            EffectDisposition.NONE,
+            (StageResult("prepared", StageState.FAILED, "private-reason"),),
+            (),
+            (diagnostic,),
+        )
+
+    policy = DiagnosticPolicy(
+        frozenset({("prepared", "invalid_definition", RecoveryDisposition.CORRECT_REQUEST)}),
+        frozenset({("definition",)}),
+    )
+    binding = replace(
+        fixture.command_binding,
+        behavior=CommandBehavior(fail),
+        descriptor=replace(
+            fixture.command_binding.descriptor, completion_evidence=EvidencePolicy(("prepared",))
+        ),
+        diagnostic_policy=DiagnosticPolicy() if mode == "default" else policy,
+    )
+    fixture.registry = ImmutableOperationRegistry((binding.bind(),))
+    fixture.guards = replace(fixture.guards, registry=fixture.registry)
+    fixture.admission = replace(fixture.admission, guards=fixture.guards)
+    owner = executor(fixture)
+    result = await owner.invoke(ALICE, fixture.request())
+    assert isinstance(result, Receipt) and result.state is ReceiptState.FAILED
+    assert (diagnostic in result.diagnostics) == (mode == "allowed")
+    assert result.stages[-1].state is StageState.FAILED
+    assert result.stages[-1].reason_code == "stage_failed"
+    assert any(item.code == "evidence_missing" for item in result.diagnostics)
+    assert "private" not in repr(result)
+    assert result.result_ref is not None
+    assert (await fixture.results.read(ALICE, result.operation_id, result.result_ref)).value == {
+        "value": "changed"
+    }
+    assert fixture.target.effect_count == 0
+    assert await owner.shutdown()
+
+
+@pytest.mark.anyio
+async def test_eligibility_rejection_releases_execution_capacity_for_next_request() -> None:
+    fixture = AdmissionFixture()
+    checks: list[str] = []
+
+    async def check(value: str, principal: Principal) -> Diagnostic | None:
+        checks.append(value)
+        if len(checks) == 1:
+            return Diagnostic(
+                KEY,
+                "prepared",
+                "unsupported",
+                RecoveryDisposition.CORRECT_REQUEST,
+                ("target_support",),
+            )
+        return None
+
+    eligible_fixture(fixture, check)
+    owner = executor(fixture)
+    owner.capacity = 1
+    rejected = await owner.invoke(ALICE, fixture.request())
+    assert isinstance(rejected, Rejection) and rejected.diagnostic.code == "unsupported"
+    assert not fixture.journal.owners and fixture.target.effect_count == 0
+    result = await owner.invoke(ALICE, fixture.request())
+    assert isinstance(result, Receipt) and result.state is ReceiptState.COMPLETE
+    assert checks == ["changed", "changed"] and fixture.target.effect_count == 1
     assert await owner.shutdown()

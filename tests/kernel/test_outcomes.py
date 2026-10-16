@@ -351,3 +351,21 @@ def test_rejection_preserves_correlation_without_accepted_identity_or_secret() -
         frozenset({("amount",)}),
     )
     assert reject_request(KEY, "correlation", safe, policy).diagnostic == safe
+
+
+@pytest.mark.parametrize("state", [StageState.FAILED, StageState.PENDING, StageState.PASSED])
+def test_required_stage_without_evidence_preserves_failed_state(state: StageState) -> None:
+    observed = replace(
+        observation(EffectDisposition.NONE),
+        stages=(StageResult("readback", state, "private-reason"),),
+        evidence=(),
+    )
+    update = outcome_update(receipt(), observed, facts(), POLICY)
+    stage = update.stages[0]
+    assert update.state is ReceiptState.FAILED
+    assert stage.state is (StageState.FAILED if state is StageState.FAILED else StageState.PENDING)
+    assert stage.reason_code == (
+        "evidence_missing" if state is StageState.PASSED else f"stage_{state.value}"
+    )
+    assert any(item.code == "evidence_missing" for item in update.diagnostics)
+    assert "private-reason" not in repr(update)

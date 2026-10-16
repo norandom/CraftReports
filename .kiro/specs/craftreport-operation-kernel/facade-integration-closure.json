@@ -1,0 +1,19 @@
+{
+  "entry_id": "spec.craftreport-operation-kernel",
+  "executed": true,
+  "close_targets": [],
+  "accepted_on": "2026-10-16",
+  "review_verdict": "APPROVED",
+  "validation_decision": "GO",
+  "completion_verification": "VERIFIED",
+  "scope": "Original synthetic kernel plus approved task10.1 correction; installed snapshot publication regression only; no downstream reporting or app acceptance.",
+  "historical_closure": "closure-evidence.json",
+  "assessment": "facade-integration-validation.md",
+  "review": "facade-integration-implementation-review.md",
+  "packet": "artifacts/kernel-20261016T084700-996f5d6a/kernel-manifest.json",
+  "packet_sha256": "d5ec8b639e791bf81994c1a38d750836edc8521b503cfeb28896e25d94a120b3",
+  "integration_tests": 648,
+  "criteria": 36,
+  "artifact_hashes_verified": 660,
+  "source_manifest": "artifacts/kernel-task-10.1/source-manifest.json"
+}

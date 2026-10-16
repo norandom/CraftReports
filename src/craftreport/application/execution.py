@@ -200,7 +200,11 @@ class Execution:
         )
         facts = await self._observations(state, observed, facts)
         update = outcome_update(
-            state.receipt, observed, facts, descriptor.descriptor.completion_evidence
+            state.receipt,
+            observed,
+            facts,
+            descriptor.descriptor.completion_evidence,
+            descriptor.diagnostic_policy,
         )
         return await self._record(state, update)
 

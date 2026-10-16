@@ -11,6 +11,7 @@ from craftreport.contracts import (
     ExpectedVersion,
     JsonObject,
     OperationKey,
+    RecoveryDisposition,
     ResourceRef,
 )
 from craftreport.contracts.identity import check_preconditions
@@ -160,3 +161,15 @@ class ResourceEffect:
 
 
 type ResourceEffectResult = ResourceEffect | VersionConflict | GuardLost | ServiceUnavailable
+
+
+@dataclass(frozen=True, slots=True)
+class DiagnosticPolicy:
+    """Operator-authorized diagnostic tokens and complete public locations."""
+
+    allowed: frozenset[tuple[str, str, RecoveryDisposition]] = frozenset()
+    locations: frozenset[tuple[str | int, ...]] = frozenset({()})
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "allowed", frozenset(self.allowed))
+        object.__setattr__(self, "locations", frozenset(tuple(item) for item in self.locations))
