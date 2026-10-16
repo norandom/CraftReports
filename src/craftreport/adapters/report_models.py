@@ -21,6 +21,7 @@ from craftreport.reporting.ports import (
     EmptyRequest,
     PreparationResult,
     PrepareRequest,
+    ReportFailure,
     ValidateRequest,
     ValidationResult,
 )
@@ -181,3 +182,7 @@ class PreparationWire(model_shape(PreparationResult, {"prepared": PreparedWire})
 
 class QualityWire(model_shape(QualityEvaluation, {})):
     pass
+
+
+class FailureWire(StrictWireModel):
+    failure: ReportFailure

@@ -92,7 +92,7 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
   - _Depends: 4, 5, 6_
   - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 3.1, 3.2, 3.5, 6.3, 6.4_
 
-- [ ] 7.1 Apply the approved bounded report failure result alternatives
+- [x] 7.1 Apply the approved bounded report failure result alternatives
   - Extend only the existing validation/preparation result contracts and codecs as specified in facade-integration-amendment.md; preserve successful wire shapes and unpublished operation version 1.
   - Reuse existing issue vocabularies with exact first-64 issue details, exact total/omitted counts and the approved 263168-byte maximum envelope. Preserve authorization boundaries and existing admitted source inputs; no silent truncation, invented evidence or generic error framework.
   - Own reporting/ports.py, adapters/report_models.py, adapters/report_codecs.py and affected reporting tests. Measure actual aggregate fit before expansion; no budget increase is approved.
@@ -102,7 +102,7 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
   - _Requirements: 1.1-1.4, 3.2, 3.5, 4.3-4.7, 5.3-5.4, 6.1-6.4_
 
 - [ ] 8. Register guarded validation, discovery and preparation operations
-  - _Blocked: Kernel task 10.1 is accepted. Await accepted report task 7.1 and measured shared adapter budget fit. The owner approved the integration correction on 2026-10-16; approval is no longer pending._
+  - _Blocked: Kernel task 10.1 and report task 7.1 are accepted. Await measured shared adapter budget fit for integration. The owner approved the integration correction on 2026-10-16; approval is no longer pending._
   - Apply preparation-scope-amendment.md producer obligations: exact three-source scope from guarded inputs, verified full original receipt stage refs, closed six-field facts and same preselected policy. Stage observation is distinct from release eligibility; no public trusted-fact submission.
   - Honor prepared-content-amendment.md typed failure and validated selection contracts; operation evidence remains separate from deterministic prepared-content identity.
   - Follow theme-support-amendment.md: composition/reporting.py injects the packaging-based compatibility callable through preparation into theme resolution. InvalidVersion becomes False/incompatible_version, never an exception through pure themes. Operation tests must reject incompatible and untested supplied support without granting mapping or release assurance.
@@ -233,3 +233,12 @@ No `(P)` marker is used: the first preparation slice reuses shared value contrac
   RED chronology and final LLOC: artifacts/report-model-packs/task-7/.
   The complete residual adapters forecast remains uncertain; no future fit,
   activation, installed report operation or visible app effect is claimed here.
+
+- Task 7.1: independently APPROVED by `/root/review_report_7_1` with matching
+  frozen source hashes and actual producer-bound audit. Fresh 497 focused tests,
+  RED/sensitivity checks, Ruff/format/strict Pyright and canonical staged fast
+  checks passed. Evidence: `artifacts/report-task-7.1/independent-review.md`
+  and `artifacts/report-7-1-review/hook.txt`. Adapters1455/1500 (+24 LLOC),
+  reporting721/1500; unchanged success serialization and input acceptance.
+  Bounded typed failures are accepted; task8 activation, authorization and
+  remaining adapter budget fit remain open. No feature GO is claimed.

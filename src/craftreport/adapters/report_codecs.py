@@ -1,8 +1,10 @@
 """Bounded production asset codecs and explicit semantic hash projections."""
 
+from __future__ import annotations
+
 import json
 from collections.abc import Callable
-from dataclasses import fields, is_dataclass
+from dataclasses import dataclass, fields, is_dataclass
 from hashlib import sha256
 from typing import Literal, cast
 
@@ -478,8 +480,8 @@ def preparation_request_codec() -> PydanticCodec[p.PrepareRequest, m.PrepareWire
     ).for_input()
 
 
-def validation_result_codec() -> PydanticCodec[p.ValidationResult, m.ValidationWire]:
-    return _codec(m.ValidationWire, _validation, _validation_object)
+def validation_result_codec() -> ReportResultCodec[p.ValidationResult, m.ValidationWire]:
+    return ReportResultCodec(_codec(m.ValidationWire, _validation, _validation_object))
 
 
 def discovery_request_codec() -> PydanticCodec[p.EmptyRequest, m.EmptyWire]:
@@ -494,8 +496,39 @@ def discovery_result_codec() -> PydanticCodec[p.DiscoveryResult, m.DiscoveryWire
     )
 
 
-def preparation_result_codec() -> PydanticCodec[p.PreparationResult, m.PreparationWire]:
-    return _codec(m.PreparationWire, _result, _result_object, True)
+def preparation_result_codec() -> ReportResultCodec[p.PreparationResult, m.PreparationWire]:
+    return ReportResultCodec(_codec(m.PreparationWire, _result, _result_object, True))
+
+
+@dataclass(frozen=True, slots=True)
+class ReportResultCodec[T, M: StrictWireModel]:
+    success: PydanticCodec[T, M]
+
+    def _failure(self) -> PydanticCodec[p.ReportFailure, m.FailureWire]:
+        return PydanticCodec(
+            m.FailureWire,
+            lambda v: v.failure,
+            lambda v: _dump(m.FailureWire(failure=v)),
+            OperationLimits(263168, 32, 263168),
+            json_mode=True,
+        )
+
+    @property
+    def limits(self) -> OperationLimits:
+        return self.success.limits
+
+    def decode(self, value: JsonObject) -> T | p.ReportFailure:
+        if "failure" in value:
+            return self._failure().decode(value)
+        return self.success.decode(value)
+
+    def encode(self, value: T | p.ReportFailure) -> JsonObject:
+        if isinstance(value, p.ReportFailure):
+            return self._failure().encode(value)
+        return self.success.encode(value)
+
+    def schema(self) -> JsonObject:
+        return close_schema(TypeAdapter(self.success.model | m.FailureWire).json_schema())
 
 
 def requirements_schema() -> JsonObject:
