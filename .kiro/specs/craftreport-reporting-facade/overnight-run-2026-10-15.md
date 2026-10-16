@@ -366,3 +366,160 @@ feature acceptance. The computer, application and WSL must remain running.
   and concrete typed assembly/probe/retention contracts. Revision is underway.
 - Accepted tasks: snapshot8/19, report-model6/13, GridCraft2/16. Accepted source
   modules64; worktree68 includes four unaccepted report-model6 modules.
+
+### Browser route and configured packs committed (21:43 UTC)
+
+- GridCraft3 committed/pushed `a2c7782` after final independent review and the
+  installed whole-scope hook. The first hook found a pytest basename collision;
+  renaming the GridCraft lifecycle test preserved its exact source bytes and
+  independently collected47 tests across both modules. The retry hook passed.
+  No browser rerun or warning waiver was needed. The production profile still
+  needs independent Design review and additional applicable-property proof.
+- Report-model6 committed/pushed `53a78a3` after independent repair approval and
+  the installed hook. Real Windows testing showed zero-access root handles did
+  not prevent rename; FILE_LIST_DIRECTORY access plus a RED/GREEN lifetime test
+  repaired the exact requirement. No outside-byte bypass was demonstrated.
+  Fresh49 independent focused tests and worker414 broader tests passed. Raw new
+  RED logs and honestly labeled genuine historical transcript excerpts retained.
+- All commit holds restored exact WIP bytes. Accepted modules68; worktree69
+  includes the new unaccepted snapshot_host assembly. Accepted executable tasks:
+  snapshot8/19, report-model7/13, GridCraft3/16. Complete live facade remains open.
+- Snapshot3.4 proposal independently approved after its three clarifications;
+  concrete implementation is underway. Report-model7 wire/library reuse and
+  snapshot3.5 retention proposals are being reviewed ahead of their coding work.
+  No numeric budget increase or future feature activation is authorized.
+
+### Whole-owner budget forecast correction and provider review
+
+- The earlier adapters1490 forecast covered remaining report-model tasks only.
+  It omitted snapshot4.1 and runtime5.x codecs in the same owner; it is not a
+  whole-owner fit claim. Current accepted adapters remain1200/1500. Planning
+  now includes the additional92–155 estimated snapshot/runtime lines and
+  measures Pydantic schema derivation against duplicated metadata fields.
+  No cap or ownership change is authorized; future fit remains unproven.
+- Likewise storage's earlier remaining estimate omitted4.1 typed/latest reads
+  (40–70) and5.4 recovery enumeration (15–30). The frozen3.4 candidate measured
+  1136/1500, leaving364; all remaining storage estimates total315–450. These
+  are forecasts, not implemented limits or permission to exceed the cap.
+- Independent3.4 implementation review rejected two real-file cases despite
+  passing focused tests: handoff acknowledgement-loss recovery and selected
+  health-record ownership/link validation. Narrow regression-first repair is
+  underway;3.4 remains unchecked. Retention3.5's revised closed/checksummed
+  tombstone plan passed independent review but waits for accepted3.4.
+
+### 22:08 UTC checkpoint: services accepted, preparation wire underway
+
+Snapshot task3.4 independently approved after lost acknowledgement and sampled
+owner/link health repairs; frozen437 worker tests and81 independent tests plus
+adversarial probes passed. Commit294523f passed installed hooks and was pushed
+to main; unrelated tracked/untracked work restored exactly. Snapshot executable
+acceptance9/19, report7/13, GridCraft3/16. Storage1152/1500; complete remaining
+estimate315-450 yields1467-1602, still uncertain, no increased cap.
+
+Report task7 proposal independently approved at SHA256
+4D5D61F89AD64C3C66E61914C38BFFD1F8C1F20BB9EE44F2041560E6863B7359.
+170 existing tests and actual library probes verify its compatibility premise.
+Root integrated the contract and authorized bounded implementation under actual
+unchanged caps; hypothetical whole-scope upper estimates are recorded risks,
+not a reason to require every future API before measuring the current task.
+Future tasks still require capacity/dependency reassessment. Snapshot3.5 is
+also authorized after the worker freezes the4.1 decision/query proposal. No new
+public endpoint, retention effect or report codec is accepted by this checkpoint.
+
+### Report codecs accepted; retention and mapping continue
+
+Report-model task 7 was accepted and pushed as 280b65b after independent review
+and the installed hook. Supplied-parameter null rejection was repaired with real
+before/after regressions; resolved null remains supported. All 523 focused tests,
+static checks, original schema/canonical compatibility checks and independent size
+recounts pass. Adapters measure 1,326/1,500; the complete residual forecast of
+1,488-1,551 remains uncertain. Report executable acceptance is 8/13. The shell
+emitted a console-title pipe error after successful push and exact worktree
+restoration; subsequent HEAD/origin-main and empty-index checks confirmed 280b65b.
+This was not a test or hook failure.
+
+Snapshot task 3.5 is frozen for independent implementation review: 468 focused
+tests and static/quality/import checks pass; storage measures 1,393/1,500. Its
+approved additional module isolates offline maintenance within the same owner.
+Mandatory injection of the existing codec closes the invalid typed snapshot with
+valid canonical checksum gap through shared reader validation. Prior failed probes
+and repairs remain recorded. Actual GridCraft package creation now matches the
+root-declared package count; the final hook will isolate other unaccepted work.
+Task 3.5 is not yet accepted.
+
+GridCraft task 4's independently reviewed fixed-profile amendment is integrated.
+Bounded pure mapping/bootstrap implementation is underway after accepted report
+7. RunPins-based contracts await runtime 5.1; there is no full task 4 or production
+live-update claim. Candidate construction is private pure proof setup; ordinary
+admission stays untested until matching real proof. Root registered the first app
+package and included its source in strict Pyright checks. Unicode control, format,
+surrogate and line-separator categories remain untested and are rejected.
+
+The read-only Radon/library reuse study at
+artifacts/snapshot-runtime/budget-reuse-study.md finds that storage's current
+1,393 plus remaining estimates of 225-320 projects 1,618-1,713. Potential small
+savings of 22-25 lines are unimplemented and unapproved, and do not establish full
+fit. Bounded current tasks may proceed under actual caps; later capacity must be
+reassessed without hiding scope or raising caps.
+
+
+## Final overnight handoff
+
+Closeout resumed on 2026-10-16 at 05:45:44 UTC, after the scheduled 01:33:12 UTC
+deadline. No new implementation was started at closeout. Elapsed wall time is not
+claimed as continuous productive execution; the reason for the observation gap
+was not established. The agent inventory showed only the root agent remaining.
+
+Thirty-three commits from cf2f19a through 3d27f3f were committed with the required
+hooks and pushed to main. Current HEAD and origin/main both resolve to 3d27f3f.
+The final three accepted implementation commits are 294523f (runtime services),
+280b65b (exact report preparation codecs) and 3d27f3f (offline retention).
+
+| Specification | Accepted executable tasks | Open executable tasks |
+| --- | --- | --- |
+| Snapshot runtime | 10/19 | 4.1, 4.2, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3 |
+| Report models and packs | 8/13 | 8, 9, 10, 11, 12 |
+| GridCraft web reports | 3/16 | 4 through 16 |
+| Browser verification | 15/20 | 5.1, 5.2, 6.1, 6.2, 7 |
+
+The three new downstream specs account for 21 accepted implementation tasks.
+Counts exclude parent/group checkboxes and were read from committed tasks.md,
+not inferred from passing tests or unfinished worktree changes. Browser tasks
+remain separate; no new headed verification is claimed.
+
+Accepted capabilities include immutable typed snapshots, bounded exact wire
+codecs, durable journal/results/evidence/guards, host-bound services, explicit
+stopped-host retention, report definitions/themes/preparation/quality policy,
+configured public/private packs and exact preparation request/result codecs.
+The real released GridCraft route demonstrated two same-document changes,
+actual Save, independent XLSX inspection, fresh-context reopen and conflict
+rejection. It remains a verified browser route, not the completed public live
+reporting facade. Installed producer/report operation activation, scheduling,
+app integration, release/export workflows and their adopter recipes remain open.
+
+Unfinished GridCraft candidate mapping/package/tests and root configuration
+changes remain uncommitted and unaccepted. Snapshot publication/query and the
+fixed GridCraft profile amendments are independently reviewed planning work in
+the worktree; task 4.1 publication implementation did not land. Existing browser
+SDK/Linux-profile work and pre-existing .agents/.codex/.kiro/settings and umbrella
+notes remain preserved. The decoder-reuse experiment demonstrates 19 LLOC savings
+with 52 compatibility comparisons in artifacts, but is not applied or approved
+production code. Current accepted storage is 1,393/1,500; adapters are 1,326/1,500.
+Remaining whole-owner fit has not been established and no numeric limits rose.
+
+Closeout process inspection found an old project-owned pytest process tree
+(PIDs 6636, 41868 and 20676, created 2026-10-15 at 23:45:10 local) still present.
+Exact command lines and parent linkage were verified before terminating only
+those processes; a subsequent query found none of those PIDs. This is forced
+cleanup of a lingering test process, not a claim that it completed successfully.
+No browser processes or running WSL distributions were observed. Operator
+containers/services were not started, stopped or removed at closeout. The accepted
+GridCraft task-3 packet retains its own separate successful cleanup evidence.
+
+Next work: finish reviewed publication/query operations within actual budgets,
+then installed host/restart verification and report-operation registration.
+Continue the GridCraft candidate's packaging and released-browser property proof;
+keep RunPins-dependent integration open until runtime 5.1. Preserve explicit
+unsupported behavior and require runnable examples/quickstarts before claiming
+new adopter-facing features. Do not claim a complete producer-to-live-dashboard-
+to-XLSX product from these foundation and browser-route results.
