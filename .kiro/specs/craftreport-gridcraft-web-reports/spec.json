@@ -1,7 +1,7 @@
 {
   "feature_name": "craftreport-gridcraft-web-reports",
   "created_at": "2026-10-15T19:42:20.182967+02:00",
-  "updated_at": "2026-10-15T18:54:24.4352727+00:00",
+  "updated_at": "2026-10-15T20:54:24.4352727+02:00",
   "language": "en",
   "phase": "tasks-generated",
   "approvals": {
@@ -65,5 +65,29 @@
     "reviewed_sha256": "12A88B1ACFADCD718791B44E6F0EDE097641F6AE9B553F97F77A9A7BBA536300",
     "authorization": "owner-directed-bounded-fast-track",
     "storage_seam": "independently approved by /root/review_results_staging; exact envelope and full original pins"
+  },
+  "profile_support_amendment": {
+    "reference": "profile-support-amendment.md",
+    "reviewer": "/root/review_preparation_wire",
+    "verdict": "PASS",
+    "reviewed_sha256": "863202AB1DC0E1EBFA2DC4E190A42BA86BCA4774C1885155FF8804D4F6B7A309",
+    "authorization": "owner-directed-bounded-fast-track",
+    "implementation_prerequisite": "accepted report-model7; runtime5.1 for RunPins-consuming integration"
+  },
+  "line_width_calibration": {
+    "reference": "line-width-calibration-amendment.md",
+    "reviewed_sha256": "f7944a397e650f0b5b610f64b8e589aa390e7e368b8a4dd50f4bfe38a38a15dd",
+    "verdict": "APPROVED",
+    "owner_approved_at": "2026-10-16",
+    "owner_approval_reference": "../craftreport-reporting-facade/first-release-calibration-approval.md",
+    "implementation_status": "accepted-task-4"
+  },
+  "category_fit_calibration": {
+    "reference": "category-fit-calibration-amendment.md",
+    "reviewed_sha256": "79e134485806815705d7e07bf3ffe20f31534c69f162c87c802fc6fdf1e91504",
+    "verdict": "APPROVED",
+    "owner_approved_at": "2026-10-16",
+    "owner_approval_reference": "../craftreport-reporting-facade/first-release-calibration-approval.md",
+    "implementation_status": "accepted-task-4"
   }
 }

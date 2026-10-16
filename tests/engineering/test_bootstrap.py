@@ -22,7 +22,7 @@ class BootstrapTests(unittest.TestCase):
     def test_integration_routes_to_separate_installed_client_suite(self) -> None:
         directory = ROOT / "artifacts" / "routing-only"
         steps = integration_steps(ROOT, directory)
-        self.assertEqual(len(steps), 3)
+        self.assertEqual(len(steps), 4)
         command = steps[0][1]
         self.assertEqual(command[0], sys.executable)
         self.assertIn(str(ROOT / "tests/kernel"), command)
@@ -39,6 +39,10 @@ class BootstrapTests(unittest.TestCase):
         self.assertEqual(durable[durable.index("-m", 3) + 1], "integration")
         self.assertIn(str(directory / "snapshot-junit.xml"), durable)
         self.assertNotIn("-n", durable)
+        app = steps[3][1]
+        self.assertIn(str(ROOT / "tests/gridcraft/test_app_installed.py"), app)
+        self.assertIn(str(directory / "gridcraft-junit.xml"), app)
+        self.assertEqual(app[app.index("-m", 3) + 1], "integration")
 
     def test_command_requires_exactly_one_mode(self) -> None:
         for modes in ([], ["--fast", "--integration"]):

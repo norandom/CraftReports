@@ -19,3 +19,17 @@ update the real candidate and complete its remaining proof; the diagnostic
 experiment alone cannot promote support. All other limits, ownership and release
 acceptance requirements remain unchanged. No further confirmation is needed for
 these two corrections.
+
+## Category label fit correction
+
+Later on 2026-10-16 the owner answered "Approve the bounded first-profile
+correction" for the independently reviewed
+[category-label amendment](../craftreport-gridcraft-web-reports/category-fit-calibration-amendment.md),
+SHA-256 `79e134485806815705d7e07bf3ffe20f31534c69f162c87c802fc6fdf1e91504`.
+Dynamic table/chart category labels use a maximum of 16 serialized UTF-8 bytes;
+literal-text cells retain their 32-byte limit. The original proposal and review
+remain historical records. This approval authorizes the actual admission/profile
+pin correction and its tests, with no truncation, geometry/theme change or
+acceptance waiver. Two same-document updates, actual Save/readback/reopen,
+visible fit and all remaining task-4 gates are still required. The narrower-input
+diagnostic alone does not establish a supported production profile.

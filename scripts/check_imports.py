@@ -110,9 +110,10 @@ GRIDCRAFT_VALUES = {
     "craftreport.runtime.values",
 }
 GRIDCRAFT_MODULES = {
-    "values": {"values"},
-    "codecs": {"values", "codecs"},
-    "workbook": {"values", "workbook"},
+    "app_values": {"app_values"},
+    "values": {"app_values", "values"},
+    "codecs": {"app_values", "values", "codecs"},
+    "workbook": {"values", "codecs", "workbook"},
     "interactions": {"values", "interactions"},
     "browser": {"values", "workbook", "interactions", "browser"},
     "artifacts": {"values", "browser", "artifacts"},
@@ -129,7 +130,7 @@ GRIDCRAFT_MODULES = {
         "operations",
     },
     "capability": {"values", "codecs", "operations", "providers", "capability"},
-    "craftreport_gridcraft": {"values", "capability"},
+    "craftreport_gridcraft": {"app_values", "values", "codecs", "capability"},
 }
 GRIDCRAFT_ORCHESTRATION = {"facts", "providers", "operations", "capability", "integration"}
 GRIDCRAFT_KERNEL = {
@@ -152,8 +153,15 @@ GRIDCRAFT_KERNEL = {
     "capabilities": {"CapabilityInstance", "CapabilityFactory"},
 }
 GRIDCRAFT_CODECS = {
+    "craftreport.adapters.binding_codecs.parameter_digest",
+    "craftreport.adapters.binding_codecs.BindingResultCodec",
+    "craftreport.adapters.binding_codecs.RunWire",
+    "craftreport.adapters.report_codecs.prepared_identifier",
+    "craftreport.adapters.report_codecs.validation_scope_identifier",
     "craftreport.adapters.validation.PydanticCodec",
     "craftreport.adapters.validation.StrictWireModel",
+    "craftreport.adapters.validation.model_shape",
+    "craftreport.adapters.validation.construct",
     *(
         f"craftreport.adapters.snapshot_wire.{name}"
         for name in ("encode_scalar", "decode_scalar", "encode_parameter", "decode_parameter")

@@ -92,6 +92,20 @@ def integration_steps(root: Path, directory: Path) -> list[tuple[str, list[str]]
                 str(directory / "snapshot-junit.xml"),
             ],
         ),
+        (
+            "Installed GridCraft package contracts and workbook bootstrap",
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "-q",
+                "-m",
+                "integration",
+                str(root / "tests/gridcraft/test_app_installed.py"),
+                "--junitxml",
+                str(directory / "gridcraft-junit.xml"),
+            ],
+        ),
     ]
 
 

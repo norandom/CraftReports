@@ -35,6 +35,8 @@ class BoundaryGateTests(unittest.TestCase):
         self.ledger = "\n".join(
             f"actual_python_modules = {module_count}"
             if line.startswith("actual_python_modules =")
+            else "actual_plugin_packages = 0"
+            if line.startswith("actual_plugin_packages =")
             else line
             for line in self.ledger.splitlines()
         )
@@ -682,12 +684,21 @@ class BoundaryGateTests(unittest.TestCase):
 
     def test_gridcraft_allowed_dependencies(self) -> None:
         cases = {
-            "values": "from craftreport.reporting.prepared import PreparedReport\n"
+            "app_values": "from craftreport.runtime.values import RunPins, TargetIdentity\n",
+            "values": "from .app_values import BrowserTarget\n"
+            "from craftreport.reporting.prepared import PreparedReport\n"
             "from craftreport.runtime.values import RunPins\n",
             "codecs": "from .values import Target\nfrom pydantic import Field\n"
             "from craftreport.adapters.validation import PydanticCodec, StrictWireModel\n"
-            "from craftreport.adapters.snapshot_wire import encode_scalar, decode_scalar\n",
-            "workbook": "from .values import MappingPlan\nimport xlsxwriter\n",
+            "from craftreport.adapters.validation import model_shape, construct\n"
+            "from craftreport.adapters.snapshot_wire import encode_scalar, decode_scalar\n"
+            "from craftreport.adapters.binding_codecs import parameter_digest, RunWire\n"
+            "from craftreport.adapters.binding_codecs import BindingResultCodec\n"
+            "from craftreport.adapters.report_codecs import prepared_identifier\n"
+            "from craftreport.adapters.report_codecs import validation_scope_identifier\n"
+            "from .app_values import BrowserTarget\n",
+            "workbook": "from .values import MappingPlan\nimport xlsxwriter\n"
+            "from .codecs import mapping_pins_match\n",
             "browser": "from .interactions import edit\nfrom playwright.async_api import Page\n",
             "interactions": "from .values import Target\nfrom playwright.async_api import Page\n",
             "artifacts": "from .browser import reopen\nfrom openpyxl import load_workbook\n",
@@ -712,6 +723,12 @@ class BoundaryGateTests(unittest.TestCase):
 
     def test_gridcraft_forbidden_dependencies(self) -> None:
         cases = (
+            ("app_values", "from .codecs import decode"),
+            ("app_values", "from .browser import Driver"),
+            ("app_values", "from craftreport.adapters.binding_codecs import RunWire"),
+            ("codecs", "from craftreport.adapters.binding_codecs import *"),
+            ("codecs", "from craftreport.adapters.binding_codecs import BindingRequestCodec"),
+            ("workbook", "from craftreport.adapters.report_codecs import prepared_identifier"),
             ("values", "from .browser import Driver"),
             ("values", "from craftreport_gridcraft import browser"),
             ("values", "from . import capability"),

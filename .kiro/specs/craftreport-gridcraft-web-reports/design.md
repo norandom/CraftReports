@@ -1,6 +1,23 @@
 # Design Document
 
+## Owner-approved first-profile line-width calibration
+
+The 2026-10-16 [owner decision](../craftreport-reporting-facade/first-release-calibration-approval.md)
+approves [line-width-calibration-amendment.md](line-width-calibration-amendment.md).
+The first fixed profile uses exactly 2.25-point chart lines; this supersedes the
+original 2-point constant. Update the actual candidate, canonical profile pin
+and independent expectations together. All remaining real UI, boundary, update,
+save/reopen, installed-package and upstream RunPins acceptance stays required.
+The diagnostic artifact experiment alone does not establish supported mapping.
+
 ## Overview
+
+The owner also approved the [category-label fit correction](category-fit-calibration-amendment.md)
+on 2026-10-16, following independent review. It supersedes the first profile's
+32-byte category limit with 16 serialized UTF-8 bytes; literal text remains
+32 bytes. Admission and the canonical profile pin must change together, without
+shortening input or changing the frozen theme/geometry. The two-update actual
+candidate, visible-fit, Save/reopen and remaining acceptance gates stay required.
 
 The installed GridCraft package connects the existing guarded facade, accepted snapshot/runtime contracts and immutable prepared reports to one released browser document. The first product slice binds a small fixed layout, updates its values through actual browser input, displays lifecycle/freshness in a companion control panel, and obtains actual app-emitted XLSX bytes for independent inspection and fresh GridCraft reopen.
 
@@ -15,6 +32,19 @@ This is a gated integration Design. The released v0.7.0 bridge supports initial 
 ### Non-Goals
 
 No alternative scheduler, compiler, journal, generic browser framework, finance/GIPS evaluator, native driver, arbitrary existing-workbook migration or other app. No GridCraft compilation.
+
+### First-release viewing topology
+
+The owner selected a [local Windows launcher](local-browser-decision.md) on
+2026-10-16. The user views the exact isolated browser context/page/document
+controlled by CraftReport, with companion controls beside its workbook. Docker
+serves the released web bundle; the browser runs its WASM engine. A separately
+opened hosting URL starts another engine and is not a shared view. The launcher
+uses the existing facade, adapter and lifecycle, owns its browser cleanup and
+reports loss of the controlled page through the existing recovery contract.
+Automated tests remain headless. Headed profile support requires its own visible
+evidence and remains MANUAL_VERIFY_REQUIRED until that review is requested and
+performed; this choice does not authorize unattended foreground tests.
 
 ## Boundary Commitments
 
@@ -250,3 +280,66 @@ refs bind its own operation and full current pins, with old refs only historical
 dependencies. Use the exact policy selected before prepare and its canonical
 validation-scope digest; changing artifact-required membership requires prepare
 again. Actual producer tests remain app tasks6/9/12/14, not proved by pure policy.
+
+
+### Accepted fixed first profile integration
+
+Task4 follows profile-support-amendment.md, independently approved by
+/root/review_preparation_wire at SHA256
+863202AB1DC0E1EBFA2DC4E190A42BA86BCA4774C1885155FF8804D4F6B7A309.
+Target-neutral preparation uses the existing support=None path; GridCraft applies
+its own exact conditional profile admission without weakening supplied-descriptor
+validation. The candidate freezes actual prepared fields, concrete literals/roles,
+owned addresses and independent F/G chart data, with B7 nonnull and G7 a gap.
+Trusted paired QualityEvaluation supplies DRAFT and the complete check summary;
+PreparedReport alone is not invented as a source of quality findings. Mapping
+therefore explicitly receives the trusted prepared/quality pair as specified.
+The strict fixed profile is four rows/three columns/one series, with exact valid
+text/int64 formats and theme equality. Every applied style/property needs actual
+released-browser save/reopen evidence before advertising support. Candidate
+approval alone is not a working-profile claim. Upstream task7 acceptance remains
+a prerequisite; RunPins-consuming integration still waits runtime5.1. All original
+actual-effect, packaging, ownership, budget and adopter gates remain unchanged.
+
+The first candidate keeps Unicode categories Cc, Cf, Cs, Zl and Zp untested and
+rejects them before mapping: control/newline/tab, format/bidi/zero-width controls,
+surrogates and Unicode line/paragraph separators have no fit/rendering proof.
+Use standard Unicode categories without stripping or normalizing source text.
+The exact restriction belongs in the immutable profile declaration/disclosure
+and negative tests. Ordinary bounded Unicode still requires the stated real
+save/reopen and visible-fit proof; this is no upstream text-schema restriction.
+Root's Pyright integration includes the new package source explicitly and adds
+its source path for resolution, so app bodies and callers receive strict checks.
+
+For isolated candidate proof only, the pure private _candidate_mapping performs
+the same structural mapping used by validate_mapping; bootstrap renders those
+candidate bytes without opening/binding an app. Ordinary validate_mapping still
+returns an untested AppIssue while trusted operation support is untested. Tests
+must not flip a supported flag to obtain proof. This is a private construction
+seam for the required experiment, not an alternative public bind or support claim.
+Profile declaration identity remains separate from operation support status.
+Promotion requires matching actual proof and independent review; no promotion
+framework is introduced, and pending RunPins integration remains explicitly open.
+
+### Task 4 implementation seams
+
+Runtime task 5.1 is now accepted. `OwnedLayout` contains the exact upstream
+`RunPins` and a `BrowserTarget`; derived accessors avoid a second mutable copy of
+their identities. The initial workbook marker and run cells use these values.
+The pure app-specific settings, target, observation and artifact values live in
+`app_values.py`, separated from the fixed-profile/mapping values in `values.py`
+to retain the existing module limit. Both remain within the GridCraft owner.
+
+`codecs.py` reuses the existing binding run wire contract and the prepared,
+parameter and validation-scope digest functions. `workbook.py` calls its narrow
+pin-comparison helper rather than reproducing upstream serialization. Exact
+import-gate entries admit those helpers only in the codec module; pure values
+still cannot import adapters, browser SDKs or operation implementations.
+
+The installed support declaration is packaged at
+`src/craftreport_gridcraft/resources/support.json`. This meaningful profile
+resource does not introduce the later control-panel HTML/JavaScript. These are
+implementation details of the approved AppValues/WorkbookMapping boundary;
+they change no capability, budget, acceptance requirement or public operation.
+Independent task review and matching browser evidence remain required before
+profile promotion or task completion.

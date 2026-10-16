@@ -1,0 +1,129 @@
+{
+  "schema_version": "1",
+  "operation_status": "untested",
+  "reason": "Exact fixed-profile mapping verified by headless browser save and reopen. Runtime apply, live controls, export publication and facade integration remain unimplemented.",
+  "headed_status": "MANUAL_VERIFY_REQUIRED",
+  "properties": [
+    {
+      "name": "text.font_family",
+      "status": "supported",
+      "reason": "Verified only for the exact fixed profile by headless browser update, save and reopen."
+    },
+    {
+      "name": "text.size_pt",
+      "status": "supported",
+      "reason": "Verified only for the exact fixed profile by headless browser update, save and reopen."
+    },
+    {
+      "name": "text.bold",
+      "status": "supported",
+      "reason": "Verified only for the exact fixed profile by headless browser update, save and reopen."
+    },
+    {
+      "name": "text.italic",
+      "status": "supported",
+      "reason": "Verified only for the exact fixed profile by headless browser update, save and reopen."
+    },
+    {
+      "name": "text.color",
+      "status": "supported",
+      "reason": "Verified only for the exact fixed profile by headless browser update, save and reopen."
+    },
+    {
+      "name": "text.fill",
+      "status": "supported",
+      "reason": "Verified only for the exact fixed profile by headless browser update, save and reopen."
+    },
+    {
+      "name": "text.alignment",
+      "status": "supported",
+      "reason": "Verified only for the exact fixed profile by headless browser update, save and reopen."
+    },
+    {
+      "name": "text.wrap",
+      "status": "supported",
+      "reason": "Verified only for the exact fixed profile by headless browser update, save and reopen."
+    },
+    {
+      "name": "format.kind",
+      "status": "supported",
+      "reason": "Verified only for the exact fixed profile by headless browser update, save and reopen."
+    },
+    {
+      "name": "format.decimal_places",
+      "status": "supported",
+      "reason": "Verified only for the exact fixed profile by headless browser update, save and reopen."
+    },
+    {
+      "name": "format.negative_style",
+      "status": "untested",
+      "reason": "Negative input is excluded; format string is not rendering evidence"
+    },
+    {
+      "name": "format.date_pattern",
+      "status": "untested",
+      "reason": "Date and datetime are outside this profile"
+    },
+    {
+      "name": "grid.show_gridlines",
+      "status": "supported",
+      "reason": "Verified only for the exact fixed profile by headless browser update, save and reopen."
+    },
+    {
+      "name": "grid.header_height",
+      "status": "supported",
+      "reason": "Verified only for the exact fixed profile by headless browser update, save and reopen."
+    },
+    {
+      "name": "grid.column_width",
+      "status": "supported",
+      "reason": "Verified only for the exact fixed profile by headless browser update, save and reopen."
+    },
+    {
+      "name": "chart.series_colors",
+      "status": "supported",
+      "reason": "Verified only for the exact fixed profile by headless browser update, save and reopen."
+    },
+    {
+      "name": "chart.line_width",
+      "status": "supported",
+      "reason": "Verified only for the exact fixed profile by headless browser update, save and reopen."
+    },
+    {
+      "name": "chart.legend",
+      "status": "supported",
+      "reason": "Verified only for the exact fixed profile by headless browser update, save and reopen."
+    },
+    {
+      "name": "chart.grid",
+      "status": "supported",
+      "reason": "Verified only for the exact fixed profile by headless browser update, save and reopen."
+    },
+    {
+      "name": "chart.null_gaps",
+      "status": "supported",
+      "reason": "Verified only for the exact fixed profile by headless browser update, save and reopen."
+    },
+    {
+      "name": "table.typed_null",
+      "status": "untested",
+      "reason": "Table nulls excluded"
+    },
+    {
+      "name": "table.null_marker",
+      "status": "untested",
+      "reason": "Table nulls excluded"
+    },
+    {
+      "name": "table.empty_headers",
+      "status": "untested",
+      "reason": "Empty tables excluded"
+    },
+    {
+      "name": "table.empty_note",
+      "status": "untested",
+      "reason": "Empty tables excluded"
+    }
+  ],
+  "mapping_status": "supported"
+}

@@ -28,7 +28,10 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Depends: 2_
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 2.2, 2.3, 2.4, 2.6, 2.7, 4.3, 4.4, 4.5, 6.4, 6.5, 6.6_
 
-- [ ] 4. Implement the admitted fixed-shape mapping and installed value contracts
+- [x] 4. Implement the admitted fixed-shape mapping and installed value contracts
+  - Apply owner-approved category-fit-calibration-amendment.md: category labels use 16 serialized UTF-8 bytes while literal text remains 32; update actual admission/profile pin and rejection tests, preserve geometry/theme, and repeat two same-document updates with visible fit plus actual Save/inspection/reopen. Diagnostic-only evidence cannot promote support.
+  - Apply owner-approved line-width-calibration-amendment.md: use exactly 2.25 points in the actual frozen candidate and canonical profile pin, update independent expectations, and rerun affected real proof. Retain every remaining profile/UI/boundary/RunPins requirement; the diagnostic experiment alone cannot promote support.
+  - Apply independently reviewed profile-support-amendment.md: exact fixed candidate admission using actual prepared fields and trusted paired quality, independent chart source cells, concrete roles/literals/addresses and property-level real save/reopen proof. No partial descriptor or untested default becomes support; unchanged caps apply.
   - Wait for accepted snapshot-runtime2.1–2.3 and report-model2.1–4/7 value+codec tasks; consume their exact Snapshot/RunPins/PreparedReport/policy values without copying schemas or changing frozen upstream interfaces. Runtime values additionally require its5.1 before integration that uses RunPins.
   - Implement strict app settings/target/layout/observation/artifact values, admitted mapping plan, explicit text-safe one-time XlsxWriter bootstrap and support descriptor from task3's observed subset. Fix shape/types/series references at bind; reject dimension/precision/unsupported-style/empty-data changes before admission, with no coercion/truncation.
   - Build/install the actual app wheel/resources and verify public imports/descriptor packaging. Done when independently fixed literals compare exact mapped values/order/types/styles/markers, malicious formula/URL text stays text and installed package identity matches its manifest. Unsupported mappings remain explicit.
@@ -120,6 +123,7 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 6.1, 6.2, 6.4, 6.5, 6.6_
 
 - [ ] 15. Deliver and execute the adopter guide and reusable Python demo
+  - Apply the owner-selected [local Windows browser topology](local-browser-decision.md): the user-run launcher opens the exact controlled workbook context and companion controls. Explain why another hosting-URL tab is a separate engine; preserve owned cleanup and existing disconnect recovery. Automated checks remain headless; visible user-launch/profile acceptance remains MANUAL_VERIFY_REQUIRED until separately exercised.
   - Write the planned Quickstart_How_to_run_a_live_GridCraft_report guide, package support notes, public caller/owned launcher and index links. Lead with integrator task/result and one small public fixture; distinguish current support from pending coverage and direct app edits from facade reusable/pinned lifecycle behavior.
   - Follow exact guide commands from a clean installed setup through ordinary caller functions with real providers and AI disabled. Include explicit environment/auth/hosts/data, expected independent observations, one recovery case and cleanup only of resources launched by the demo; operator-host mode must leave that host alive.
   - Done when runnable recipe reproduces the real table/chart/control/save/reopen journey with retained command/exit/evidence identities, safe public transcript and documented limitations; no placeholder how-to or synthetic-provider guarantee claim is published.
@@ -136,6 +140,24 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Requirements: 6.2, 6.3, 6.4, 6.5, 6.6_
 
 ## Implementation Notes
+
+- Task 4: independently approved by `/root/review_gridcraft_4`; evidence is
+  `artifacts/gridcraft/task-4/independent-review.md`. Public exact-profile
+  mapping, immutable app values and upstream RunPins codecs are installed and
+  verified. Final focused review passed 51 tests; isolated wheel proof passed
+  two tests; matching canonical pre-commit checks passed. Released headless
+  browser run `b12ce3f7-ae23-414e-bca0-f39fb08709e1` passed two same-document
+  updates, actual Save and fresh-context reopen, with 514 matching properties
+  at each of five checkpoints, complete 669-byte quality-summary fit, four
+  visible category labels, videos and owned cleanup. The approved 2.25-point
+  line and 16-byte category calibration are implemented; literal text retains
+  its separate 32-byte bound. The descriptor supports 18 exact-profile
+  properties and leaves six excluded properties untested. Browser focus
+  readback was repaired after a real hit test identified an invisible input
+  intercepting the old click point; exact address/value checks remain intact.
+  Mapping support is distinct from runtime operation availability. Tasks 5–16,
+  live controls, public export and adopter delivery remain open; headed
+  acceptance remains MANUAL_VERIFY_REQUIRED. No numeric budget was increased.
 
 - Task 1: independently approved by `/root/review_gridcraft_activation_1`;
   68 engineering tests/220 subtests and scoped static/gate checks passed.

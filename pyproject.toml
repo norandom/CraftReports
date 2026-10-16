@@ -62,8 +62,8 @@ select = ["E", "F", "I", "UP", "C901"]
 max-complexity = 10
 
 [tool.pyright]
-include = ["src", "scripts", "tests"]
-extraPaths = ["scripts", "tests/fixtures/kernel_plugin/src", "tests/kernel", "tests/fixtures"]
+include = ["src", "scripts", "tests", "packages/craftreport-gridcraft/src"]
+extraPaths = ["scripts", "tests/fixtures/kernel_plugin/src", "tests/kernel", "tests/fixtures", "packages/craftreport-gridcraft/src"]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
 venvPath = "."
