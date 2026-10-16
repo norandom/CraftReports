@@ -69,3 +69,29 @@ visible operator acceptance remains a separate required check.
 Progress reports should distinguish accepted producer/report/app behavior from
 component experiments. Count a milestone only when the ordinary caller can use
 it through the intended interface and its required effects have been verified.
+
+## XLSX adopter outcome clarified 2026-10-16
+
+After running the report preparation demo, the owner clarified: "I expected an
+xlsx" and confirmed this acceptance criterion: one command creates the XLSX,
+prints its path, and verifies that GridCraft can reopen it. The workbook must
+contain the supplied report's table, line chart and supported house styling.
+Required quality findings remain visible through the existing draft policy.
+
+The preparation command currently returns JSON evidence. Its accepted task 9
+remains component integration evidence, not delivery of the adopter's report.
+Do not present its evidence directory or results.json as a finished report, an
+XLSX export or a file that GridCraft can directly open. Preserve the useful API
+test while making the actual workbook the primary output of the report demo.
+
+Prioritize the existing GridCraft mapping, actual app save, exact-byte inspection
+and reopen path toward the adopter journey. GridCraft tasks 4, 11, 12 and 15
+already own these responsibilities; their dependencies and acceptance gates
+remain in force. This clarification adds no alternate exporter, new framework,
+budget exception or completion claim. An existing test workbook is not a
+substitute for converting the caller's identified prepared report.
+
+The final demo must print the actual published .xlsx path and the verified
+reopen outcome. JSON receipts, screenshots and other diagnostic evidence are
+secondary. Live viewing and start/pause/resume/stop remain first-release
+requirements; a static workbook alone does not close those tasks.
