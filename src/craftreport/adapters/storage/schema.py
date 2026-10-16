@@ -8,6 +8,7 @@ from sqlalchemy import (
     CheckConstraint,
     Column,
     ForeignKey,
+    ForeignKeyConstraint,
     Integer,
     LargeBinary,
     MetaData,
@@ -157,6 +158,39 @@ handoffs = Table(
 )
 
 
+# Retain the exact old schema independently of expanding current metadata.
+_V5_TABLES = (deployment, commands, observations, feeds, snapshots, evidence, results, handoffs)
+bindings = Table(
+    "bindings",
+    metadata,
+    Column("binding_id", String, primary_key=True),
+    Column("subject", String, nullable=False),
+    Column("generation", Integer, nullable=False),
+    Column("revision", Integer, nullable=False),
+    Column("operation_id", String, ForeignKey("commands.operation_id"), nullable=False),
+    Column("binding_bytes", LargeBinary, nullable=False),
+    Column("binding_digest", String, nullable=False),
+)
+bindings.append_constraint(CheckConstraint(bindings.c.generation > 0))
+bindings.append_constraint(CheckConstraint(bindings.c.revision > 0))
+runs = Table(
+    "runs",
+    metadata,
+    Column("run_id", String, primary_key=True),
+    Column("binding_id", String, ForeignKey("bindings.binding_id"), nullable=False),
+    Column("binding_generation", Integer, nullable=False),
+    Column("feed_id", String, nullable=False),
+    Column("producer_version", Integer, nullable=False),
+    Column("run_bytes", LargeBinary, nullable=False),
+    Column("run_digest", String, nullable=False),
+    ForeignKeyConstraint(
+        ["feed_id", "producer_version"], ["snapshots.feed_id", "snapshots.producer_version"]
+    ),
+)
+runs.append_constraint(CheckConstraint(runs.c.binding_generation > 0))
+runs.append_constraint(CheckConstraint(runs.c.producer_version > 0))
+
+
 def _objects(connection: Connection) -> dict[tuple[str, str], str | None]:
     catalog = table(
         "sqlite_schema", column("name", String), column("type", String), column("sql", String)
@@ -237,12 +271,14 @@ def _validate_table(connection: Connection, expected: Table) -> None:
 
 def _validate_schema(connection: Connection, version: int) -> None:
     expected = (deployment,) if version == 1 else (deployment, commands, observations)
-    if version in (3, 4, 5):
+    if version in (3, 4, 5, 6):
         expected += (feeds, snapshots, evidence)
-    if version in (4, 5):
+    if version in (4, 5, 6):
         expected += (results,)
-    if version == 5:
-        expected += (handoffs,)
+    if version in (5, 6):
+        expected = _V5_TABLES
+    if version == 6:
+        expected += (bindings, runs)
     objects = _objects(connection)
     if set(objects) != {(item.name, "table") for item in expected}:
         raise ValueError("Unrecognized retained schema objects")
@@ -270,7 +306,7 @@ def initialize(connection: Connection, identity: str, existed: bool) -> Deployme
         connection.execute(
             insert(deployment).values(
                 singleton=1,
-                schema_version=5,
+                schema_version=6,
                 identity=identity,
                 epoch=uuid4().hex,
                 retention_profile="retain-all",
@@ -289,7 +325,8 @@ def initialize(connection: Connection, identity: str, existed: bool) -> Deployme
             (item.name, "table")
             for item in (deployment, commands, observations, feeds, snapshots, evidence, results)
         },
-        {(item.name, "table") for item in metadata.tables.values()},
+        {(item.name, "table") for item in _V5_TABLES},
+        {(item.name, "table") for item in (*_V5_TABLES, bindings, runs)},
     ):
         raise ValueError("Unrecognized retained schema objects")
     _validate_table(connection, deployment)
@@ -299,7 +336,7 @@ def initialize(connection: Connection, identity: str, existed: bool) -> Deployme
     row = rows[0]
     if (
         row["singleton"] != 1
-        or row["schema_version"] not in (1, 2, 3, 4, 5)
+        or row["schema_version"] not in (1, 2, 3, 4, 5, 6)
         or row["identity"] != identity
         or not isinstance(row["identity"], str)
         or not row["identity"].strip()
@@ -343,3 +380,8 @@ def _upgrade(connection: Connection, version: int) -> None:
         handoffs.create(connection)
         _validate_schema(connection, 5)
         connection.execute(update(deployment).values(schema_version=5))
+    if version in (1, 2, 3, 4, 5):
+        bindings.create(connection)
+        runs.create(connection)
+        _validate_schema(connection, 6)
+        connection.execute(update(deployment).values(schema_version=6))

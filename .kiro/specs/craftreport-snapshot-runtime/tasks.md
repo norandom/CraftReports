@@ -111,7 +111,8 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 5.1, 5.2, 5.7, 6.1, 6.2, 6.3, 6.4, 6.6_
 
 - [ ] 5. Retain binding lifecycle and truthful recovery
-- [ ] 5.1 Persist immutable binding requirements and exact run pins
+- [x] 5.1 Persist immutable binding requirements and exact run pins
+  - Apply the independently reviewed binding-persistence-amendment.md for the exact v5-to-v6 transition, closed historical binding facts, trusted preparation linkage and concrete binding codec extraction. Existing task authorization and all numeric limits remain unchanged.
   - Implement typed binding/target/RunPins values and atomic generation/revision changes, complete selection and run retention; generic VersionPins avoid importing report compiler/theme modules. Include injected RunPreparer with PreparedRunInputs/PreparationIssue, retained prepared operation/result identity and exact newly selected snapshot/pin/digest matching before run commit.
   - Own strict runtime.bind/runtime.inspect codecs, OperationBinding registrations and capability updates in the reviewed SnapshotCodecs/BindingRuntime files; extend DurableHost assembly to inject binding services through the existing facade without changing interfaces/application.
   - Done when ordinary REST/MCP discovery exposes bind/inspect, incomplete snapshots cannot start runs, feed/definition/parameter/target changes increment generation and public readback of every reopened run exposes original input/parameter/template/theme/target/scope pins.
@@ -281,3 +282,15 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   Composition516/1500, runtime210/1500; storage/adapters unchanged. The first
   installed publication slice is accepted; binding lifecycle, live dashboard,
   XLSX release verification and adopter documentation remain open.
+
+- Task 5.1: independently approved by `/root/review_runtime_5_1` on the
+  exact source manifest in `artifacts/snapshot-runtime/task-5.1/`.
+  Canonical candidate checks passed; two installed REST/MCP journeys verified
+  binding changes, original run pins after restart, retained preparation linkage
+  and typed missing/unavailable/conflict results. Independent schema migration,
+  historical-fact and adverse-path checks passed. Existing strict failure codecs
+  are reused; all approved budgets remain unchanged. Evidence:
+  `artifacts/snapshot-runtime/task-5.1/independent-review.md` and
+  `artifacts/binding-5-1-reviewretry2/hook.txt`. This accepts immutable binding/run
+  persistence only. Lifecycle, actual app effects, XLSX export and the task 6.3
+  adopter guide/example remain open; no feature-level completion is claimed.

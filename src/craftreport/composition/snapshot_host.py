@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.version import Version
 
+from craftreport.adapters.binding_codecs import BindingResultCodec, bind_codec, inspect_codec
 from craftreport.adapters.snapshot_wire import (
     finalize_snapshot,
     latest_request_codec,
@@ -53,20 +54,28 @@ from craftreport.contracts import (
     ResourceRef,
 )
 from craftreport.data.values import Snapshot
+from craftreport.runtime.bindings import BindingOperations
 from craftreport.runtime.capability import (
+    BindingCodecs,
     PublicationCodecs,
+    binding_descriptors,
+    binding_operations,
     publication_descriptors,
     publication_operations,
 )
 from craftreport.runtime.ports import SnapshotQueries
 from craftreport.runtime.publication import PublicationOperations
+from craftreport.runtime.values import TargetIdentity
 
 if TYPE_CHECKING:
     from craftreport.composition.reporting import ReportingActivation
 
 
 def snapshot_operation_bindings(
-    resources: DurableResources, *, owner_policy: Callable[[Principal], bool]
+    resources: DurableResources,
+    *,
+    owner_policy: Callable[[Principal], bool],
+    target_policy: Callable[[Principal, TargetIdentity], bool] = lambda _p, _t: False,
 ) -> tuple[BoundOperation, ...]:
     """Explicit owner policy grants inspection of that owner's retained feed history."""
     if not callable(owner_policy):
@@ -84,7 +93,16 @@ def snapshot_operation_bindings(
         resources.store.codec,
         lambda: datetime.now(UTC),
     )
-    return publication_operations(handlers, _publication_codecs())
+    resources.configure_bindings(bind_codec(), BindingResultCodec())
+    bindings = BindingOperations(resources.bindings, bind_codec(), owner_policy, target_policy)
+    return (
+        *publication_operations(handlers, _publication_codecs()),
+        *binding_operations(bindings, _binding_codecs()),
+    )
+
+
+def _binding_codecs() -> BindingCodecs:
+    return BindingCodecs(bind_codec(), inspect_codec(), BindingResultCodec())
 
 
 def _publication_codecs() -> PublicationCodecs:
@@ -130,7 +148,10 @@ class SnapshotFactory:
             (CapabilityVersion("snapshot", "1.0.0"),),
             (),
             SNAPSHOT_SETTINGS.schema(),
-            publication_descriptors(_publication_codecs()),
+            (
+                *publication_descriptors(_publication_codecs()),
+                *binding_descriptors(_binding_codecs()),
+            ),
             implementation_digest(),
         )
 
@@ -151,7 +172,10 @@ def snapshot_factory() -> SnapshotFactory:
 
 
 def configure_snapshot(
-    resources: DurableResources, *, owner_policy: Callable[[Principal], bool]
+    resources: DurableResources,
+    *,
+    owner_policy: Callable[[Principal], bool],
+    target_policy: Callable[[Principal, TargetIdentity], bool] = lambda _p, _t: False,
 ) -> ConfiguredCapability:
     def adapt(loaded: object) -> SnapshotFactory:
         if loaded is not snapshot_factory:
@@ -162,7 +186,9 @@ def configure_snapshot(
         "craftreport",
         "snapshot",
         adapt,
-        snapshot_operation_bindings(resources, owner_policy=owner_policy),
+        snapshot_operation_bindings(
+            resources, owner_policy=owner_policy, target_policy=target_policy
+        ),
         SNAPSHOT_SETTINGS,
         {},
     )
@@ -274,7 +300,7 @@ async def open_snapshot_application(
         services = GuaranteeProviders(
             DurableJournal(database),
             resources.guard,
-            DurableEvidence(database),
+            DurableEvidence(database, resources.verify_binding),
             resolver,
             activation.resources if activation is not None else resources,
             resources,

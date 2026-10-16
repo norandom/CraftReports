@@ -92,6 +92,7 @@ New files are proposals until gate task 1 passes. Files group by responsibility,
 | DurableProviders | `src/craftreport/adapters/storage/guard.py`, `providers.py`, `results.py`, `evidence.py` | New; snapshot-storage |
 | SnapshotStore | `src/craftreport/adapters/storage/snapshots.py` | New; snapshot-storage |
 | BindingStore | `src/craftreport/adapters/storage/bindings.py` | New; snapshot-storage |
+| BindingCodecs | `src/craftreport/adapters/binding_codecs.py` | Task 5.1; existing adapters owner; concrete runtime binding/run codecs from the independently reviewed binding-persistence amendment |
 | PublicationOperations | `src/craftreport/runtime/publication.py` | New; runtime |
 | BindingRuntime | `src/craftreport/runtime/__init__.py`, `values.py`, `ports.py`, `bindings.py`, `scheduler.py`, `capability.py` | New; runtime |
 | DurableHost | `src/craftreport/composition/snapshot_host.py`, existing `composition/app.py` activation callback; `pyproject.toml`, `uv.lock` | New assembly; explicit entry point; root coordinates shared files |

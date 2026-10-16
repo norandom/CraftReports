@@ -28,6 +28,7 @@ class SnapshotProcess:
         pack_root: Path | None = None,
         source_scope: str = "public_source",
         artifact_scope: str = "public_artifact",
+        seed_binding: bool = False,
     ) -> None:
         self.directory = directory
         directory.mkdir()
@@ -38,6 +39,7 @@ class SnapshotProcess:
                 "-I",
                 str(Path(__file__).with_name("installed_host.py")),
                 str(database),
+                *(["--binding-seed"] if seed_binding else []),
                 *([str(pack_root), source_scope, artifact_scope] if pack_root is not None else []),
             ],
             env={

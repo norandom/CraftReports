@@ -1,6 +1,7 @@
 """Independent retained fact verification through the existing evidence table."""
 
 import re
+from collections.abc import Callable
 
 from sqlalchemy import func, select
 from sqlalchemy.engine import Connection, RowMapping
@@ -88,9 +89,14 @@ def preparation_command(
 
 
 class DurableEvidence:
-    def __init__(self, database: Database) -> None:
+    def __init__(
+        self,
+        database: Database,
+        binding_verifier: Callable[[Connection, EvidenceRef, JsonObject], object] | None = None,
+    ) -> None:
         self.database = database
         self.journal = DurableJournal(database)
+        self.binding_verifier = binding_verifier
 
     async def inspect(self, refs: tuple[EvidenceRef, ...]) -> tuple[EvidenceStatus, ...]:
         try:
@@ -119,7 +125,11 @@ class DurableEvidence:
                 or row["fact_digest"] != reference.content_digest
             ):
                 raise ValueError("Evidence linkage differs")
-            fact = decode_object(row["fact_bytes"], row["fact_digest"])
+            fact = decode_object(
+                row["fact_bytes"],
+                row["fact_digest"],
+                max_bytes=2_097_152 if reference.scope == "binding_persisted" else 1_048_576,
+            )
             if reference.scope in ("prepared", "quality_evaluated"):
                 preparation_command(connection, self.journal, reference)
                 validate_preparation(fact, reference)
@@ -128,6 +138,8 @@ class DurableEvidence:
                     return EvidenceStatus(reference, Availability.MISSING)
             elif reference.scope == "publication_decided":
                 validate_decision(connection, self.database, reference, fact)
+            elif reference.scope == "binding_persisted" and self.binding_verifier is not None:
+                self.binding_verifier(connection, reference, fact)
             else:
                 return EvidenceStatus(reference, Availability.UNAVAILABLE)
             return EvidenceStatus(reference, Availability.AVAILABLE, StageState.PASSED)

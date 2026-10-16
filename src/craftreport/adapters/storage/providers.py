@@ -8,6 +8,7 @@ from typing import Literal
 from sqlalchemy import insert, select
 from sqlalchemy.engine import Connection
 
+from craftreport.adapters.storage.bindings import BindingStore
 from craftreport.adapters.storage.database import Database, StorageUnavailable
 from craftreport.adapters.storage.evidence import (
     STORAGE_FAILURES,
@@ -34,8 +35,16 @@ from craftreport.adapters.storage.snapshots import Fingerprint, Publication, Sna
 from craftreport.application import ports
 from craftreport.application.dispatch_ports import RecordedHandoff
 from craftreport.application.registry import Codec
-from craftreport.contracts import Availability, JsonObject, Principal, ReceiptState, ResourceRef
+from craftreport.contracts import (
+    Availability,
+    EvidenceRef,
+    JsonObject,
+    Principal,
+    ReceiptState,
+    ResourceRef,
+)
 from craftreport.data.values import Snapshot
+from craftreport.runtime.values import BindingState, BindRequest, RunPins
 
 
 class DurableResources:
@@ -48,14 +57,50 @@ class DurableResources:
     ) -> None:
         self.database = database
         self.store = SnapshotStore(database, codec, fingerprint, policy)
-        self.guard = DurableGuard(database, self.store.read)
+        self._bindings: BindingStore | None = None
+        self.guard = DurableGuard(database, self.combined_read)
+
+    def configure_bindings(
+        self,
+        request: Codec[BindRequest],
+        result: Codec[
+            BindingState
+            | RunPins
+            | ports.Missing
+            | ports.ServiceUnavailable
+            | ports.VersionConflict
+        ],
+    ) -> None:
+        if self._bindings is not None:
+            raise ValueError("Binding codecs already configured")
+        self._bindings = BindingStore(self.database, self.store, request, result)
+
+    @property
+    def bindings(self) -> BindingStore:
+        if self._bindings is None:
+            raise ValueError("Binding services unavailable")
+        return self._bindings
+
+    def verify_binding(
+        self, connection: Connection, reference: EvidenceRef, fact: JsonObject
+    ) -> BindingState:
+        return self.bindings.verify_fact(connection, reference, fact)
+
+    def combined_read(
+        self, connection: Connection, resource: ResourceRef
+    ) -> ports.ResourceSnapshot | ports.Missing:
+        return (
+            self.bindings.read(connection, resource)
+            if resource.kind in ("binding", "run")
+            else self.store.read(connection, resource)
+        )
 
     async def read(
         self, resource: ResourceRef
     ) -> ports.ResourceSnapshot | ports.Missing | ports.ServiceUnavailable:
         try:
             return await self.database.transaction(
-                lambda connection: self.store.read(connection, resource)
+                lambda connection: self.combined_read(connection, resource)
             )
         except (StorageUnavailable, ValueError, TypeError, KeyError, OverflowError, RecursionError):
             return ports.ServiceUnavailable("resources")
@@ -71,6 +116,10 @@ class DurableResources:
         ):
             return ports.GuardLost()
         try:
+            if resource.kind == "binding":
+                return await self.database.transaction(
+                    lambda c: self.bindings.commit(c, resource, change, guard)
+                )
             publication = self.store.prepare(change)
             if resource != ResourceRef("feed", publication.snapshot.feed_id):
                 raise ValueError("Publication resource mismatch")
@@ -288,7 +337,7 @@ class DurableHealth:
         )
         if (
             row["singleton"] != 1
-            or row["schema_version"] != 5
+            or row["schema_version"] != 6
             or actual != self.database.deployment
         ):
             raise ValueError("Retained deployment changed")

@@ -135,5 +135,15 @@
     "owner_approval_reference": "../craftreport-reporting-facade/first-release-calibration-approval.md",
     "implementation_status": "task-4.0-independently-accepted",
     "executable_tasks": 20
+  },
+  "binding_persistence_detail": {
+    "reference": "binding-persistence-amendment.md",
+    "review_reference": "binding-persistence-review.md",
+    "reviewer": "/root/review_binding_amendment",
+    "verdict": "GO",
+    "reviewed_sha256": "D8394A2E6E6FB95EFD133B3756A0C6255A28325952A8BECE3C70144800C01D2C",
+    "authorization_reference": "binding-persistence-authorization.md",
+    "implementation_status": "task-5.1-independently-accepted; component only",
+    "implementation_review": "../../../artifacts/snapshot-runtime/task-5.1/independent-review.md"
   }
 }

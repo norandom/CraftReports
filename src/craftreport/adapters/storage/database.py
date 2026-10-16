@@ -109,7 +109,7 @@ class Database:
         try:
             existed = self.path.exists()
             with self._engine.begin() as connection:
-                if maintenance and connection.scalar(select(deployment.c.schema_version)) != 5:
+                if maintenance and connection.scalar(select(deployment.c.schema_version)) != 6:
                     raise ValueError("Maintenance requires the current retained schema")
                 self.deployment = initialize(connection, deployment_id, existed)
         except (SQLAlchemyError, OSError, ValueError) as error:

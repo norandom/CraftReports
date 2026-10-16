@@ -78,7 +78,7 @@ def integration_steps(root: Path, directory: Path) -> list[tuple[str, list[str]]
             [sys.executable, str(root / "tests/kernel/catalog_proof.py"), str(directory)],
         ),
         (
-            "Installed durable snapshot publication and restart",
+            "Installed durable snapshot, binding and run restart",
             [
                 sys.executable,
                 "-m",
@@ -87,6 +87,7 @@ def integration_steps(root: Path, directory: Path) -> list[tuple[str, list[str]]
                 "-m",
                 "integration",
                 str(root / "tests/snapshot_runtime/test_installed.py"),
+                str(root / "tests/snapshot_runtime/test_binding_installed.py"),
                 "--junitxml",
                 str(directory / "snapshot-junit.xml"),
             ],

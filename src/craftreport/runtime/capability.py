@@ -1,6 +1,6 @@
 """Versioned publication registrations with injected codecs and real handlers."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import cast
 
 from craftreport.application.ports import Missing, ReadContext, ServiceUnavailable, VersionConflict
@@ -21,12 +21,75 @@ from craftreport.contracts import (
     ResourceRef,
 )
 from craftreport.data.values import Snapshot, SnapshotRef
+from craftreport.runtime.bindings import BindingOperations
 from craftreport.runtime.publication import (
     LatestRequest,
     LatestSelection,
     PublicationOperations,
     PublicationResult,
 )
+from craftreport.runtime.values import BindingState, BindRequest, InspectRequest, RunPins
+
+
+@dataclass(frozen=True, slots=True)
+class BindingCodecs:
+    request: Codec[BindRequest]
+    inspect: Codec[InspectRequest]
+    result: Codec[BindingState | RunPins | Missing | VersionConflict | ServiceUnavailable]
+
+
+def binding_descriptors(codecs: BindingCodecs) -> tuple[OperationDescriptor, ...]:
+    return (
+        OperationDescriptor(
+            OperationKey("runtime.bind", "1"),
+            OperationKind.COMMAND,
+            codecs.request.schema(),
+            codecs.result.schema(),
+            True,
+            True,
+            ("binding", "feed"),
+            (),
+            ("journal", "guard", "resources", "effects", "evidence", "results"),
+            OperationLimits(),
+            EvidencePolicy(("binding_persisted",)),
+        ),
+        replace(
+            _descriptor(
+                "runtime.inspect",
+                codecs.inspect,
+                codecs.result,
+                False,
+                "binding",
+                OperationLimits(),
+            ),
+            resources=("binding", "run"),
+        ),
+    )
+
+
+def binding_operations(
+    handlers: BindingOperations, codecs: BindingCodecs
+) -> tuple[BoundOperation, ...]:
+    descriptors = binding_descriptors(codecs)
+    return (
+        OperationBinding(
+            descriptors[0],
+            codecs.request,
+            codecs.result,
+            CommandBehavior(handlers.bind),
+            lambda v: (
+                ResourceRef("binding", v.spec.binding_id),
+                ResourceRef("feed", v.spec.feed_id),
+            ),
+        ).bind(),
+        OperationBinding(
+            descriptors[1],
+            codecs.inspect,
+            codecs.result,
+            QueryBehavior(handlers.inspect),
+            lambda v: (ResourceRef(v.kind, v.identity),),
+        ).bind(),
+    )
 
 
 @dataclass(frozen=True, slots=True)

@@ -499,6 +499,8 @@ def v4(path: Path) -> str:
     asyncio.run(admit(database, (), ()))
     asyncio.run(database.close())
     with sqlite3.connect(path) as connection:
+        connection.execute("DROP TABLE runs")
+        connection.execute("DROP TABLE bindings")
         connection.execute("DROP TABLE handoffs")
         connection.execute("UPDATE deployment SET schema_version=4")
     return dump(path)
@@ -537,5 +539,5 @@ def test_populated_v4_rollback_and_migration(tmp_path: Path, cutpoint: str) -> N
     database = Database(path, ALICE.deployment_scope)
     asyncio.run(database.close())
     with sqlite3.connect(path) as independent:
-        assert independent.execute("SELECT schema_version FROM deployment").fetchone() == (5,)
+        assert independent.execute("SELECT schema_version FROM deployment").fetchone() == (6,)
         assert independent.execute("SELECT count(*) FROM commands").fetchone() == (1,)

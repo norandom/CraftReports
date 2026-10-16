@@ -171,7 +171,7 @@ def test_future_schema_version_rejects_and_releases_lock(tmp_path: Path) -> None
         # Repair is operator/test-owned, proving the failed open relinquished
         # the OS lock without silently migrating or replacing retained state.
         with sqlite3.connect(path) as independent:
-            independent.execute("UPDATE deployment SET schema_version = 5")
+            independent.execute("UPDATE deployment SET schema_version = 6")
         reopened = Database(path, "deployment-a")
         await reopened.close()
 
@@ -217,11 +217,12 @@ def test_known_v1_migrates_once_preserving_exact_retained_settings(tmp_path: Pat
     asyncio.run(exercise())
     with sqlite3.connect(path) as independent:
         assert independent.execute("SELECT * FROM deployment").fetchall() == [
-            (1, 5, "deployment-a", "legacy-epoch", "retain-all", settings)
+            (1, 6, "deployment-a", "legacy-epoch", "retain-all", settings)
         ]
         assert independent.execute(
             "SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name"
         ).fetchall() == [
+            ("bindings",),
             ("commands",),
             ("deployment",),
             ("evidence",),
@@ -229,6 +230,7 @@ def test_known_v1_migrates_once_preserving_exact_retained_settings(tmp_path: Pat
             ("handoffs",),
             ("observations",),
             ("results",),
+            ("runs",),
             ("snapshots",),
         ]
 
@@ -533,4 +535,4 @@ def test_v2_resource_migration_rolls_back_every_cutpoint(tmp_path: Path, cutpoin
     database = Database(path, "deployment-a")
     asyncio.run(database.close())
     with sqlite3.connect(path) as independent:
-        assert independent.execute("SELECT schema_version FROM deployment").fetchone() == (5,)
+        assert independent.execute("SELECT schema_version FROM deployment").fetchone() == (6,)

@@ -30,6 +30,15 @@ def test_real_host_catalog(tmp_path: Path, assets: dict[str, bytes]) -> None:
         async with report_host(tmp_path, assets) as host:
             assert len(host.app.settings.selections) == 2
             catalog = await host.facade.catalog(ALICE)
-            assert len(catalog.operations) == 6
+            assert {operation.key.name for operation in catalog.operations} == {
+                "reports.discover_packs",
+                "reports.validate_definition",
+                "reports.prepare",
+                "snapshot.publish",
+                "snapshot.read",
+                "snapshot.latest",
+                "runtime.bind",
+                "runtime.inspect",
+            }
 
     asyncio.run(exercise())

@@ -3,11 +3,14 @@
 import asyncio
 import json
 import os
+import runpy
 import socket
 import sys
 import threading
+from collections.abc import Awaitable, Callable
 from contextlib import redirect_stdout
 from pathlib import Path
+from typing import cast
 
 import craftreport
 from craftreport.adapters.canonical import CanonicalFingerprint
@@ -22,6 +25,7 @@ from craftreport.composition.settings import HostSettings
 from craftreport.composition.snapshot_host import configure_snapshot, open_snapshot_application
 from craftreport.contracts import Principal
 from craftreport.interfaces.principal import AuthenticatedIdentity, PrincipalBoundary
+from craftreport.runtime.values import TargetIdentity
 
 
 class OwnerPolicy:
@@ -42,7 +46,13 @@ def shutdown(loop: asyncio.AbstractEventLoop, server: BoundServer) -> None:
     loop.call_soon_threadsafe(server.request_shutdown)
 
 
-async def serve(path: Path, pack_root: Path | None = None, scopes: tuple[str, ...] = ()) -> None:
+async def serve(
+    path: Path,
+    pack_root: Path | None = None,
+    scopes: tuple[str, ...] = (),
+    *,
+    seed_binding: bool = False,
+) -> None:
     origin = Path(str(craftreport.__file__)).resolve()
     assert origin.is_relative_to(Path(sys.prefix).resolve())
     assert "pytest" not in sys.modules
@@ -61,7 +71,10 @@ async def serve(path: Path, pack_root: Path | None = None, scopes: tuple[str, ..
         listener.listen(128)
         port = listener.getsockname()[1]
 
+        retained: list[tuple[Database, DurableResources]] = []
+
         def settings(database: Database, resources: DurableResources) -> HostSettings:
+            retained.append((database, resources))
             return HostSettings(
                 "127.0.0.1",
                 (f"127.0.0.1:{port}",),
@@ -69,7 +82,17 @@ async def serve(path: Path, pack_root: Path | None = None, scopes: tuple[str, ..
                 database.deployment.epoch,
                 database.deployment.retention_profile,
                 boundary,
-                (configure_snapshot(resources, owner_policy=policy.owns),),
+                (
+                    configure_snapshot(
+                        resources,
+                        owner_policy=policy.owns,
+                        target_policy=lambda principal, target: (
+                            policy.owns(principal)
+                            and target
+                            == TargetIdentity("gridcraft", "browser", "session", "document")
+                        ),
+                    ),
+                ),
             )
 
         finger = CanonicalFingerprint()
@@ -92,6 +115,12 @@ async def serve(path: Path, pack_root: Path | None = None, scopes: tuple[str, ..
             owner_probes={"access": policy.probe, "capabilities": policy.probe},
             reporting=reporting if pack_root is not None else None,
         ) as application:
+            if seed_binding:
+                seed = cast(
+                    Callable[[Database, DurableResources], Awaitable[None]],
+                    runpy.run_path(str(Path(__file__).with_name("binding_host.py")))["seed"],
+                )
+                await seed(*retained[0])
             with redirect_stdout(sys.stderr):
                 server = application.server(listener)
             threading.Thread(
@@ -114,10 +143,14 @@ async def serve(path: Path, pack_root: Path | None = None, scopes: tuple[str, ..
 
 
 if __name__ == "__main__":
+    seed_binding = "--binding-seed" in sys.argv
+    if seed_binding:
+        sys.argv.remove("--binding-seed")
     asyncio.run(
         serve(
             Path(sys.argv[1]).resolve(),
             Path(sys.argv[2]).resolve() if len(sys.argv) > 2 else None,
             tuple(sys.argv[3:]),
+            seed_binding=seed_binding,
         )
     )

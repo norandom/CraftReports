@@ -77,7 +77,7 @@ class ReportResources:
     ) -> ports.ResourceSnapshot | ports.Missing:
         if resource.kind in _REPORT_KINDS:
             return self.observations.get(resource, ports.Missing())
-        return self.upstream.store.read(connection, resource)
+        return self.upstream.combined_read(connection, resource)
 
     async def read(
         self, resource: ResourceRef
