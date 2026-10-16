@@ -71,7 +71,8 @@ def test_original_snapshot_evidence_survives_feed_advance_and_detects_corruption
         )
         observed = await reader.inspect((*first.evidence, *second.evidence))
         assert observed[0].availability is Availability.UNAVAILABLE
-        assert observed[1].availability is Availability.AVAILABLE
+        assert observed[1].availability is Availability.UNAVAILABLE
+        assert all(item.availability is Availability.AVAILABLE for item in observed[2:])
 
     asyncio.run(exercise())
 
@@ -171,15 +172,17 @@ def test_same_version_stale_conflict_and_original_operation(database: Database) 
         assert isinstance(first, ports.ResourceEffect)
         same = await publish(value, database, 3, "1")
         assert isinstance(same, ports.ResourceEffect)
-        assert same.effect is EffectDisposition.NONE and same.evidence == ()
-        assert isinstance(await publish(value, database, 2, "1"), ports.VersionConflict)
+        assert same.effect is EffectDisposition.NONE
+        assert tuple(ref.scope for ref in same.evidence) == ("publication_decided",)
+        stale = await publish(value, database, 2, "1")
+        assert isinstance(stale, ports.ResourceEffect) and stale.effect is EffectDisposition.NONE
         assert isinstance(await publish(value, database, 4, "1"), ports.ResourceEffect)
         latest = await value.read(FEED)
         assert isinstance(latest, ports.ResourceSnapshot)
         assert latest.version.version == "2" and latest.content["high_water"] == "4"
         with sqlite3.connect(database.path) as independent:
             assert independent.execute("SELECT count(*) FROM snapshots").fetchone() == (2,)
-            assert independent.execute("SELECT count(*) FROM evidence").fetchone() == (2,)
+            assert independent.execute("SELECT count(*) FROM evidence").fetchone() == (6,)
 
     asyncio.run(exercise())
 
@@ -294,8 +297,15 @@ def test_same_version_different_content_conflicts(database: Database) -> None:
         _, change = await admitted(database, 1, "1", content_override=alternate)
         async with value.guard.acquire((ExpectedVersion(FEED, "1"),)) as lease:
             result = await value.apply(FEED, change, lease)
-            assert isinstance(result, ports.VersionConflict)
-            assert result.expected != result.authoritative
+            assert (
+                isinstance(result, ports.ResourceEffect) and result.effect is EffectDisposition.NONE
+            )
+            from craftreport.runtime.publication import PublicationDecision
+
+            decision = await value.store.read_decision(result.evidence[0].operation_id)
+            assert isinstance(decision, PublicationDecision)
+            assert decision.result.status == "version_conflict"
+            assert decision.result.requested != decision.result.retained
         with sqlite3.connect(database.path) as independent:
             assert independent.execute("SELECT count(*) FROM snapshots").fetchone() == (1,)
 
@@ -350,7 +360,7 @@ def test_cancellation_cutpoints_retain_only_real_commits(
         with sqlite3.connect(database.path) as independent:
             count = 1 if phase == "after_commit" else 0
             assert independent.execute("SELECT count(*) FROM snapshots").fetchone() == (count,)
-            assert independent.execute("SELECT count(*) FROM evidence").fetchone() == (count,)
+            assert independent.execute("SELECT count(*) FROM evidence").fetchone() == (2 * count,)
 
     asyncio.run(exercise())
 

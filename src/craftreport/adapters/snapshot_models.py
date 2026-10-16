@@ -1,16 +1,26 @@
 """Closed snapshot transport schemas and advertised bounded publication profile."""
 
 from collections.abc import Mapping
-from dataclasses import dataclass, fields
+from dataclasses import asdict, dataclass, fields
+from datetime import UTC, datetime
 from typing import Annotated, Literal, cast
 
+from pydantic import BeforeValidator, PlainSerializer, ValidateAs
 from pydantic import Field as WireField
 
 from craftreport.adapters.canonical import WireFailure
-from craftreport.adapters.validation import StrictWireModel, model_shape
+from craftreport.adapters.validation import StrictWireModel, construct, model_shape
+from craftreport.application.ports import Missing, ServiceUnavailable, VersionConflict
 from craftreport.contracts import JsonObject, OperationLimits
 from craftreport.contracts.values import JsonValue
+from craftreport.data.validation import validate_datetime, validate_datetime_lexeme
 from craftreport.data.values import Dataset, Field, ImportedMetric, ScalarKind, SnapshotRef
+from craftreport.runtime.publication import (
+    LatestRequest,
+    LatestSelection,
+    PublicationResult,
+    SnapshotSummary,
+)
 
 type Text = str
 type ScalarWire = Text | bool | None
@@ -164,3 +174,130 @@ def check_shape(content: JsonObject, limits: SnapshotLimits) -> None:
     points = sum(len(cast(tuple[JsonValue, ...], item["values"])) for item in metrics)
     check_count(points, limits.max_metric_points, "max_metric_points", ("metrics",))
     _check_strings(content, limits.max_string_length)
+
+
+def reference_object(value: SnapshotRef) -> JsonObject:
+    return {**asdict(value), "producer_version": str(value.producer_version)}
+
+
+def reference_value(value: SnapshotRefWire) -> SnapshotRef:
+    return construct(
+        SnapshotRef, value, {"producer_version": int(getattr(value, "producer_version"))}
+    )
+
+
+def _reference_input(value: object) -> object:
+    return reference_object(value) if isinstance(value, SnapshotRef) else value
+
+
+type Reference = Annotated[
+    SnapshotRef,
+    ValidateAs(SnapshotRefWire, reference_value),
+    BeforeValidator(_reference_input),
+    PlainSerializer(reference_object, return_type=dict[str, JsonValue]),
+]
+
+
+def _service_time(value: object) -> datetime:
+    if isinstance(value, str):
+        validate_datetime_lexeme(value, ())
+        value = datetime.fromisoformat(value)
+    if not isinstance(value, datetime):
+        raise ValueError("Service timestamp required")
+    validate_datetime(value, ())
+    return value.astimezone(UTC)
+
+
+type ServiceTime = Annotated[
+    datetime,
+    BeforeValidator(_service_time),
+    PlainSerializer(
+        lambda v: v.isoformat(timespec="microseconds").replace("+00:00", "Z"), return_type=str
+    ),
+]
+
+
+class SummaryWire(
+    model_shape(
+        SnapshotSummary,
+        {"reference": Reference, "received_at": ServiceTime, "accepted_at": ServiceTime},
+    )
+):
+    pass
+
+
+def _summary_input(value: object) -> object:
+    return (
+        {f.name: getattr(value, f.name) for f in fields(value)}
+        if isinstance(value, SnapshotSummary)
+        else value
+    )
+
+
+def _summary_object(value: SnapshotSummary) -> JsonObject:
+    return cast(
+        JsonObject, SummaryWire.model_validate(_summary_input(value)).model_dump(mode="json")
+    )
+
+
+type Summary = Annotated[
+    SnapshotSummary,
+    ValidateAs(SummaryWire, lambda v: construct(SnapshotSummary, v, {})),
+    BeforeValidator(_summary_input),
+    PlainSerializer(_summary_object, return_type=dict[str, JsonValue]),
+]
+
+
+class PublicationResultWire(
+    model_shape(
+        PublicationResult,
+        {
+            "requested": Reference,
+            "retained": Reference | None,
+            "latest_accepted": Reference,
+            "summary": Summary | None,
+        },
+    )
+):
+    pass
+
+
+class LatestRequestWire(model_shape(LatestRequest, {})):
+    pass
+
+
+class LatestSelectionWire(
+    model_shape(
+        LatestSelection, {"latest_accepted": Reference, "highest_complete": Reference | None}
+    )
+):
+    pass
+
+
+class MissingWire(model_shape(Missing, {}, defaults={"kind": ...})):
+    pass
+
+
+class UnavailableWire(model_shape(ServiceUnavailable, {}, defaults={"kind": ...})):
+    pass
+
+
+class ConflictWire(model_shape(VersionConflict, {}, defaults={"kind": ...})):
+    pass
+
+
+type MissingValue = Annotated[
+    Missing, ValidateAs(MissingWire, lambda v: Missing()), PlainSerializer(asdict)
+]
+type UnavailableValue = Annotated[
+    ServiceUnavailable,
+    ValidateAs(UnavailableWire, lambda v: ServiceUnavailable(getattr(v, "service"))),
+    PlainSerializer(asdict),
+]
+type ConflictValue = Annotated[
+    VersionConflict,
+    ValidateAs(
+        ConflictWire, lambda v: VersionConflict(getattr(v, "expected"), getattr(v, "authoritative"))
+    ),
+    PlainSerializer(asdict),
+]

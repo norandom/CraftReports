@@ -3,14 +3,16 @@
 import hashlib
 import re
 from collections.abc import Mapping
-from dataclasses import asdict
+from dataclasses import asdict, dataclass, fields
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from typing import Literal, cast
 
-from pydantic import ValidationError
+from pydantic import TypeAdapter, ValidationError
 
-from craftreport.adapters.canonical import WireFailure, canonical_bytes
+from craftreport.adapters import snapshot_models as m
+from craftreport.adapters.canonical import WireFailure, bounded_object, canonical_bytes
+from craftreport.adapters.schema_embedding import close_schema
 from craftreport.adapters.snapshot_models import (
     ParameterWire,
     PublicationWire,
@@ -21,7 +23,9 @@ from craftreport.adapters.snapshot_models import (
 from craftreport.adapters.snapshot_models import (
     SnapshotLimits as SnapshotLimits,
 )
-from craftreport.adapters.validation import PydanticCodec
+from craftreport.adapters.validation import PydanticCodec, construct
+from craftreport.application.ports import Missing, ServiceUnavailable, VersionConflict
+from craftreport.application.registry import Codec
 from craftreport.contracts import JsonObject
 from craftreport.contracts.values import JsonValue, freeze_object
 from craftreport.data.validation import (
@@ -31,7 +35,16 @@ from craftreport.data.validation import (
     validate_datetime_lexeme,
     validate_scalar,
 )
-from craftreport.data.values import Dataset, Field, ImportedMetric, Scalar, ScalarKind, Snapshot
+from craftreport.data.values import (
+    Dataset,
+    Field,
+    ImportedMetric,
+    Scalar,
+    ScalarKind,
+    Snapshot,
+    SnapshotRef,
+)
+from craftreport.runtime.publication import LatestRequest, LatestSelection, PublicationResult
 
 
 def _timestamp(value: datetime) -> str:
@@ -387,3 +400,111 @@ def snapshot_codec(
         return result
 
     return PydanticCodec(SnapshotWire, decode, encode, limits.operation_limits())
+
+
+def publication_result_codec() -> PydanticCodec[PublicationResult, m.PublicationResultWire]:
+    return PydanticCodec(
+        m.PublicationResultWire,
+        lambda v: construct(PublicationResult, v, {}),
+        lambda v: cast(
+            JsonObject,
+            m.PublicationResultWire(**{f.name: getattr(v, f.name) for f in fields(v)}).model_dump(
+                mode="json"
+            ),
+        ),
+        json_mode=True,
+    )
+
+
+def snapshot_reference_codec() -> PydanticCodec[SnapshotRef, m.SnapshotRefWire]:
+    return PydanticCodec(m.SnapshotRefWire, m.reference_value, m.reference_object).for_input()
+
+
+def latest_request_codec() -> PydanticCodec[LatestRequest, m.LatestRequestWire]:
+    return PydanticCodec(
+        m.LatestRequestWire,
+        lambda v: construct(LatestRequest, v, {}),
+        lambda v: cast(
+            JsonObject,
+            m.LatestRequestWire(**{f.name: getattr(v, f.name) for f in fields(v)}).model_dump(
+                mode="json"
+            ),
+        ),
+        json_mode=True,
+    ).for_input()
+
+
+@dataclass(frozen=True, slots=True)
+class SnapshotReadCodec:
+    snapshots: Codec[Snapshot]
+
+    def decode(
+        self, value: JsonObject
+    ) -> Snapshot | Missing | VersionConflict | ServiceUnavailable:
+        if "kind" not in value:
+            return self.snapshots.decode(value)
+        try:
+            return READ_FAILURES.validate_json(
+                canonical_bytes(bounded_object(value, 1_048_576)), strict=True, extra="forbid"
+            )
+        except ValueError:
+            raise WireFailure("invalid_input") from None
+
+    def encode(
+        self, value: Snapshot | Missing | VersionConflict | ServiceUnavailable
+    ) -> JsonObject:
+        if isinstance(value, Snapshot):
+            return self.snapshots.encode(value)
+        raw = cast(JsonObject, READ_FAILURES.dump_python(value, mode="json"))
+        self.decode(raw)
+        return freeze_object(raw)
+
+    def schema(self) -> JsonObject:
+        return freeze_object(
+            close_schema(
+                TypeAdapter(
+                    m.SnapshotWire | m.MissingValue | m.ConflictValue | m.UnavailableValue
+                ).json_schema()
+            )
+        )
+
+
+READ_FAILURES = TypeAdapter(m.MissingValue | m.ConflictValue | m.UnavailableValue)
+LATEST_RESULTS = TypeAdapter(m.LatestSelectionWire | m.MissingValue | m.UnavailableValue)
+
+
+def snapshot_read_codec() -> SnapshotReadCodec:
+    return SnapshotReadCodec(snapshot_codec())
+
+
+@dataclass(frozen=True, slots=True)
+class LatestResultCodec:
+    def decode(self, value: JsonObject) -> LatestSelection | Missing | ServiceUnavailable:
+        try:
+            result = LATEST_RESULTS.validate_json(
+                canonical_bytes(bounded_object(value, 1_048_576)), strict=True, extra="forbid"
+            )
+            return (
+                construct(LatestSelection, result, {})
+                if isinstance(result, m.LatestSelectionWire)
+                else result
+            )
+        except ValueError:
+            raise WireFailure("invalid_input") from None
+
+    def encode(self, value: LatestSelection | Missing | ServiceUnavailable) -> JsonObject:
+        content = (
+            m.LatestSelectionWire(**{f.name: getattr(value, f.name) for f in fields(value)})
+            if isinstance(value, LatestSelection)
+            else value
+        )
+        raw = cast(JsonObject, LATEST_RESULTS.dump_python(content, mode="json"))
+        self.decode(raw)
+        return freeze_object(raw)
+
+    def schema(self) -> JsonObject:
+        return freeze_object(close_schema(LATEST_RESULTS.json_schema()))
+
+
+def latest_result_codec() -> LatestResultCodec:
+    return LatestResultCodec()

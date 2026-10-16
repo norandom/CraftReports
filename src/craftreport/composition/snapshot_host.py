@@ -2,11 +2,21 @@
 
 from collections.abc import AsyncGenerator, Callable, Mapping
 from contextlib import AsyncExitStack, asynccontextmanager
+from datetime import UTC, datetime
 from pathlib import Path
 
 from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.version import Version
 
+from craftreport.adapters.snapshot_wire import (
+    finalize_snapshot,
+    latest_request_codec,
+    latest_result_codec,
+    publication_codec,
+    publication_result_codec,
+    snapshot_read_codec,
+    snapshot_reference_codec,
+)
 from craftreport.adapters.storage.database import Database
 from craftreport.adapters.storage.evidence import DurableEvidence
 from craftreport.adapters.storage.journal import DurableJournal
@@ -19,12 +29,45 @@ from craftreport.adapters.storage.providers import (
 from craftreport.adapters.storage.results import DurableResults
 from craftreport.adapters.storage.snapshots import Fingerprint
 from craftreport.application import ports
-from craftreport.application.registry import Codec
+from craftreport.application.registry import BoundOperation, Codec
 from craftreport.composition.app import HostedApplication, open_application
 from craftreport.composition.plugins import ActivationSnapshot
 from craftreport.composition.settings import GuaranteeProviders, HostSettings
-from craftreport.contracts import CapabilityRequirement, ResourceRef
+from craftreport.contracts import CapabilityRequirement, Principal, ResourceRef
 from craftreport.data.values import Snapshot
+from craftreport.runtime.capability import PublicationCodecs, publication_operations
+from craftreport.runtime.ports import SnapshotQueries
+from craftreport.runtime.publication import PublicationOperations
+
+
+def snapshot_operation_bindings(
+    resources: DurableResources, *, owner_policy: Callable[[Principal], bool]
+) -> tuple[BoundOperation, ...]:
+    """Explicit owner policy grants inspection of that owner's retained feed history."""
+    if not callable(owner_policy):
+        raise ValueError("Explicit snapshot owner policy required")
+
+    def queries(principal: Principal) -> SnapshotQueries:
+        if owner_policy(principal) is not True:
+            raise ValueError("Snapshot owner policy denied")
+        return resources.store.queries(principal)
+
+    handlers = PublicationOperations(
+        resources.store,
+        queries,
+        finalize_snapshot,
+        resources.store.codec,
+        lambda: datetime.now(UTC),
+    )
+    codecs = PublicationCodecs(
+        publication_codec(),
+        publication_result_codec(),
+        snapshot_reference_codec(),
+        snapshot_read_codec(),
+        latest_request_codec(),
+        latest_result_codec(),
+    )
+    return publication_operations(handlers, codecs)
 
 
 class ActivatedCapabilities:

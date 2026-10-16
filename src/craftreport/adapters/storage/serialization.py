@@ -287,3 +287,44 @@ def validate_preparation(value: JsonObject, reference: EvidenceRef) -> tuple[byt
     if parsed.stage != reference.scope or digest != reference.content_digest:
         raise ValueError("Preparation reference content differs")
     return payload, digest
+
+
+@dataclass(frozen=True, slots=True)
+class DecisionFact:
+    schema_version: Literal["1"]
+    operation_id: str
+    feed_id: str
+    requested_version: str
+    requested_digest: str
+    status: Literal["accepted", "existing", "stale_version", "version_conflict"]
+    retained_version: str | None
+    retained_digest: str | None
+    high_water: str
+    high_water_digest: str
+    feed_revision: str
+
+
+_decision_adapter = TypeAdapter(DecisionFact)
+
+
+def decision_frame(fact: JsonObject) -> DecisionFact:
+    payload, _ = encode_object(fact)
+    if len(payload) > 65_536:
+        raise ValueError("Decision metadata exceeds 64KiB")
+    result = _decision_adapter.validate_json(payload, strict=True, extra="forbid")
+    for value in (
+        result.requested_version,
+        result.retained_version,
+        result.high_water,
+        result.feed_revision,
+    ):
+        if value is not None and (
+            re.fullmatch(r"[1-9][0-9]{0,18}", value) is None or int(value) >= 2**63
+        ):
+            raise ValueError("Invalid decision version")
+    for value in (result.requested_digest, result.retained_digest, result.high_water_digest):
+        if value is not None and re.fullmatch(r"[0-9a-f]{64}", value) is None:
+            raise ValueError("Invalid decision digest")
+    if not result.feed_id.strip() or not result.operation_id.strip():
+        raise ValueError("Invalid decision identity")
+    return result

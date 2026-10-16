@@ -457,11 +457,16 @@ def test_purged_identity_cannot_rehydrate_or_fall_back(tmp_path: Path) -> None:
         assert isinstance(
             await target.read(ResourceRef("snapshot", "portfolio:one:3")), ports.Missing
         )
-        assert isinstance(await publish(target, database, 2, "2"), ports.VersionConflict)
+        stale = await publish(target, database, 2, "2")
+        assert isinstance(stale, ports.ResourceEffect) and stale.effect is EffectDisposition.NONE
         changed = {**producer(3), "observation_time": "2026-10-15T11:00:00.000000Z"}
         _, change = await admitted(database, 3, "2", content_override=changed)
         async with target.guard.acquire((ExpectedVersion(FEED, "2"),)) as lease:
-            assert isinstance(await target.apply(FEED, change, lease), ports.VersionConflict)
+            conflict = await target.apply(FEED, change, lease)
+            assert (
+                isinstance(conflict, ports.ResourceEffect)
+                and conflict.effect is EffectDisposition.NONE
+            )
         assert isinstance(await publish(target, database, 4, "2"), ports.ResourceEffect)
         await database.close()
 

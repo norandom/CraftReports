@@ -1,5 +1,7 @@
 """Exact immutable snapshot bytes, owned feeds and atomic publication facts."""
 
+from __future__ import annotations
+
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from uuid import uuid4
@@ -8,11 +10,17 @@ from sqlalchemy import insert, select, update
 from sqlalchemy.engine import Connection, RowMapping
 
 from craftreport.adapters.storage.database import Database, StorageUnavailable
-from craftreport.adapters.storage.evidence import snapshot_evidence
+from craftreport.adapters.storage.evidence import (
+    STORAGE_FAILURES,
+    snapshot_evidence,
+    snapshot_row,
+    validate_decision,
+)
 from craftreport.adapters.storage.journal import DurableJournal
 from craftreport.adapters.storage.schema import commands, evidence, feeds, snapshots
 from craftreport.adapters.storage.serialization import (
     PURGED,
+    decision_frame,
     decode_evidence,
     decode_object,
     encode_evidence,
@@ -27,10 +35,19 @@ from craftreport.contracts import (
     ExpectedVersion,
     JsonObject,
     OperationKey,
+    Principal,
     ReceiptState,
     ResourceRef,
 )
-from craftreport.data.values import Snapshot
+from craftreport.data.requirements import check_completeness
+from craftreport.data.values import Snapshot, SnapshotRef
+from craftreport.runtime.publication import (
+    LatestRequest,
+    LatestSelection,
+    PublicationDecision,
+    PublicationResult,
+    summarize,
+)
 
 type Fingerprint = Callable[
     [OperationKey, JsonObject, tuple[ResourceRef, ...], tuple[ExpectedVersion, ...]], str
@@ -106,14 +123,83 @@ class SnapshotStore:
     def prepare(self, change: JsonObject) -> Publication:
         return prepare_publication(self.codec, change)
 
+    def queries(self, principal: Principal) -> SnapshotQueryAdapter:
+        return SnapshotQueryAdapter(self, principal)
+
+    async def read_decision(
+        self, operation_id: str
+    ) -> PublicationDecision | ports.Missing | ports.ServiceUnavailable:
+        try:
+            return await self.database.transaction(lambda c: self._decision(c, operation_id))
+        except STORAGE_FAILURES:
+            return ports.ServiceUnavailable("publication_decision")
+
+    def _decision(
+        self, connection: Connection, operation_id: str
+    ) -> PublicationDecision | ports.Missing:
+        rows = (
+            connection.execute(
+                select(evidence).where(evidence.c.operation_id == operation_id).limit(3)
+            )
+            .mappings()
+            .all()
+        )
+        refs = tuple(
+            decode_evidence(row["reference_bytes"], row["reference_digest"]) for row in rows
+        )
+        pairs = [
+            (row, ref)
+            for row, ref in zip(rows, refs, strict=True)
+            if ref.scope == "publication_decided"
+        ]
+        if not pairs:
+            return ports.Missing()
+        if len(pairs) != 1 or any(
+            ref.identity != row["identity"] or ref.operation_id != operation_id
+            for row, ref in zip(rows, refs, strict=True)
+        ):
+            raise ValueError("Decision evidence differs")
+        row, reference = pairs[0]
+        if reference.content_digest != row["fact_digest"]:
+            raise ValueError("Decision checksum linkage differs")
+        item = validate_decision(
+            connection,
+            self.database,
+            reference,
+            decode_object(row["fact_bytes"], row["fact_digest"], max_bytes=65_536),
+        )
+        requested = SnapshotRef(item.feed_id, int(item.requested_version), item.requested_digest)
+        latest = SnapshotRef(item.feed_id, int(item.high_water), item.high_water_digest)
+        retained = (
+            None
+            if item.retained_version is None or item.retained_digest is None
+            else SnapshotRef(item.feed_id, int(item.retained_version), item.retained_digest)
+        )
+        content = (
+            None
+            if retained is None
+            else self._snapshot(connection, retained.feed_id, retained.producer_version)
+        )
+        availability = None if content is None else Availability.MISSING
+        summary = None
+        if isinstance(content, ports.ResourceSnapshot):
+            availability = Availability.AVAILABLE
+            if item.status in ("accepted", "existing"):
+                summary = summarize(self.codec.decode(content.content))
+        ordered = tuple(sorted(refs, key=lambda ref: ref.scope == "publication_decided"))
+        return PublicationDecision(
+            PublicationResult(item.status, requested, retained, latest, availability, summary),
+            EffectDisposition.APPLIED if item.status == "accepted" else EffectDisposition.NONE,
+            reference.resource_versions,
+            ordered,
+        )
+
     def _content(
         self, connection: Connection, row: RowMapping
     ) -> ports.ResourceSnapshot | ports.Missing:
+        support = snapshot_evidence(connection, self.database, row["operation_id"])
         if row["snapshot_bytes"].startswith(PURGED):
-            if (
-                snapshot_evidence(connection, self.database, row["operation_id"]).availability
-                is not Availability.MISSING
-            ):
+            if support.availability is not Availability.MISSING:
                 raise ValueError("Invalid snapshot removal")
             return ports.Missing()
         return read_retained_snapshot(self.codec, row)
@@ -121,30 +207,13 @@ class SnapshotStore:
     def _snapshot(
         self, connection: Connection, feed: str, version: int
     ) -> ports.ResourceSnapshot | ports.Missing:
-        row = (
-            connection.execute(
-                select(snapshots).where(
-                    snapshots.c.feed_id == feed,
-                    snapshots.c.producer_version == version,
-                )
-            )
-            .mappings()
-            .one_or_none()
-        )
+        row = snapshot_row(connection, feed, version)
         return ports.Missing() if row is None else self._content(connection, row)
 
     def identity(
         self, connection: Connection, feed: str, version: int
     ) -> ExpectedVersion | ports.Missing:
-        row = (
-            connection.execute(
-                select(snapshots).where(
-                    snapshots.c.feed_id == feed, snapshots.c.producer_version == version
-                )
-            )
-            .mappings()
-            .one_or_none()
-        )
+        row = snapshot_row(connection, feed, version)
         if row is None:
             return ports.Missing()
         self._content(connection, row)
@@ -244,23 +313,50 @@ class SnapshotStore:
             raise ValueError("Publication does not own feed")
         existing = self.identity(connection, snapshot.feed_id, snapshot.producer_version)
         expected = ExpectedVersion(snapshot_resource(snapshot), snapshot.content_digest)
+        status = "accepted"
         if isinstance(existing, ExpectedVersion):
-            if existing != expected:
-                return ports.VersionConflict((expected,), (existing,))
-            return ports.ResourceEffect(EffectDisposition.NONE, versions, ())
-        if feed is not None and snapshot.producer_version < feed["high_water"]:
-            latest = self.identity(connection, snapshot.feed_id, feed["high_water"])
-            if isinstance(latest, ports.Missing):
-                raise ValueError("Missing feed high water")
-            return ports.VersionConflict((expected,), (latest,))
-        revision = 1 if feed is None else feed["revision"] + 1
-        self._advance(connection, publication, feed, subject, revision)
+            status = "existing" if existing == expected else "version_conflict"
+        elif feed is not None and snapshot.producer_version < feed["high_water"]:
+            status = "stale_version"
+        accepted = status == "accepted"
+        revision = 1 if feed is None else feed["revision"] + accepted
+        high = snapshot.producer_version if accepted or feed is None else int(feed["high_water"])
+        latest = expected if accepted else self.identity(connection, snapshot.feed_id, high)
+        if isinstance(latest, ports.Missing):
+            raise ValueError("Missing feed high water")
+        fact: JsonObject = {
+            "schema_version": "1",
+            "operation_id": publication.operation_id,
+            "feed_id": snapshot.feed_id,
+            "requested_version": str(snapshot.producer_version),
+            "requested_digest": snapshot.content_digest,
+            "status": status,
+            "retained_version": None
+            if status == "stale_version"
+            else str(snapshot.producer_version),
+            "retained_digest": existing.version
+            if isinstance(existing, ExpectedVersion)
+            else (snapshot.content_digest if accepted else None),
+            "high_water": str(high),
+            "high_water_digest": latest.version,
+            "feed_revision": str(revision),
+        }
+        decision_frame(fact)
         pins = (ExpectedVersion(ResourceRef("feed", snapshot.feed_id), str(revision)),)
-        reference = self._fact(connection, publication, pins)
-        stored = self._snapshot(connection, snapshot.feed_id, snapshot.producer_version)
-        if not isinstance(stored, ports.ResourceSnapshot) or stored.content != publication.content:
-            raise ValueError("Snapshot readback failed")
-        return ports.ResourceEffect(EffectDisposition.APPLIED, pins, (reference,))
+        references: tuple[EvidenceRef, ...] = ()
+        if accepted:
+            self._advance(connection, publication, feed, subject, revision)
+            references = (self._fact(connection, publication, pins),)
+            stored = self._snapshot(connection, snapshot.feed_id, snapshot.producer_version)
+            if (
+                not isinstance(stored, ports.ResourceSnapshot)
+                or stored.content != publication.content
+            ):
+                raise ValueError("Snapshot readback failed")
+        references += (self._fact(connection, publication, pins, fact),)
+        return ports.ResourceEffect(
+            EffectDisposition.APPLIED if accepted else EffectDisposition.NONE, pins, references
+        )
 
     def _advance(
         self,
@@ -295,7 +391,11 @@ class SnapshotStore:
         )
 
     def _fact(
-        self, connection: Connection, publication: Publication, pins: ports.Preconditions
+        self,
+        connection: Connection,
+        publication: Publication,
+        pins: ports.Preconditions,
+        decision: JsonObject | None = None,
     ) -> EvidenceRef:
         snapshot = publication.snapshot
         fact: JsonObject = {
@@ -304,10 +404,11 @@ class SnapshotStore:
             "producer_version": str(snapshot.producer_version),
             "content_digest": snapshot.content_digest,
         }
+        fact = fact if decision is None else decision
         payload, digest = encode_object(fact)
         reference = EvidenceRef(
             uuid4().hex,
-            "snapshot_persisted",
+            "snapshot_persisted" if decision is None else "publication_decided",
             publication.operation_id,
             OperationKey("snapshot.publish", "1"),
             pins,
@@ -337,3 +438,128 @@ class SnapshotStore:
         ):
             raise ValueError("Committed fact readback failed")
         return observed
+
+
+@dataclass(frozen=True, slots=True)
+class SnapshotQueryAdapter:
+    store: SnapshotStore
+    principal: Principal
+
+    def _feed(self, connection: Connection, feed_id: str) -> ports.ResourceSnapshot | ports.Missing:
+        if self.principal.deployment_scope != self.store.database.deployment.identity:
+            raise ValueError("Deployment differs")
+        row = (
+            connection.execute(select(feeds).where(feeds.c.feed_id == feed_id))
+            .mappings()
+            .one_or_none()
+        )
+        if row is None:
+            return ports.Missing()
+        if row["subject"] != self.principal.subject:
+            raise ValueError("Feed owner differs")
+        if any(
+            type(row[name]) is not int or not 0 < row[name] < 2**63
+            for name in ("revision", "high_water")
+        ):
+            raise ValueError("Invalid feed metadata")
+        digest = connection.execute(
+            select(snapshots.c.content_digest).where(
+                snapshots.c.feed_id == feed_id, snapshots.c.producer_version == row["high_water"]
+            )
+        ).scalar_one()
+        return ports.ResourceSnapshot(
+            ExpectedVersion(ResourceRef("feed", feed_id), str(row["revision"])),
+            {"high_water": str(row["high_water"]), "content_digest": digest},
+        )
+
+    def _read(
+        self, connection: Connection, ref: SnapshotRef
+    ) -> Snapshot | ports.Missing | ports.VersionConflict:
+        if isinstance(self._feed(connection, ref.feed_id), ports.Missing):
+            return ports.Missing()
+        identity = self.store.identity(connection, ref.feed_id, ref.producer_version)
+        expected = ExpectedVersion(
+            ResourceRef("snapshot", ref.feed_id + ":" + str(ref.producer_version)),
+            ref.content_digest,
+        )
+        if isinstance(identity, ports.Missing):
+            return identity
+        if identity != expected:
+            return ports.VersionConflict((expected,), (identity,))
+        content = self.store.read(connection, expected.resource)
+        return (
+            content
+            if isinstance(content, ports.Missing)
+            else self.store.codec.decode(content.content)
+        )
+
+    async def read(
+        self, ref: SnapshotRef
+    ) -> Snapshot | ports.Missing | ports.VersionConflict | ports.ServiceUnavailable:
+        try:
+            return await self.store.database.transaction(lambda c: self._read(c, ref))
+        except STORAGE_FAILURES:
+            return ports.ServiceUnavailable("snapshot_content")
+
+    async def _page(self, feed: str, before: int) -> tuple[SnapshotRef, ...]:
+        def load(connection: Connection) -> tuple[SnapshotRef, ...]:
+            self._feed(connection, feed)
+            rows = connection.execute(
+                select(snapshots.c.producer_version, snapshots.c.content_digest)
+                .where(snapshots.c.feed_id == feed, snapshots.c.producer_version <= before)
+                .order_by(snapshots.c.producer_version.desc())
+                .limit(16)
+            ).all()
+            return tuple(SnapshotRef(feed, row[0], row[1]) for row in rows)
+
+        return await self.store.database.transaction(load)
+
+    async def latest(
+        self, request: LatestRequest
+    ) -> LatestSelection | ports.Missing | ports.ServiceUnavailable:
+        try:
+            feed = await self.store.database.transaction(lambda c: self._feed(c, request.feed_id))
+            if isinstance(feed, ports.Missing):
+                return feed
+            latest = SnapshotRef(
+                request.feed_id,
+                int(str(feed.content["high_water"])),
+                str(feed.content["content_digest"]),
+            )
+            if request.requirements is not None:
+                return await self._select(request, latest, Availability.AVAILABLE)
+            content = await self.read(latest)
+            if isinstance(content, (ports.ServiceUnavailable, ports.VersionConflict)):
+                return ports.ServiceUnavailable("snapshot_selection_content")
+            availability = (
+                Availability.MISSING
+                if isinstance(content, ports.Missing)
+                else Availability.AVAILABLE
+            )
+            return LatestSelection(latest, availability, "not_requested", None, ())
+        except STORAGE_FAILURES:
+            return ports.ServiceUnavailable("snapshot_selection_content")
+
+    async def _select(
+        self, request: LatestRequest, latest: SnapshotRef, availability: Availability
+    ) -> LatestSelection | ports.ServiceUnavailable:
+        assert request.requirements is not None
+        before, checked, issues = latest.producer_version, 0, ()
+        while True:
+            page = await self._page(request.feed_id, before)
+            if not page:
+                return LatestSelection(latest, availability, "none", None, issues)
+            for ref in page:
+                if checked == 64:
+                    return ports.ServiceUnavailable("snapshot_selection_limit")
+                content = await self.read(ref)
+                if not isinstance(content, Snapshot):
+                    return ports.ServiceUnavailable("snapshot_selection_content")
+                found = check_completeness(content, request.requirements)
+                del content
+                if ref == latest:
+                    issues = found
+                if not found:
+                    return LatestSelection(latest, availability, "selected", ref, issues)
+                checked += 1
+            before = page[-1].producer_version - 1

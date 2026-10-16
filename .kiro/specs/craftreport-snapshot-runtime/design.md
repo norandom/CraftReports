@@ -148,7 +148,7 @@ Existing `POST /v1/invoke` and registry-derived MCP tools such as `snapshot.publ
 
 | Operation | Kind / request | Result / required effect |
 | --- | --- | --- |
-| `snapshot.publish` | Command; complete schema-tagged replacement | SnapshotRef, schema counts, times/findings; `snapshot_persisted` evidence read from committed bytes |
+| `snapshot.publish` | Command; complete schema-tagged replacement | Typed publication decision, identity/counts/times/findings; required `publication_decided`, plus actual `snapshot_persisted` support for accepted |
 | `snapshot.read` | Query; SnapshotRef | Exact Snapshot or missing/unavailable/conflict |
 | `snapshot.latest` | Query; feed_id and optional InputRequirements | Latest accepted ref and highest complete ref plus incomplete diagnostics |
 | `runtime.bind` | Command; immutable binding specification, expected generation | Binding state/generation; persisted read-back evidence |
@@ -328,6 +328,24 @@ budget. Existing reader/tombstone/lifetime responsibilities remain in their
 current files; no reexport shim or semantic expansion is introduced. Measured
 initial1373/1500 exceeds the earlier growth estimate; remaining capacity does
 not establish fit for later tasks. Actual final gates remain mandatory.
+
+### Accepted task 4.1 publication/query contract
+
+Follow publication-query-amendment.md, independently approved at SHA256
+416FFADE5365BCA98DAA6FAB01A08487652A22DCF07B1DEC47C6ECF1EFFDF507.
+The required publication_decided stage records the actual current-operation
+business decision; accepted additionally carries and independently verifies
+its current-operation persistence support. Existing/stale/conflict outcomes
+never fabricate a snapshot write. Existing ResourceEffects.apply remains the
+writer; a narrow typed exact-operation readback supplies the historical decision,
+completion pins and evidence without reconstructing today's feed state.
+Queries use principal-bound adapters and explicit resource authorization.
+Successful snapshot.read remains bare SnapshotWire with its retained1MiB limit.
+Latest selection is anchored, reads pages of16 and checks at most64 candidates;
+unknown purged support or an unproven result at the limit is unavailable, never
+false completeness. Structural publication findings do not validate methodology.
+Task4.1 implementation waits accepted3.5 and shared codec readiness; unchanged
+actual caps and a complete residual forecast apply before its bounded GO.
 
 
 ### Accepted task 3.5 typed retained-content validation

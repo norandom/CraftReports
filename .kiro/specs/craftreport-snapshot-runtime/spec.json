@@ -113,6 +113,13 @@
     "reviewed_sha256": "D152DF4B50450724A64CC54AA947704EA44A77BA8456F7E54267709208DFFE74",
     "authorization": "owner-directed-bounded-fast-track"
   },
+  "publication_query_amendment": {
+    "reference": "publication-query-amendment.md",
+    "reviewer": "/root/review_services_plan",
+    "verdict": "PASS",
+    "reviewed_sha256": "416FFADE5365BCA98DAA6FAB01A08487652A22DCF07B1DEC47C6ECF1EFFDF507",
+    "authorization": "owner-directed-bounded-fast-track"
+  },
   "retention_validation_amendment": {
     "reference": "retention-validation-amendment.md",
     "reviewer": "/root/review_services_plan",

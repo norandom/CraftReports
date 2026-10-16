@@ -93,7 +93,8 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   - _Boundary: Development-gates integration; quality.toml, scripts/quality_policy.py, scripts/check_quality.py if needed, focused tests/engineering and approval metadata_
   - _Depends: 3.5 and explicit owner approval recorded 2026-10-16_
   - _Requirements: 1.5, 5.7, 6.1, 6.2_
-- [ ] 4.1 Implement ordered publication and exact snapshot queries through the facade
+- [x] 4.1 Implement ordered publication and exact snapshot queries through the facade
+  - Apply independently reviewed publication-query-amendment.md: exact current-operation decisions and typed readback, independently verified accepted persistence pair, explicit principal-bound query authorization and structural findings; anchored16-row/64-candidate selection fails unavailable when not proven, and bare retained snapshot bytes remain <=1MiB.
   - Atomically commit validated canonical bytes/high-water/effect facts; handle identical versions, conflict, stale arrivals and normalized retries distinctly.
   - Before the acceptance transaction commits, serialize the exact final canonical snapshot.read result including finalized service timestamps/digest and enforce the descriptor byte cap; a failure retains prior snapshot content and high-water. Preserve 2.3's preadmission worst-case bound and the defensive exact readback check.
   - Register snapshot.publish/read/latest using existing OperationBinding and shared kernel resources, limits, receipts and required persisted-stage evidence.
@@ -257,3 +258,16 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   `artifacts/storage-gate-review/review-hook.txt`. The new storage aggregate
   is 2,000; other owner and local limits are unchanged. Final task commit
   retains the mandatory installed hook. Unaccepted GridCraft WIP is preserved.
+
+- Task 4.1: independently approved by `/root/review_publication_4_1` after
+  current-operation decision/persistence, exact historical readback, authorization
+  and bounded-selection review. Canonical candidate hook passed on matching
+  production source; final focused checks cover the signed64 anchor fix,
+  finalized-byte overflow rollback and cancelled-page cleanup/reopen. Codec
+  tests, strict typing, lint, imports and budgets passed. Evidence:
+  `artifacts/publication-review/independent-review.md` and
+  `artifacts/snapshot-runtime/task-4.1/implementation-evidence.md`.
+  Storage1615/2000, adapters1431/1500, runtime207/1500; local limits unchanged.
+  Publication and exact/latest queries use real retained storage through the
+  shared facade. Installed REST/MCP restart acceptance remains task4.2; this
+  acceptance makes no visible dashboard, exported XLSX or full-release claim.

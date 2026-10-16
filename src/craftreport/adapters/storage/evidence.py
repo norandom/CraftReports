@@ -1,12 +1,16 @@
 """Independent retained fact verification through the existing evidence table."""
 
-from sqlalchemy import select
-from sqlalchemy.engine import Connection
+import re
+
+from sqlalchemy import func, select
+from sqlalchemy.engine import Connection, RowMapping
 
 from craftreport.adapters.storage.database import Database, StorageUnavailable
 from craftreport.adapters.storage.journal import DurableJournal
 from craftreport.adapters.storage.schema import commands, evidence, feeds, snapshots
 from craftreport.adapters.storage.serialization import (
+    DecisionFact,
+    decision_frame,
     decode_evidence,
     decode_object,
     decode_tombstone,
@@ -17,8 +21,10 @@ from craftreport.contracts import (
     Availability,
     EvidenceRef,
     EvidenceStatus,
+    ExpectedVersion,
     JsonObject,
     OperationKey,
+    ResourceRef,
     StageState,
 )
 
@@ -30,6 +36,20 @@ STORAGE_FAILURES = (
     OverflowError,
     RecursionError,
 )
+
+
+def snapshot_row(connection: Connection, feed: str, version: int) -> RowMapping | None:
+    selected = (snapshots.c.feed_id == feed, snapshots.c.producer_version == version)
+    sizes = connection.execute(
+        select(
+            func.length(snapshots.c.producer_bytes), func.length(snapshots.c.snapshot_bytes)
+        ).where(*selected)
+    ).one_or_none()
+    if sizes is None:
+        return None
+    if any(type(size) is not int or not 0 < size <= 1_048_576 for size in sizes):
+        raise ValueError("Snapshot content exceeds retained bound")
+    return connection.execute(select(snapshots).where(*selected)).mappings().one()
 
 
 def preparation_command(
@@ -106,6 +126,8 @@ class DurableEvidence:
             elif reference.scope == "snapshot_persisted":
                 if self._snapshot_fact(connection, reference, fact):
                     return EvidenceStatus(reference, Availability.MISSING)
+            elif reference.scope == "publication_decided":
+                validate_decision(connection, self.database, reference, fact)
             else:
                 return EvidenceStatus(reference, Availability.UNAVAILABLE)
             return EvidenceStatus(reference, Availability.AVAILABLE, StageState.PASSED)
@@ -211,3 +233,102 @@ def snapshot_evidence(
     if status.availability not in (Availability.AVAILABLE, Availability.MISSING):
         raise ValueError("Original snapshot evidence unavailable")
     return status
+
+
+def decision_identity(
+    connection: Connection, database: Database, feed: str, version: str, digest: str
+) -> str:
+    row = snapshot_row(connection, feed, int(version))
+    if row is None or row["content_digest"] != digest:
+        raise ValueError("Decision retained identity differs")
+    snapshot_evidence(connection, database, row["operation_id"])
+    return row["operation_id"]
+
+
+def validate_decision(
+    connection: Connection, database: Database, reference: EvidenceRef, fact: JsonObject
+) -> DecisionFact:
+    item = decision_frame(fact)
+    row = (
+        connection.execute(select(commands).where(commands.c.operation_id == item.operation_id))
+        .mappings()
+        .one()
+    )
+    command = DurableJournal(database).retained(connection, row)
+    resource = ResourceRef("feed", item.feed_id)
+    pins = (ExpectedVersion(resource, item.feed_revision),)
+    subject = connection.execute(
+        select(feeds.c.subject).where(feeds.c.feed_id == item.feed_id)
+    ).scalar_one()
+    if (
+        not isinstance(command, ports.RetainedCommand)
+        or reference.operation_id != item.operation_id
+        or reference.operation != OperationKey("snapshot.publish", "1")
+        or command.receipt.operation != reference.operation
+        or command.intent.retry_key.operation != reference.operation
+        or command.intent.retry_key.subject != subject
+        or command.intent.retry_key.deployment_scope != database.deployment.identity
+        or command.intent.resources != (resource,)
+        or command.receipt.resources != (resource,)
+        or command.receipt.expected_versions != command.intent.expected_versions
+        or len(command.intent.expected_versions) != 1
+        or command.intent.expected_versions[0].resource != resource
+        or reference.resource_versions != pins
+    ):
+        raise ValueError("Decision command linkage differs")
+    previous = command.intent.expected_versions[0].version
+    if previous != "absent" and (
+        re.fullmatch(r"[1-9][0-9]*", previous) is None or int(previous) >= 2**63
+    ):
+        raise ValueError("Invalid original feed revision")
+    revision = 0 if previous == "absent" else int(previous)
+    if int(item.feed_revision) != revision + (item.status == "accepted") or (
+        revision == 0 and item.status != "accepted"
+    ):
+        raise ValueError("Decision revision differs")
+    decision_identity(connection, database, item.feed_id, item.high_water, item.high_water_digest)
+    validate_decision_status(connection, database, item)
+    return item
+
+
+def validate_decision_status(
+    connection: Connection, database: Database, item: DecisionFact
+) -> None:
+    requested = (item.requested_version, item.requested_digest)
+    retained = (item.retained_version, item.retained_digest)
+    if item.status == "stale_version":
+        exists = connection.execute(
+            select(snapshots.c.operation_id).where(
+                snapshots.c.feed_id == item.feed_id,
+                snapshots.c.producer_version == int(item.requested_version),
+            )
+        ).first()
+        if (
+            retained != (None, None)
+            or int(item.requested_version) >= int(item.high_water)
+            or exists
+        ):
+            raise ValueError("Invalid stale decision")
+        return
+    if item.retained_version is None or item.retained_digest is None:
+        raise ValueError("Missing decision retained identity")
+    owner = decision_identity(
+        connection, database, item.feed_id, item.retained_version, item.retained_digest
+    )
+    if int(item.retained_version) > int(item.high_water):
+        raise ValueError("Decision exceeds high water")
+    if item.status == "version_conflict":
+        if requested[0] != retained[0] or requested[1] == retained[1]:
+            raise ValueError("Invalid conflict decision")
+    elif requested != retained:
+        raise ValueError("Invalid retained decision")
+    if item.status == "accepted":
+        support = snapshot_evidence(connection, database, item.operation_id)
+        pins = (ExpectedVersion(ResourceRef("feed", item.feed_id), item.feed_revision),)
+        if (
+            owner != item.operation_id
+            or requested != (item.high_water, item.high_water_digest)
+            or support.availability is not Availability.AVAILABLE
+            or support.reference.resource_versions != pins
+        ):
+            raise ValueError("Accepted decision lacks exact persistence support")
