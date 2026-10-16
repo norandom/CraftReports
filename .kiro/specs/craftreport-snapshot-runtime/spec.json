@@ -119,5 +119,14 @@
     "verdict": "PASS",
     "reviewed_sha256": "468BA2B709AEE1BA9C704B8F0AE28422FBACD6A19AB56661019ECD55CFE06EB0",
     "authorization": "owner-directed-bounded-fast-track"
+  },
+  "storage_budget_calibration": {
+    "reference": "storage-budget-calibration-amendment.md",
+    "reviewed_sha256": "5354B5E93315E8A7395DEAA675AF43BAD0C01ED2DA132C394805E56F1B1E4237",
+    "verdict": "APPROVED",
+    "owner_approved_at": "2026-10-16",
+    "owner_approval_reference": "../craftreport-reporting-facade/first-release-calibration-approval.md",
+    "implementation_status": "task-4.0-independently-accepted",
+    "executable_tasks": 20
   }
 }

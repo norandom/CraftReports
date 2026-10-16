@@ -86,7 +86,10 @@ approved = true
 approved_at = "2026-10-15"
 approval_reference = ".kiro/specs/craftreport-snapshot-runtime/design-review.md"
 capability_ids = ["data", "runtime", "snapshot-storage"]
-limits = "existing defaults: 50 function / 300 module / 1500 capability LLOC and McCabe 10; no raises"
+limits = "50 function / 300 module / 2000 snapshot-storage capability LLOC and McCabe 10; data/runtime retain 1500"
+budget_amendment_reference = ".kiro/specs/craftreport-snapshot-runtime/storage-budget-calibration-amendment.md"
+budget_amendment_approved_at = "2026-10-16"
+budget_gate_state = "implemented-task-4.0; exact-storage-2000-enforced; task-review-accepted"
 executable_owner = "development-gates"
 executable_paths = ["scripts/examples/publish_and_recover_snapshot.py", "scripts/examples/snapshot_demo_host.py"]
 content_owner = "public-packs"
@@ -153,3 +156,12 @@ approved = true
 owner = "project-owner"
 rationale = "Owner approved browser-only lifecycle evidence calibration on 2026-10-15; global and local limits remain unchanged"
 approval_reference = ".kiro/specs/craftreport-browser-verification/lifecycle-evidence-budget-amendment.md"
+
+[[capability_limits.entries]]
+capability_id = "snapshot-storage"
+rule = "capability-lloc"
+value = 2000
+approved = true
+owner = "project-owner"
+rationale = "Owner approved storage-only calibration on 2026-10-16; all other global and local limits remain unchanged"
+approval_reference = ".kiro/specs/craftreport-snapshot-runtime/storage-budget-calibration-amendment.md"

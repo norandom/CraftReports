@@ -86,13 +86,20 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   - _Requirements: 5.1, 5.5, 5.7, 6.2_
 
 - [ ] 4. Deliver the first durable producer workflow
+- [x] 4.0 Enforce the owner-approved snapshot storage budget calibration
+  - Apply storage-budget-calibration-amendment.md and the owner's first-release-calibration-approval.md record. Extend the existing exact capability-limit machinery to snapshot-storage 2,000 only; retain browser 3,400, all other default 1,500 and local 50/300/10 limits.
+  - Keep approved owner/reference/scope metadata and reject unknown, duplicate, wrong-rule or wrong-value overrides. No ownership relocation or release scope change.
+  - Done when real source fixtures prove 2,000 passes / 2,001 fails, other default owners fail at 1,501, browser and local bounds remain enforced, and independent review plus the canonical installed hook pass.
+  - _Boundary: Development-gates integration; quality.toml, scripts/quality_policy.py, scripts/check_quality.py if needed, focused tests/engineering and approval metadata_
+  - _Depends: 3.5 and explicit owner approval recorded 2026-10-16_
+  - _Requirements: 1.5, 5.7, 6.1, 6.2_
 - [ ] 4.1 Implement ordered publication and exact snapshot queries through the facade
   - Atomically commit validated canonical bytes/high-water/effect facts; handle identical versions, conflict, stale arrivals and normalized retries distinctly.
   - Before the acceptance transaction commits, serialize the exact final canonical snapshot.read result including finalized service timestamps/digest and enforce the descriptor byte cap; a failure retains prior snapshot content and high-water. Preserve 2.3's preadmission worst-case bound and the defensive exact readback check.
   - Register snapshot.publish/read/latest using existing OperationBinding and shared kernel resources, limits, receipts and required persisted-stage evidence.
   - Done when real stored snapshots are immutable, acceptance summaries/times/findings read back, incomplete input remains accepted but is excluded from complete selection and concurrent arrivals expose one feed order.
   - _Boundary: Explicit integration of PublicationOperations and SnapshotStore_
-  - _Depends: 2.3, 3.5_
+  - _Depends: 2.3, 3.5, 4.0_
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 3.1, 6.1, 6.3_
 - [ ] 4.2 Assemble and verify installed REST publish and MCP read after restart
   - Compose the explicit provider lifetime/capability with open_application/settings.configure, trusted principal policy and installed entry point; no alternate dispatcher or transport route.
@@ -241,3 +248,12 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   Historical identity/receipts remain retained; current removed content is
   Missing. This is selected-content removal, not secure erasure of every copy.
   Remaining estimated storage work does not have an established full fit.
+
+- Task 4.0: independently approved by `/root/review_release_storage_gate`;
+  56 focused tests and 39 subtests plus seven independent adversarial checks
+  passed. Ruff/format/strict Pyright and the accepted-candidate installed
+  canonical hook passed. Exact source hashes matched the review. Evidence:
+  `artifacts/snapshot-runtime/task-4.0/independent-review.md` and
+  `artifacts/storage-gate-review/review-hook.txt`. The new storage aggregate
+  is 2,000; other owner and local limits are unchanged. Final task commit
+  retains the mandatory installed hook. Unaccepted GridCraft WIP is preserved.

@@ -61,6 +61,18 @@ scoped to its boundary/version. Other future capability budgets require their ow
 
 Exceptions need an exact capability/path/rule, rationale, accountable owner, approval reference and expiry. Expired or overbroad exceptions fail; they do not silently renew. Core library/application code and externally maintained Craft/Rust code have separate ownership.
 
+## Snapshot storage calibration approved 2026-10-16
+
+The owner approved a snapshot-storage-only aggregate limit of 2,000 LLOC in
+the [first-release decision](../specs/craftreport-reporting-facade/first-release-calibration-approval.md),
+following independent review of the exact storage-budget-calibration amendment.
+Snapshot task 4.0 implemented the exact enforcing gate; independent review and
+the accepted-candidate installed hook passed. Its accepted storage aggregate is
+2,000; the original 1,500 allocation is superseded for this owner only. Function 50, module 300, McCabe 10, browser 3,400 and
+all other existing limits remain unchanged. The allocation covers only the
+existing reviewed first-release storage responsibilities; it grants no extra
+feature scope, ownership transfer or acceptance waiver.
+
 ## Agent Work Allocation
 
 Owner-confirmed on 2026-10-15: at each task start and material bottleneck,

@@ -1,5 +1,15 @@
 # Technical Design
 
+## Owner-approved first-release storage calibration
+
+The 2026-10-16 [owner decision](../craftreport-reporting-facade/first-release-calibration-approval.md)
+approves [storage-budget-calibration-amendment.md](storage-budget-calibration-amendment.md).
+Only snapshot-storage's aggregate becomes 2,000 LLOC after task 4.0 implements
+and verifies the gate. Local 50/300/10 limits, all other capability limits and
+the existing publication/query contracts remain unchanged. Earlier 1,500 budget
+references describe the original allocation; no implementation may rely on the
+new allocation before the enforcing task is accepted.
+
 ## Overview
 
 External producers publish complete replacement snapshots through the installed operation facade. The feature supplies exact typed read-back after restart and retained binding/run lifecycle for app integrations. Its first useful slice is publish, inspect, restart and inspect through ordinary REST/MCP; the complete feature additionally delivers pause/latest-resume and truthful recovery.

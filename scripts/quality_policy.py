@@ -7,6 +7,18 @@ from pathlib import Path, PurePosixPath
 from typing import cast
 
 RULES = {"function-lloc", "module-lloc", "capability-lloc", "C901"}
+CAPABILITY_LIMITS = {
+    "browser-verification": (
+        3400,
+        "browser-verification",
+        ".kiro/specs/craftreport-browser-verification/lifecycle-evidence-budget-amendment.md",
+    ),
+    "snapshot-storage": (
+        2000,
+        "snapshot-runtime",
+        ".kiro/specs/craftreport-snapshot-runtime/storage-budget-calibration-amendment.md",
+    ),
+}
 
 
 def table(value: object) -> dict[str, object]:
@@ -108,14 +120,19 @@ class Policy:
 def validate_limit_approval(
     fields: dict[str, object], config: dict[str, object], root: Path
 ) -> str:
-    reference = (
-        ".kiro/specs/craftreport-browser-verification/lifecycle-evidence-budget-amendment.md"
+    owner = str(fields["capability_id"])
+    _, scope_id, reference = CAPABILITY_LIMITS[owner]
+    scope = table(table(config.get("scope_approval"))[scope_id])
+    identity_matches = (
+        scope.get("capability_ids") == ["data", "runtime", "snapshot-storage"]
+        and fields.get("owner") == "project-owner"
+        if owner == "snapshot-storage"
+        else scope.get("capability_id") == owner
     )
-    scope = table(table(config.get("scope_approval"))["browser-verification"])
     if (
         fields.get("approved") is not True
         or scope.get("approved") is not True
-        or scope.get("capability_id") != "browser-verification"
+        or not identity_matches
         or scope.get("budget_amendment_reference") != reference
         or fields.get("approval_reference") != reference
     ):
@@ -146,14 +163,15 @@ def validate_capability_limit(
     if set(fields) != expected:
         raise ValueError("capability limit requires exact typed fields")
     owner, rule, value = fields.get("capability_id"), fields.get("rule"), fields.get("value")
-    if not isinstance(owner, str) or owner != "browser-verification" or owner not in approved:
+    if not isinstance(owner, str) or owner not in CAPABILITY_LIMITS or owner not in approved:
         raise ValueError("capability limit has unsupported or unapproved capability")
     if owner not in {item[0] for item in ownership.entries}:
         raise ValueError("capability limit has unknown ownership")
     if not isinstance(rule, str) or rule != "capability-lloc":
         raise ValueError("capability limit has unsupported rule")
-    if type(value) is not int or value != 3400:
-        raise ValueError("capability limit requires approved integer value 3400")
+    expected_value = CAPABILITY_LIMITS[owner][0]
+    if type(value) is not int or value != expected_value:
+        raise ValueError(f"capability limit requires approved integer value {expected_value}")
     metadata: dict[str, str] = {}
     for key in ("owner", "rationale"):
         item = fields.get(key)

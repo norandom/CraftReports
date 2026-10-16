@@ -35,6 +35,16 @@ The first spec is the reporting foundation using supplied datasets/metrics, not 
 
 ## Development Decisions
 
+On 2026-10-16 the owner authorized finishing the narrow first user release after
+the overnight run ended. The [continuation record](../specs/craftreport-reporting-facade/first-release-continuation.md)
+retains supplied metrics, one live GridCraft table/line-chart template, shared
+controls, REST/MCP and verified XLSX delivery. The subsequent
+[calibration approval](../specs/craftreport-reporting-facade/first-release-calibration-approval.md)
+covers only snapshot-storage's 2,000 aggregate cap through its enforcing task
+and the fixed chart line width of 2.25 points through actual profile verification.
+The original overnight deadline is historical; these explicit owner decisions
+authorize continued implementation. Other domains/apps remain parked.
+
 Active ledger status permits only the work authorized by the current Kiro phase. It never substitutes for requirements/design/tasks approval. Split the umbrella discovery into bounded specs when executable scope warrants it; do not create fictitious specs just to fill a ledger.
 
 Every implemented capability needs a responsible code boundary and evidence. Documentation, native command counts and a screenshot alone do not establish implemented feature coverage.
