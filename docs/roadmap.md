@@ -22,13 +22,34 @@ the approval authority.
 | 4 | Report model and packs | Declarative report compilation, compatible versioned templates/themes, public/private pack separation and scoped draft/release findings |
 | 5 | GridCraft web reports | Owned report regions, controls, visible live refresh and actual XLSX export through the composed system, including reopen and content comparison |
 
-The operation kernel is complete within its synthetic scope. Browser verification
-has approved requirements and Design, with all 18 implementation tasks approved.
-Implementation is in progress; browser acceptance remains pending. The other three entries are not initialized and require their
-own Requirements, Design and Tasks reviews before implementation. Integrated app
-reports depend on browser proof, snapshot runtime and report/packs contracts.
+The operation kernel is complete within its synthetic scope. The three reporting
+specifications have reviewed requirements, designs and task plans, and their
+implementation is underway. At the 2026-10-16 handoff, snapshot runtime had 10 of
+19 tasks accepted, report models and packs 8 of 13, and GridCraft reports 3 of 16.
+Browser verification separately had 15 of 20 accepted. These task counts describe
+accepted work, not a percentage of release readiness.
+
+The remaining work connects the producer API, report preparation, live controls
+and verified export into one usable workflow. The released GridCraft browser
+route has demonstrated same-document edits, actual Save and fresh-context reopen;
+the complete reporting facade still needs its own integrated acceptance journey.
+The owner has authorized continuing toward this
+[first user release](../.kiro/specs/craftreport-reporting-facade/first-release-continuation.md).
 The umbrella [foundation requirements](../.kiro/specs/craftreport-reporting-facade/requirements.md)
 remain the acceptance baseline.
+
+## What the first release lets you do
+
+Supply your own portfolio data and metrics from Python or Jupyter, select the
+supported reusable template, and open a GridCraft table and line chart. The report
+refreshes at ten-second opportunities, with start, pause, resume and stop controls.
+Resume uses the latest complete producer snapshot. Export the identified report
+as XLSX and retrieve operation results through REST or MCP without an AI service.
+
+This is the release target. The quickstart index continues to identify the
+evaluation paths that work today. The release is ready only when an integrator
+can follow the setup guide and run the public Python example through this entire
+journey, including its failure and recovery cases.
 
 ## The first reporting acceptance gate
 
@@ -51,8 +72,9 @@ pattern before the project generalizes across more apps.
 
 The foundation includes external data and metric ingestion, reporting contracts,
 templates, visible GridCraft reports, snapshot-consistent XLSX and app-to-app MCP.
-Python/Polars is the processing direction; database/ORM selection remains a
-downstream design decision. DuckDB is excluded.
+Python/Polars is the processing direction. The bounded single-process snapshot
+host uses SQLAlchemy Core and SQLite; a future PostgreSQL topology remains a
+separate design decision. DuckDB is excluded.
 
 External Python and Jupyter producers retain their calculations. A client SDK,
 notebook service, local portfolio-method engine, built-in GIPS pack, designer

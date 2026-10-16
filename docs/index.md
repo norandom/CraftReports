@@ -17,10 +17,15 @@ registration, shared guards, REST/MCP interfaces and result readback. Its instal
 verification uses synthetic capabilities and providers. It does not yet provide
 a production reporting service or the complete report workflow described above.
 
-A separate GridCraft deployment probe rendered the official downloaded web
-application. That establishes browser hosting and rendering, not a verified
-bridge from CraftReport to the visible workbook or a verified XLSX reporting path.
-See [GridCraft setup and its evidence limits](gridcraft-setup.md).
+Implementation also includes durable snapshot providers, report definitions,
+themes, preparation and scoped quality rules. These pieces are still being
+connected to the public reporting workflow.
+
+A separate released-GridCraft browser test demonstrated same-document edits,
+actual Save, independent XLSX inspection and fresh-context reopen. That proves
+the tested application route; it does not yet establish the complete producer,
+live-control and reporting export workflow. See
+[GridCraft setup](gridcraft-setup.md) and the [first-release roadmap](roadmap.md).
 
 Use the [kernel task list](../.kiro/specs/craftreport-operation-kernel/tasks.md)
 for accepted work and open checks, and
