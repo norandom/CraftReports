@@ -35,6 +35,7 @@ FILES = {
     "__init__.py",
     "app_values.py",
     "codecs.py",
+    "facts.py",
     "values.py",
     "workbook.py",
     "py.typed",

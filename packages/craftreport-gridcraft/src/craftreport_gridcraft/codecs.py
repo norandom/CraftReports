@@ -22,7 +22,15 @@ from craftreport_gridcraft.app_values import (
     SavedCandidate,
     TargetObservation,
 )
-from craftreport_gridcraft.values import DECLARATION, PROFILE, AppIssue, OwnedLayout
+from craftreport_gridcraft.values import (
+    DECLARATION,
+    PROFILE,
+    AppIntentFact,
+    AppIssue,
+    AppObservationFact,
+    CurrentObservationPointer,
+    OwnedLayout,
+)
 
 _LIMITS = OperationLimits(max_input_bytes=65536, max_output_bytes=262144)
 
@@ -78,6 +86,27 @@ class ArtifactWire(model_shape(ArtifactRef, {"candidate": CandidateWire})):
 
 
 class LayoutWire(model_shape(OwnedLayout, {"run": RunWire})):
+    pass
+
+
+class IntentWire(model_shape(AppIntentFact, {"run": RunWire})):
+    pass
+
+
+class ObservationFactWire(
+    model_shape(
+        AppObservationFact,
+        {
+            "run": RunWire,
+            "observation": ObservationWire | None,
+            "candidate": CandidateWire | None,
+        },
+    )
+):
+    pass
+
+
+class PointerWire(model_shape(CurrentObservationPointer, {"run": RunWire})):
     pass
 
 
@@ -155,6 +184,74 @@ def layout_codec() -> PydanticCodec[OwnedLayout, LayoutWire]:
         LayoutWire,
         lambda v: construct(OwnedLayout, v, {"run": _run(v)}),
         lambda v: {**cast(JsonObject, asdict(v)), "run": BindingResultCodec().encode(v.run)},
+        json_mode=True,
+        limits=_LIMITS,
+    )
+
+
+def _intent_object(value: AppIntentFact) -> JsonObject:
+    result = cast(JsonObject, TypeAdapter(AppIntentFact).dump_python(value, mode="json"))
+    return {**result, "run": BindingResultCodec().encode(value.run)}
+
+
+def intent_codec() -> PydanticCodec[AppIntentFact, IntentWire]:
+    return PydanticCodec(
+        IntentWire,
+        lambda v: construct(AppIntentFact, v, {"run": _run(v)}),
+        _intent_object,
+        json_mode=True,
+        limits=_LIMITS,
+    )
+
+
+def _observation_fact(value: ObservationFactWire) -> AppObservationFact:
+    obs = None
+    obs_wire = cast(ObservationWire | None, getattr(value, "observation", None))
+    if obs_wire is not None:
+        obs = construct(TargetObservation, obs_wire, {"run": _run(obs_wire)})
+    cand = None
+    cand_wire = cast(CandidateWire | None, getattr(value, "candidate", None))
+    if cand_wire is not None:
+        cand = _candidate(cand_wire)
+    return construct(
+        AppObservationFact,
+        value,
+        {"run": _run(value), "observation": obs, "candidate": cand},
+    )
+
+
+def _observation_fact_object(value: AppObservationFact) -> JsonObject:
+    result = cast(JsonObject, TypeAdapter(AppObservationFact).dump_python(value, mode="json"))
+    return {
+        **result,
+        "run": BindingResultCodec().encode(value.run),
+        "observation": _observation_object(value.observation) if value.observation else None,
+        "candidate": _candidate_object(value.candidate) if value.candidate else None,
+    }
+
+
+def observation_fact_codec() -> PydanticCodec[AppObservationFact, ObservationFactWire]:
+    return PydanticCodec(
+        ObservationFactWire,
+        _observation_fact,
+        _observation_fact_object,
+        json_mode=True,
+        limits=_LIMITS,
+    )
+
+
+def _pointer_object(value: CurrentObservationPointer) -> JsonObject:
+    result = cast(
+        JsonObject, TypeAdapter(CurrentObservationPointer).dump_python(value, mode="json")
+    )
+    return {**result, "run": BindingResultCodec().encode(value.run)}
+
+
+def pointer_codec() -> PydanticCodec[CurrentObservationPointer, PointerWire]:
+    return PydanticCodec(
+        PointerWire,
+        lambda v: construct(CurrentObservationPointer, v, {"run": _run(v)}),
+        _pointer_object,
         json_mode=True,
         limits=_LIMITS,
     )

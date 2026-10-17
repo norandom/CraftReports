@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from hashlib import sha256
 from typing import Literal
 
+from craftreport.contracts.outcomes import EvidenceRef
 from craftreport.contracts.pins import VersionPin
 from craftreport.contracts.values import require_immutable, require_positive, require_text
 from craftreport.data.values import SnapshotRef
@@ -12,7 +13,22 @@ from craftreport.policies.values import QualityEvaluation
 from craftreport.reporting.prepared import PreparedReport
 from craftreport.runtime.values import RunPins
 from craftreport.themes.values import SemanticRole
-from craftreport_gridcraft.app_values import BrowserTarget, matched
+from craftreport_gridcraft.app_values import (
+    BrowserTarget as BrowserTarget,
+)
+from craftreport_gridcraft.app_values import (
+    SavedCandidate as SavedCandidate,
+)
+from craftreport_gridcraft.app_values import (
+    TargetObservation as TargetObservation,
+)
+from craftreport_gridcraft.app_values import (
+    count,
+    digest,
+    evidence,
+    matched,
+    text,
+)
 
 DECLARATION = json.dumps(
     {
@@ -167,3 +183,171 @@ class AppIssue:
             type(part) not in (str, int) for part in self.location
         ):
             raise ValueError("Immutable typed issue location required")
+
+
+@dataclass(frozen=True, slots=True)
+class AppIntentFact:
+    operation_id: str
+    subject: str
+    deployment_id: str
+    target: BrowserTarget
+    run: RunPins
+    revision: int
+    purpose: Literal["apply", "export", "inspect"]
+    created_at: str
+    content_digest: str = ""
+
+    def __post_init__(self) -> None:
+        require_immutable(self)
+        text(self.operation_id)
+        text(self.subject)
+        text(self.deployment_id)
+        matched(self.target, self.run)
+        count(self.revision, 2**63 - 1)
+        if self.purpose not in ("apply", "export", "inspect"):
+            raise ValueError("Invalid app intent purpose")
+        text(self.created_at)
+        if not self.content_digest:
+            parts = (
+                self.operation_id,
+                self.subject,
+                self.deployment_id,
+                self.target.identity.document_id,
+                self.run.run_id,
+                str(self.revision),
+                self.purpose,
+                self.created_at,
+            )
+            object.__setattr__(
+                self, "content_digest", sha256(":".join(parts).encode("utf-8")).hexdigest()
+            )
+        else:
+            digest(self.content_digest)
+
+
+@dataclass(frozen=True, slots=True)
+class AppObservationFact:
+    operation_id: str
+    subject: str
+    deployment_id: str
+    target: BrowserTarget
+    run: RunPins
+    revision: int
+    outcome: Literal["complete", "partial", "ambiguous", "failed"]
+    observation: TargetObservation | None = None
+    candidate: SavedCandidate | None = None
+    evidence: tuple[EvidenceRef, ...] = ()
+    reason_code: str | None = None
+    created_at: str = ""
+    content_digest: str = ""
+
+    def __post_init__(self) -> None:
+        require_immutable(self)
+        text(self.operation_id)
+        text(self.subject)
+        text(self.deployment_id)
+        matched(self.target, self.run)
+        count(self.revision, 2**63 - 1)
+        if self.outcome not in ("complete", "partial", "ambiguous", "failed"):
+            raise ValueError("Invalid app observation outcome")
+        if self.observation is not None and type(self.observation) is not TargetObservation:
+            raise ValueError("Invalid target observation")
+        if self.candidate is not None and type(self.candidate) is not SavedCandidate:
+            raise ValueError("Invalid saved candidate")
+        if self.evidence:
+            evidence(self.evidence)
+        if self.reason_code is not None:
+            text(self.reason_code)
+        if self.created_at:
+            text(self.created_at)
+        if not self.content_digest:
+            obs_digest = self.observation.after_fingerprint if self.observation else ""
+            cand_digest = self.candidate.bytes_digest if self.candidate else ""
+            parts = (
+                self.operation_id,
+                self.subject,
+                self.deployment_id,
+                self.target.identity.document_id,
+                self.run.run_id,
+                str(self.revision),
+                self.outcome,
+                obs_digest,
+                cand_digest,
+                str(self.reason_code),
+                self.created_at,
+            )
+            object.__setattr__(
+                self, "content_digest", sha256(":".join(parts).encode("utf-8")).hexdigest()
+            )
+        else:
+            digest(self.content_digest)
+
+
+@dataclass(frozen=True, slots=True)
+class CurrentObservationPointer:
+    document_id: str
+    operation_id: str
+    target: BrowserTarget
+    run: RunPins
+    revision: int
+    outcome: Literal["complete", "partial", "ambiguous", "failed"]
+    fact_digest: str
+    updated_at: str = ""
+    content_digest: str = ""
+
+    def __post_init__(self) -> None:
+        require_immutable(self)
+        text(self.document_id)
+        text(self.operation_id)
+        matched(self.target, self.run)
+        if self.target.identity.document_id != self.document_id:
+            raise ValueError("Target document_id mismatch")
+        count(self.revision, 2**63 - 1)
+        if self.outcome not in ("complete", "partial", "ambiguous", "failed"):
+            raise ValueError("Invalid pointer outcome")
+        digest(self.fact_digest)
+        if self.updated_at:
+            text(self.updated_at)
+        if not self.content_digest:
+            parts = (
+                self.document_id,
+                self.operation_id,
+                self.run.run_id,
+                str(self.revision),
+                self.outcome,
+                self.fact_digest,
+                self.updated_at,
+            )
+            object.__setattr__(
+                self, "content_digest", sha256(":".join(parts).encode("utf-8")).hexdigest()
+            )
+        else:
+            digest(self.content_digest)
+
+
+@dataclass(frozen=True, slots=True)
+class TargetRecovery:
+    document_id: str
+    status: Literal[
+        "clean", "orphan_intent", "ambiguous", "partial", "index_stale", "missing", "failed"
+    ]
+    current_pointer: CurrentObservationPointer | None
+    orphaned_intents: tuple[AppIntentFact, ...]
+    latest_observation: AppObservationFact | None
+    recovery_required: bool
+
+    def __post_init__(self) -> None:
+        require_immutable(self)
+        text(self.document_id)
+        if self.status not in (
+            "clean",
+            "orphan_intent",
+            "ambiguous",
+            "partial",
+            "index_stale",
+            "missing",
+            "failed",
+        ):
+            raise ValueError("Invalid recovery status")
+        if type(self.recovery_required) is not bool:
+            raise ValueError("Expected bool for recovery_required")

@@ -39,7 +39,7 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Depends: 3_
   - _Requirements: 1.2, 1.5, 2.1, 2.2, 2.3, 2.4, 2.5, 6.1_
 
-- [ ] 5. Retain immutable app external-effect facts with exact read-back
+- [x] 5. Retain immutable app external-effect facts with exact read-back
   - Implement operation-linked intent/observation facts and current-observation index under the private configured root, using exclusive canonical writes, fsync and independent digest readback. Bind trusted subject/deployment/operation/run/target identity; no caller paths, journal/receipt replacement or upstream table changes.
   - Exercise real-file reopen, torn/missing/corrupt facts/indexes and crash cutpoints before/after external intent/observation retention. Missing differs from unavailable; orphans remain recovery-required, never reconstructed success.
   - Done when immutable fact identities survive reopen with access-safe exact contents, unexpected corruption is unavailable and all prior failure/unknown facts remain retained. Media/byte references resolve only through authorized opaque IDs.
@@ -140,6 +140,19 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Requirements: 6.2, 6.3, 6.4, 6.5, 6.6_
 
 ## Implementation Notes
+
+- Task 5: verified by `tests/gridcraft/test_facts.py` (8 tests passing),
+  `test_app_installed.py` (2 tests passing), and full fast check suite (2,039
+  passed, 0 pyright/ruff/import/quality errors). Retains immutable app
+  external-effect facts (`AppIntentFact`, `AppObservationFact`,
+  `CurrentObservationPointer`, `TargetRecovery`) in `facts.py` (`AppFacts`)
+  under private configured root with directory structure `intents/`,
+  `observations/`, `current/`. Uses atomic temp-file write, durability fsync,
+  independent SHA-256 digest readback, and strict path-containment validation.
+  Missing records return None while corrupt/torn records raise FactUnavailable.
+  Recovery inspection correctly distinguishes clean, orphan intents, index stale,
+  ambiguous, partial, failed, and missing states. Capability source size remains
+  well within limits: gridcraft 900/1500 LLOC, all modules < 300 LLOC.
 
 - Task 4: independently approved by `/root/review_gridcraft_4`; evidence is
   `artifacts/gridcraft/task-4/independent-review.md`. Public exact-profile
