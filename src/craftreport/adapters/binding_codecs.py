@@ -24,6 +24,7 @@ from craftreport.contracts import JsonObject
 from craftreport.contracts.values import freeze_object
 from craftreport.data.requirements import InputRequirements
 from craftreport.data.values import Scalar
+from craftreport.runtime.recovery import ReconcileRequest, ReconcileResult
 from craftreport.runtime.values import (
     BindingSpec,
     BindingState,
@@ -59,6 +60,8 @@ def _members(
         | ControlRequest
         | InspectRequest
         | EffectObservation
+        | ReconcileRequest
+        | ReconcileResult
     ),
 ) -> JsonObject:
     return cast(JsonObject, {f.name: getattr(value, f.name) for f in fields(value)})
@@ -251,7 +254,102 @@ def inspect_codec() -> PydanticCodec[InspectRequest, InspectWire]:
     ).for_input()
 
 
+class ReconcileWire(
+    model_shape(
+        ReconcileRequest,
+        {"expected_generation": Count, "observation": ObservationWire | None},
+    )
+):
+    pass
+
+
+class ReconcileResultWire(
+    model_shape(
+        ReconcileResult,
+        {"binding": StateWire | None, "run": RunWire | None},
+    )
+):
+    pass
+
+
+def reconcile_codec() -> PydanticCodec[ReconcileRequest, ReconcileWire]:
+    return PydanticCodec(
+        ReconcileWire,
+        lambda v: construct(
+            ReconcileRequest,
+            v,
+            {
+                "expected_generation": int(getattr(v, "expected_generation")),
+                "observation": None
+                if getattr(v, "observation") is None
+                else _observation(cast(ObservationWire, getattr(v, "observation"))),
+            },
+        ),
+        lambda v: cast(
+            JsonObject,
+            ReconcileWire(
+                **{
+                    **_members(v),
+                    "expected_generation": str(v.expected_generation),
+                    "observation": None
+                    if v.observation is None
+                    else _observation_object(v.observation),
+                }
+            ).model_dump(mode="json"),
+        ),
+        json_mode=True,
+    ).for_input()
+
+
 _results = TypeAdapter(StateWire | RunWire | MissingValue | UnavailableValue | ConflictValue)
+_reconcile_results = TypeAdapter(
+    ReconcileResultWire | MissingValue | UnavailableValue | ConflictValue
+)
+
+
+class ReconcileResultCodec:
+    def decode(
+        self, value: JsonObject
+    ) -> ReconcileResult | Missing | ServiceUnavailable | VersionConflict:
+        try:
+            result = _reconcile_results.validate_json(
+                canonical_bytes(bounded_object(value, 1_048_576)), strict=True, extra="forbid"
+            )
+            if not isinstance(result, ReconcileResultWire):
+                return result
+            binding = cast(StateWire | None, getattr(result, "binding"))
+            run = cast(RunWire | None, getattr(result, "run"))
+            return construct(
+                ReconcileResult,
+                result,
+                {
+                    "binding": None if binding is None else _state(binding),
+                    "run": None if run is None else _run(run),
+                },
+            )
+        except ValueError:
+            raise WireFailure("invalid_input") from None
+
+    def encode(
+        self, value: ReconcileResult | Missing | ServiceUnavailable | VersionConflict
+    ) -> JsonObject:
+        model = (
+            ReconcileResultWire(
+                **{
+                    **_members(value),
+                    "binding": None if value.binding is None else _state_object(value.binding),
+                    "run": None if value.run is None else _run_object(value.run),
+                }
+            )
+            if isinstance(value, ReconcileResult)
+            else value
+        )
+        raw = cast(JsonObject, _reconcile_results.dump_python(model, mode="json", warnings="error"))
+        self.decode(raw)
+        return freeze_object(raw)
+
+    def schema(self) -> JsonObject:
+        return freeze_object(close_schema(_reconcile_results.json_schema()))
 
 
 class BindingResultCodec:

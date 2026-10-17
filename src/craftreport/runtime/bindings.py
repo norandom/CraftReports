@@ -37,6 +37,11 @@ from craftreport.runtime.values import (
 )
 
 if TYPE_CHECKING:
+    from craftreport.runtime.recovery import (
+        ReconcileRequest,
+        ReconcileResult,
+        RecoveryUseCase,
+    )
     from craftreport.runtime.scheduler import BindingScheduler
 
 
@@ -47,6 +52,7 @@ class BindingOperations:
     owner_policy: Callable[[Principal], bool]
     target_policy: Callable[[Principal, TargetIdentity], bool]
     scheduler: "BindingScheduler | None" = None
+    recovery: "RecoveryUseCase | None" = None
 
     async def bind(
         self, request: BindRequest, context: ports.CommandContext
@@ -115,6 +121,48 @@ class BindingOperations:
         if isinstance(result, ports.ServiceUnavailable):
             return OutcomeProposal(result, EffectDisposition.UNKNOWN, (), ())
         return OutcomeProposal(result, EffectDisposition.APPLIED, (), ())
+
+    async def reconcile(
+        self, request: "ReconcileRequest", context: ports.CommandContext
+    ) -> OutcomeProposal[
+        "ReconcileResult | ports.Missing | ports.VersionConflict | ports.ServiceUnavailable"
+    ]:
+        if not self.owner_policy(context.principal) or self.recovery is None:
+            return OutcomeProposal(
+                ports.ServiceUnavailable("binding_access"), EffectDisposition.NONE, (), ()
+            )
+        result = await self.recovery.reconcile(context.principal, request, context.operation_id)
+        if isinstance(result, (ports.Missing, ports.VersionConflict)):
+            return OutcomeProposal(result, EffectDisposition.NONE, (), ())
+        if isinstance(result, ports.ServiceUnavailable):
+            return OutcomeProposal(result, EffectDisposition.NONE, (), ())
+        refs = tuple(
+            dict.fromkeys(
+                (
+                    *(
+                        (result.reconciliation_ref,)
+                        if result.reconciliation_ref is not None
+                        else ()
+                    ),
+                    *result.prior_evidence,
+                )
+            )
+        )
+        stage_refs = (result.reconciliation_ref,) if result.reconciliation_ref is not None else ()
+        stage = StageResult(
+            "reconciled",
+            StageState.PASSED if result.status != "ambiguous" else StageState.PENDING,
+            "observed" if result.status != "ambiguous" else "ambiguous",
+            stage_refs,
+        )
+        return OutcomeProposal(
+            result,
+            EffectDisposition.APPLIED
+            if result.reconciliation_ref is not None
+            else EffectDisposition.NONE,
+            (stage,),
+            refs,
+        )
 
     async def inspect(
         self, request: InspectRequest, context: ports.ReadContext

@@ -19,7 +19,14 @@ from craftreport.adapters.storage.serialization import (
 )
 from craftreport.application import ports
 from craftreport.application.outcomes import validate_recorded_update
-from craftreport.contracts import Availability, CommandIntent, Receipt, ReceiptState, RetryKey
+from craftreport.contracts import (
+    Availability,
+    CommandIntent,
+    Principal,
+    Receipt,
+    ReceiptState,
+    RetryKey,
+)
 
 
 def _link_query_result(connection: Connection, observation: ports.QueryObservation) -> None:
@@ -370,3 +377,58 @@ class DurableJournal:
             return receipt
 
         return await self._transaction(record)
+
+    async def list_nonterminal(
+        self, principal: Principal | None = None
+    ) -> tuple[tuple[Principal, ports.RetainedCommand], ...] | ports.ServiceUnavailable:
+        def load(connection: Connection) -> tuple[tuple[Principal, ports.RetainedCommand], ...]:
+            stmt = select(commands).where(commands.c.record_kind == "command")
+            if principal is not None:
+                self._scope(principal.deployment_scope)
+                stmt = stmt.where(commands.c.subject == principal.subject)
+            items: list[tuple[Principal, ports.RetainedCommand]] = []
+            for row in connection.execute(stmt).mappings():
+                retained = self.retained(connection, row)
+                if not isinstance(retained, ports.RetainedCommand):
+                    raise StorageUnavailable("Retained command kind mismatch")
+                if retained.receipt.state in (
+                    ReceiptState.ACCEPTED,
+                    ReceiptState.PENDING,
+                    ReceiptState.AMBIGUOUS,
+                ):
+                    items.append(
+                        (
+                            Principal(row["deployment_scope"], row["subject"], frozenset()),
+                            retained,
+                        )
+                    )
+            return tuple(items)
+
+        try:
+            return await self._transaction(load)
+        except ports.ServiceUnavailableError as error:
+            return error.reason
+
+    async def read_command(
+        self, principal: Principal, operation_id: str
+    ) -> ports.RetainedCommand | ports.Missing | ports.ServiceUnavailable:
+        def load(connection: Connection) -> ports.RetainedCommand | ports.Missing:
+            self._scope(principal.deployment_scope)
+            row = (
+                connection.execute(select(commands).where(commands.c.operation_id == operation_id))
+                .mappings()
+                .one_or_none()
+            )
+            if row is None or row["record_kind"] != "command":
+                return ports.Missing()
+            if row["subject"] != principal.subject:
+                raise StorageUnavailable("Retained command owner differs")
+            retained = self.retained(connection, row)
+            if not isinstance(retained, ports.RetainedCommand):
+                raise StorageUnavailable("Retained command kind mismatch")
+            return retained
+
+        try:
+            return await self._transaction(load)
+        except ports.ServiceUnavailableError as error:
+            return error.reason

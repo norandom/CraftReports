@@ -40,6 +40,7 @@ def test_real_host_catalog(tmp_path: Path, assets: dict[str, bytes]) -> None:
                 "runtime.bind",
                 "runtime.control",
                 "runtime.inspect",
+                "runtime.reconcile",
             }
 
     asyncio.run(exercise())

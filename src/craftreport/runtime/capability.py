@@ -11,6 +11,7 @@ from craftreport.application.registry import (
     OperationBinding,
     QueryBehavior,
 )
+from craftreport.application.service_values import DiagnosticPolicy
 from craftreport.contracts import (
     EvidencePolicy,
     JsonObject,
@@ -18,6 +19,7 @@ from craftreport.contracts import (
     OperationKey,
     OperationKind,
     OperationLimits,
+    RecoveryDisposition,
     ResourceRef,
 )
 from craftreport.data.values import Snapshot, SnapshotRef
@@ -28,6 +30,7 @@ from craftreport.runtime.publication import (
     PublicationOperations,
     PublicationResult,
 )
+from craftreport.runtime.recovery import ReconcileRequest, ReconcileResult
 from craftreport.runtime.values import (
     BindingState,
     BindRequest,
@@ -43,6 +46,19 @@ class BindingCodecs:
     inspect: Codec[InspectRequest]
     result: Codec[BindingState | RunPins | Missing | VersionConflict | ServiceUnavailable]
     control: Codec[ControlRequest] | None = None
+    reconcile: Codec[ReconcileRequest] | None = None
+    reconcile_result: (
+        Codec[ReconcileResult | Missing | VersionConflict | ServiceUnavailable] | None
+    ) = None
+
+
+def _reconcile_resources(request: ReconcileRequest) -> tuple[ResourceRef, ...]:
+    items: list[ResourceRef] = []
+    if request.binding_id is not None:
+        items.append(ResourceRef("binding", request.binding_id))
+    if request.run_id is not None:
+        items.append(ResourceRef("run", request.run_id))
+    return tuple(items)
 
 
 def binding_descriptors(codecs: BindingCodecs) -> tuple[OperationDescriptor, ...]:
@@ -88,6 +104,22 @@ def binding_descriptors(codecs: BindingCodecs) -> tuple[OperationDescriptor, ...
                 EvidencePolicy(()),
             )
         )
+    if codecs.reconcile is not None and codecs.reconcile_result is not None:
+        items.append(
+            OperationDescriptor(
+                OperationKey("runtime.reconcile", "1"),
+                OperationKind.COMMAND,
+                codecs.reconcile.schema(),
+                codecs.reconcile_result.schema(),
+                True,
+                False,
+                ("binding", "run"),
+                (),
+                ("journal", "guard", "resources", "effects", "evidence", "results"),
+                OperationLimits(),
+                EvidencePolicy(()),
+            )
+        )
     return tuple(items)
 
 
@@ -117,11 +149,29 @@ def binding_operations(
     if codecs.control is not None:
         bound.append(
             OperationBinding(
-                descriptors[2],
+                descriptors[len(bound)],
                 codecs.control,
                 codecs.result,
                 CommandBehavior(handlers.control),
                 lambda v: (ResourceRef("binding", v.binding_id),),
+            ).bind()
+        )
+    if codecs.reconcile is not None and codecs.reconcile_result is not None:
+        bound.append(
+            OperationBinding(
+                descriptors[len(bound)],
+                codecs.reconcile,
+                codecs.reconcile_result,
+                CommandBehavior(handlers.reconcile),
+                _reconcile_resources,
+                DiagnosticPolicy(
+                    frozenset(
+                        {
+                            ("reconciled", "observed", RecoveryDisposition.INSPECT),
+                            ("reconciled", "ambiguous", RecoveryDisposition.RECONCILE),
+                        }
+                    )
+                ),
             ).bind()
         )
     return tuple(bound)

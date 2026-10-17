@@ -13,7 +13,12 @@ from craftreport.adapters.storage.guard import DurableLease
 from craftreport.adapters.storage.journal import DurableJournal
 from craftreport.adapters.storage.results import DurableResults
 from craftreport.adapters.storage.schema import bindings, commands, evidence, feeds, runs
-from craftreport.adapters.storage.serialization import decode_object, encode_evidence, encode_object
+from craftreport.adapters.storage.serialization import (
+    decode_evidence,
+    decode_object,
+    encode_evidence,
+    encode_object,
+)
 from craftreport.adapters.storage.snapshots import SnapshotStore
 from craftreport.application import ports
 from craftreport.application.registry import Codec
@@ -660,3 +665,71 @@ class BindingStore:
         ):
             raise ValueError("Observed binding readback differs")
         return after
+
+    async def list_recoverable(
+        self, principal: Principal | None = None
+    ) -> tuple[tuple[Principal, BindingState], ...] | ports.ServiceUnavailable:
+        try:
+            return await self.database.transaction(lambda c: self._recoverable(c, principal))
+        except STORAGE_FAILURES:
+            return ports.ServiceUnavailable("bindings_recovery")
+
+    def _recoverable(
+        self, connection: Connection, principal: Principal | None
+    ) -> tuple[tuple[Principal, BindingState], ...]:
+        stmt = select(bindings.c.binding_id, bindings.c.subject)
+        if principal is not None:
+            if principal.deployment_scope != self.database.deployment.identity:
+                raise ValueError("Binding deployment differs")
+            stmt = stmt.where(bindings.c.subject == principal.subject)
+        items: list[tuple[Principal, BindingState]] = []
+        for row in connection.execute(stmt).mappings():
+            owner = Principal(self.database.deployment.identity, row["subject"], frozenset())
+            state = self._owned(connection, owner, InspectRequest("binding", row["binding_id"]))
+            if not isinstance(state, BindingState):
+                raise ValueError("Recoverable binding missing")
+            if (
+                state.intent == "running"
+                or state.recovery_required
+                or state.pause_pending
+                or state.pending_operation_id is not None
+            ):
+                items.append((owner, state))
+        return tuple(items)
+
+    async def read_decision(
+        self, operation_id: str
+    ) -> (
+        tuple[BindingState, tuple[ExpectedVersion, ...], tuple[EvidenceRef, ...]]
+        | ports.Missing
+        | ports.ServiceUnavailable
+    ):
+        try:
+            return await self.database.transaction(lambda c: self._decision(c, operation_id))
+        except STORAGE_FAILURES:
+            return ports.ServiceUnavailable("binding_decision")
+
+    def _decision(
+        self, connection: Connection, operation_id: str
+    ) -> tuple[BindingState, tuple[ExpectedVersion, ...], tuple[EvidenceRef, ...]] | ports.Missing:
+        rows = (
+            connection.execute(
+                select(evidence).where(evidence.c.operation_id == operation_id).limit(3)
+            )
+            .mappings()
+            .all()
+        )
+        refs = tuple(decode_evidence(r["reference_bytes"], r["reference_digest"]) for r in rows)
+        pairs = [
+            (r, ref) for r, ref in zip(rows, refs, strict=True) if ref.scope == "binding_persisted"
+        ]
+        if not pairs:
+            return ports.Missing()
+        if len(pairs) != 1 or any(
+            ref.identity != r["identity"] or ref.operation_id != operation_id
+            for r, ref in zip(rows, refs, strict=True)
+        ):
+            raise ValueError("Binding decision evidence differs")
+        row, ref = pairs[0]
+        fact = decode_object(row["fact_bytes"], row["fact_digest"], max_bytes=2_097_152)
+        return self.verify_fact(connection, ref, fact), ref.resource_versions, (ref,)

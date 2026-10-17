@@ -14,9 +14,11 @@ from packaging.version import Version
 
 from craftreport.adapters.binding_codecs import (
     BindingResultCodec,
+    ReconcileResultCodec,
     bind_codec,
     control_codec,
     inspect_codec,
+    reconcile_codec,
 )
 from craftreport.adapters.snapshot_wire import (
     finalize_snapshot,
@@ -70,6 +72,7 @@ from craftreport.runtime.capability import (
 )
 from craftreport.runtime.ports import SnapshotQueries
 from craftreport.runtime.publication import PublicationOperations
+from craftreport.runtime.recovery import RecoveryUseCase, sweep_startup_orphans
 from craftreport.runtime.scheduler import BindingScheduler
 from craftreport.runtime.values import TargetIdentity
 
@@ -104,6 +107,7 @@ def snapshot_operation_bindings(
         resources.configure_bindings(bind_codec(), BindingResultCodec())
     except ValueError:
         pass
+    evidence = DurableEvidence(resources.database, resources.verify_binding)
     if scheduler is None:
         from craftreport.runtime.bindings import BindingRuntime
         from craftreport.runtime.values import BindingSpec, PreparationIssue
@@ -117,11 +121,24 @@ def snapshot_operation_bindings(
                 resources.bindings,
                 queries,
                 _UnconfiguredPreparer(),  # type: ignore[arg-type]
-                DurableEvidence(resources.database, resources.verify_binding),
+                evidence,
             )
         )
+    recovery = RecoveryUseCase(
+        DurableJournal(resources.database),
+        DurableResults(resources.database),
+        evidence,
+        resources,
+        resources.store,
+        resources.bindings,
+        scheduler,
+        publication_result_codec(),
+        BindingResultCodec(),
+        owner_policy,
+        target_policy,
+    )
     bindings = BindingOperations(
-        resources.bindings, bind_codec(), owner_policy, target_policy, scheduler
+        resources.bindings, bind_codec(), owner_policy, target_policy, scheduler, recovery
     )
     return (
         *publication_operations(handlers, _publication_codecs()),
@@ -130,7 +147,14 @@ def snapshot_operation_bindings(
 
 
 def _binding_codecs() -> BindingCodecs:
-    return BindingCodecs(bind_codec(), inspect_codec(), BindingResultCodec(), control_codec())
+    return BindingCodecs(
+        bind_codec(),
+        inspect_codec(),
+        BindingResultCodec(),
+        control_codec(),
+        reconcile_codec(),
+        ReconcileResultCodec(),
+    )
 
 
 def _publication_codecs() -> PublicationCodecs:
@@ -364,6 +388,11 @@ async def open_snapshot_application(
             database.deployment.retention_profile,
         ):
             raise ValueError("Host and retained deployment identities differ")
+        try:
+            resources.configure_bindings(bind_codec(), BindingResultCodec())
+        except ValueError:
+            pass
+        await sweep_startup_orphans(DurableJournal(database), resources.bindings)
 
         @asynccontextmanager
         async def providers() -> AsyncGenerator[GuaranteeProviders]:

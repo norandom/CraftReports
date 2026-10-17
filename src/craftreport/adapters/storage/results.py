@@ -6,7 +6,11 @@ from sqlalchemy import insert, select
 from sqlalchemy.engine import Connection, RowMapping
 
 from craftreport.adapters.storage.database import Database, StorageUnavailable
-from craftreport.adapters.storage.evidence import DurableEvidence, preparation_command
+from craftreport.adapters.storage.evidence import (
+    DurableEvidence,
+    preparation_command,
+    validate_reconciliation,
+)
 from craftreport.adapters.storage.journal import DurableJournal
 from craftreport.adapters.storage.schema import commands, evidence, results
 from craftreport.adapters.storage.serialization import (
@@ -139,53 +143,101 @@ class DurableResults:
         value = decode_object(row["result_bytes"], row["result_digest"], max_bytes=_RESULT_LIMIT)
         return RetainedResult(reference, Availability.AVAILABLE, value)
 
+    def _store_fact(
+        self,
+        connection: Connection,
+        reference: EvidenceRef,
+        payload: bytes,
+        digest: str,
+        allowed: tuple[ReceiptState, ...],
+    ) -> EvidenceRef:
+        reference_bytes, reference_digest = encode_evidence(reference)
+        cmd = (
+            connection.execute(
+                select(commands).where(commands.c.operation_id == reference.operation_id)
+            )
+            .mappings()
+            .one()
+        )
+        retained = self.journal.retained(connection, cmd)
+        if not isinstance(retained, ports.RetainedCommand):
+            raise ValueError("Evidence requires a retained command")
+        row = (
+            connection.execute(select(evidence).where(evidence.c.identity == reference.identity))
+            .mappings()
+            .one_or_none()
+        )
+        if row is None:
+            if retained.receipt.state not in allowed:
+                raise ValueError("Command state does not permit evidence retention")
+            connection.execute(
+                insert(evidence).values(
+                    identity=reference.identity,
+                    operation_id=reference.operation_id,
+                    reference_bytes=reference_bytes,
+                    reference_digest=reference_digest,
+                    fact_bytes=payload,
+                    fact_digest=digest,
+                )
+            )
+        row = (
+            connection.execute(select(evidence).where(evidence.c.identity == reference.identity))
+            .mappings()
+            .one()
+        )
+        if (
+            row["reference_bytes"],
+            row["reference_digest"],
+            row["fact_bytes"],
+            row["fact_digest"],
+        ) != (reference_bytes, reference_digest, payload, digest):
+            raise ValueError("Fact identity collision")
+        if (
+            DurableEvidence(self.database).inspect_one(connection, reference).availability
+            is not Availability.AVAILABLE
+        ):
+            raise ValueError("Fact readback unavailable")
+        return reference
+
     async def retain_preparation_fact(
         self, reference: EvidenceRef, canonical_fact: JsonObject
     ) -> EvidenceRef | ports.ServiceUnavailable:
         try:
             payload, digest = validate_preparation(canonical_fact, reference)
-            reference_bytes, reference_digest = encode_evidence(reference)
 
             def retain(connection: Connection) -> EvidenceRef:
-                retained = preparation_command(connection, self.journal, reference)
-                row = (
-                    connection.execute(
-                        select(evidence).where(evidence.c.identity == reference.identity)
-                    )
-                    .mappings()
-                    .one_or_none()
+                preparation_command(connection, self.journal, reference)
+                return self._store_fact(
+                    connection,
+                    reference,
+                    payload,
+                    digest,
+                    (ReceiptState.ACCEPTED, ReceiptState.PENDING),
                 )
-                if row is None:
-                    if retained.receipt.state not in (ReceiptState.ACCEPTED, ReceiptState.PENDING):
-                        raise ValueError("Preparation command is terminal")
-                    connection.execute(
-                        insert(evidence).values(
-                            identity=reference.identity,
-                            operation_id=reference.operation_id,
-                            reference_bytes=reference_bytes,
-                            reference_digest=reference_digest,
-                            fact_bytes=payload,
-                            fact_digest=digest,
-                        )
-                    )
-                row = (
-                    connection.execute(
-                        select(evidence).where(evidence.c.identity == reference.identity)
-                    )
-                    .mappings()
-                    .one()
+
+            return await self.database.transaction(retain)
+        except _STORAGE_FAILURES:
+            return ports.ServiceUnavailable("evidence")
+
+    async def retain_reconciliation_fact(
+        self, reference: EvidenceRef, canonical_fact: JsonObject
+    ) -> EvidenceRef | ports.ServiceUnavailable:
+        try:
+            if reference.scope != "reconciliation":
+                raise ValueError("Invalid reconciliation scope")
+            payload, digest = encode_object(canonical_fact, max_bytes=65_536)
+            if digest != reference.content_digest:
+                raise ValueError("Reconciliation digest mismatch")
+
+            def retain(connection: Connection) -> EvidenceRef:
+                validate_reconciliation(connection, self.journal, reference, canonical_fact)
+                return self._store_fact(
+                    connection,
+                    reference,
+                    payload,
+                    digest,
+                    (ReceiptState.ACCEPTED, ReceiptState.PENDING, ReceiptState.AMBIGUOUS),
                 )
-                if (
-                    row["reference_bytes"],
-                    row["reference_digest"],
-                    row["fact_bytes"],
-                    row["fact_digest"],
-                ) != (reference_bytes, reference_digest, payload, digest):
-                    raise ValueError("Preparation fact identity collision")
-                verified = DurableEvidence(self.database).inspect_one(connection, reference)
-                if verified.availability is not Availability.AVAILABLE:
-                    raise ValueError("Preparation fact readback unavailable")
-                return reference
 
             return await self.database.transaction(retain)
         except _STORAGE_FAILURES:

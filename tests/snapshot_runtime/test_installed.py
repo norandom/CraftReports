@@ -32,6 +32,7 @@ def test_snapshot_factory_describes_real_publication() -> None:
         "runtime.bind",
         "runtime.control",
         "runtime.inspect",
+        "runtime.reconcile",
     }
 
 

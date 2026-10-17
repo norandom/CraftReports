@@ -110,7 +110,7 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   - _Depends: 4.1_
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 5.1, 5.2, 5.7, 6.1, 6.2, 6.3, 6.4, 6.6_
 
-- [ ] 5. Retain binding lifecycle and truthful recovery
+- [x] 5. Retain binding lifecycle and truthful recovery
 - [x] 5.1 Persist immutable binding requirements and exact run pins
   - Apply the independently reviewed binding-persistence-amendment.md for the exact v5-to-v6 transition, closed historical binding facts, trusted preparation linkage and concrete binding codec extraction. Existing task authorization and all numeric limits remain unchanged.
   - Implement typed binding/target/RunPins values and atomic generation/revision changes, complete selection and run retention; generic VersionPins avoid importing report compiler/theme modules. Include injected RunPreparer with PreparedRunInputs/PreparationIssue, retained prepared operation/result identity and exact newly selected snapshot/pin/digest matching before run commit.
@@ -136,7 +136,7 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   - _Boundary: Explicit integration of BindingRuntime scheduler/control, SnapshotCodecs, capability registration and DurableHost assembly_
   - _Depends: 5.2_
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 6.1, 6.3_
-- [ ] 5.4 Reconcile interrupted operations without replaying uncertain effects
+- [x] 5.4 Reconcile interrupted operations without replaying uncertain effects
   - Implement the narrow runtime-owned trusted recovery use case over existing application outcome_update, new reconciliation evidence and journal CAS/readback; enumerate recoverable records through an explicit restricted provider reader. Keep the existing application kernel unchanged at its measured 1,449/1,500 LLOC baseline.
   - Suspend recovered running bindings until authorized exact target/session revalidation; retain paused/stopped intent. Inspect committed local effects and injected external observations; original terminal evidence remains immutable.
   - Own runtime.reconcile codec/OperationBinding registration and capability updates; DurableHost startup injects the restricted recovery collaborators, enumerates orphaned work and records recovery-required/ambiguous state before readiness. No ordinary handler receives raw journal writers and existing interfaces/application remain unchanged.

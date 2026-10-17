@@ -130,21 +130,36 @@ class DurableEvidence:
                 row["fact_digest"],
                 max_bytes=2_097_152 if reference.scope == "binding_persisted" else 1_048_576,
             )
-            if reference.scope in ("prepared", "quality_evaluated"):
-                preparation_command(connection, self.journal, reference)
-                validate_preparation(fact, reference)
-            elif reference.scope == "snapshot_persisted":
-                if self._snapshot_fact(connection, reference, fact):
-                    return EvidenceStatus(reference, Availability.MISSING)
-            elif reference.scope == "publication_decided":
-                validate_decision(connection, self.database, reference, fact)
-            elif reference.scope == "binding_persisted" and self.binding_verifier is not None:
-                self.binding_verifier(connection, reference, fact)
-            else:
-                return EvidenceStatus(reference, Availability.UNAVAILABLE)
+            if not self._verify_scope(connection, reference, fact):
+                return EvidenceStatus(
+                    reference,
+                    Availability.MISSING
+                    if reference.scope == "snapshot_persisted"
+                    else Availability.UNAVAILABLE,
+                )
             return EvidenceStatus(reference, Availability.AVAILABLE, StageState.PASSED)
         except STORAGE_FAILURES:
             return EvidenceStatus(reference, Availability.UNAVAILABLE)
+
+    def _verify_scope(
+        self, connection: Connection, reference: EvidenceRef, fact: JsonObject
+    ) -> bool:
+        if reference.scope in ("prepared", "quality_evaluated"):
+            preparation_command(connection, self.journal, reference)
+            validate_preparation(fact, reference)
+            return True
+        if reference.scope == "snapshot_persisted":
+            return not self._snapshot_fact(connection, reference, fact)
+        if reference.scope == "publication_decided":
+            validate_decision(connection, self.database, reference, fact)
+            return True
+        if reference.scope == "binding_persisted" and self.binding_verifier is not None:
+            self.binding_verifier(connection, reference, fact)
+            return True
+        if reference.scope == "reconciliation":
+            validate_reconciliation(connection, self.journal, reference, fact)
+            return True
+        return False
 
     def _snapshot_fact(
         self, connection: Connection, reference: EvidenceRef, fact: JsonObject
@@ -344,3 +359,30 @@ def validate_decision_status(
             or support.reference.resource_versions != pins
         ):
             raise ValueError("Accepted decision lacks exact persistence support")
+
+
+def validate_reconciliation(
+    connection: Connection, journal: DurableJournal, reference: EvidenceRef, fact: JsonObject
+) -> None:
+    if (
+        set(fact) != {"schema_version", "operation_id", "outcome", "prior_evidence"}
+        or fact["schema_version"] != "1"
+        or fact["operation_id"] != reference.operation_id
+        or fact["outcome"] not in ("complete", "partial", "failed")
+        or not isinstance(fact["prior_evidence"], (list, tuple))
+    ):
+        raise ValueError("Invalid reconciliation fact")
+    row = (
+        connection.execute(
+            select(commands).where(commands.c.operation_id == reference.operation_id)
+        )
+        .mappings()
+        .one()
+    )
+    retained = journal.retained(connection, row)
+    if (
+        not isinstance(retained, ports.RetainedCommand)
+        or retained.receipt.operation != reference.operation
+        or {pin.resource for pin in reference.resource_versions} != set(retained.receipt.resources)
+    ):
+        raise ValueError("Reconciliation command linkage differs")

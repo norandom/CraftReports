@@ -97,13 +97,18 @@ class BindingScheduler:
                     (ExpectedVersion(res, str(request.expected_generation)),),
                     (ExpectedVersion(res, str(current.generation)),),
                 )
+            if (
+                request.action in ("start", "resume")
+                and current.recovery_required
+                and current.pending_operation_id is not None
+            ):
+                return ports.ServiceUnavailable("recovery_required")
             updated, pending_op = self._transition_control(current, request.action, slot.in_flight)
             saved = await self.runtime.store.save_binding(principal, current, updated)
             if not isinstance(saved, BindingState):
                 return saved
             if request.action in ("start", "resume"):
-                self._ensure_loop(request.binding_id, slot)
-                slot.wake.set()
+                self.resume_recovered(request.binding_id, slot)
             elif request.action == "stop":
                 self.cancel_loop(slot)
         if request.action == "stop" and pending_op is not None:
@@ -153,6 +158,10 @@ class BindingScheduler:
             ),
             current.pending_operation_id,
         )
+
+    def resume_recovered(self, binding_id: str, slot: _BindingSlot) -> None:
+        self._ensure_loop(binding_id, slot)
+        slot.wake.set()
 
     def _ensure_loop(self, binding_id: str, slot: _BindingSlot) -> None:
         if self._closed:
