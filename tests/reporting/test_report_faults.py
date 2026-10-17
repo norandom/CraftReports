@@ -49,14 +49,17 @@ def inject_fault(monkeypatch: pytest.MonkeyPatch, fault: str) -> list[EvidenceRe
         if isinstance(result, ServiceUnavailable):
             return result
         retained.append(result)
-        if fault not in ("omitted", "altered"):
+        if not fault.startswith(("omitted", "altered")):
             return result
+        target_kind = (
+            "report_pack_artifact_scope" if fault.endswith("_artifact") else "report_pack_source"
+        )
         pins = reference.resource_versions
-        if fault == "omitted":
-            pins = tuple(pin for pin in pins if pin.resource.kind != "report_pack_source")
+        if fault.startswith("omitted"):
+            pins = tuple(pin for pin in pins if pin.resource.kind != target_kind)
         else:
             pins = tuple(
-                replace(pin, version="0" * 64) if pin.resource.kind == "report_pack_source" else pin
+                replace(pin, version="0" * 64) if pin.resource.kind == target_kind else pin
                 for pin in pins
             )
         encoded, digest = encode_evidence(replace(reference, resource_versions=pins))
@@ -96,7 +99,7 @@ async def check_public_readback(
         InvocationEnvelope(OperationKey("reports.prepare", "1"), payload, "retry", "fault-test"),
     )
     inspected = await host.facade.inspect(ALICE, receipt.operation_id)
-    if fault in ("omitted", "altered"):
+    if fault.startswith(("omitted", "altered")):
         for response in (result, retry, inspected):
             assert isinstance(response, Rejection)
             assert response.diagnostic.code == "evidence_inaccessible"
@@ -106,7 +109,17 @@ async def check_public_readback(
     assert await DurableJournal(host.resources.database).read(receipt.operation_id) == receipt
 
 
-@pytest.mark.parametrize("fault", ["healthy", "omitted", "altered", "unavailable"])
+@pytest.mark.parametrize(
+    "fault",
+    [
+        "healthy",
+        "omitted",
+        "altered",
+        "omitted_artifact",
+        "altered_artifact",
+        "unavailable",
+    ],
+)
 def test_real_full_pin_evidence_gate_and_restart(
     tmp_path: Path,
     assets: dict[str, bytes],
@@ -156,7 +169,7 @@ def test_real_full_pin_evidence_gate_and_restart(
             statuses = await DurableEvidence(reopened.resources.database).inspect(receipt.evidence)
             expected = (
                 Availability.INACCESSIBLE
-                if fault in ("omitted", "altered")
+                if fault.startswith(("omitted", "altered"))
                 else Availability.AVAILABLE
             )
             assert all(status.availability is expected for status in statuses)

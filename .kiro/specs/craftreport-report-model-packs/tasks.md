@@ -137,7 +137,7 @@ Each executable task is a bounded 1–3 hour unit and requires fresh relevant ev
 
 ## Validation and adoption
 
-- [ ] 10. Verify installed-client behavior and public/private distribution isolation
+- [x] 10. Verify installed-client behavior and public/private distribution isolation
   - Run the installed-wheel ordinary REST/MCP conformance journey against real internal collaborators, including retry equivalence/conflict, authorization, exact retained readback, the actual 8 MiB operation transport profile and maximal supported-size canonical-byte proof. Confirm every activated SnapshotReader provider enforces finalized retained snapshot size <=1 MiB including after restart; include escaped text, repeated labels, parameter tags, provenance and bounded finding/statement/theme metadata in the proof fixture.
   - Inspect actual built wheel/sdist and sanitized diagnostics for private sentinel exclusion; temporary private pack files remain external and independently authorized source/artifact policies remain distinguishable.
   - Verify required check failure/unevaluated release rejection and matching/mismatching trusted app-observation scope using pure target observation fixtures; identify those as policy checks, not browser output evidence.
@@ -292,3 +292,12 @@ No `(P)` marker is used: the first preparation slice reuses shared value contrac
   `artifacts/report-task9-review/hook.txt`. Final recipe suite: eight passed;
   unchanged snapshot restart regression passed; canonical fast checks passed.
   Tasks 10-12 remain open; no rendering, XLSX or feature GO is claimed.
+
+- Task 10: verified by `tests/reporting/test_preparation_clients.py` (10 tests
+  passing, including installed maximal-size REST/MCP journey, restart <= 1 MiB
+  SnapshotReader enforcement, and wheel/sdist sentinel exclusion) and
+  `tests/reporting/test_report_faults.py` (6 tests passing, including omitted and
+  altered pins for both `report_pack_source` and `report_pack_artifact_scope`
+  plus unavailable evidence). Full `tests/reporting` suite (463 tests) and
+  `scripts/check.py --fast` passed with 0 quality/import/pyright/ruff violations.
+
