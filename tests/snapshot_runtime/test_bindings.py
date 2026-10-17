@@ -268,3 +268,253 @@ def test_post_commit_read_failure_retains_typed_unknown_and_real_evidence(
             await database.close()
 
     asyncio.run(exercise())
+
+
+class RetainedPreparer:
+    def __init__(self, database: Database) -> None:
+        self.database = database
+
+    async def prepare(self, binding: BindingSpec, snapshot: SnapshotRef) -> PreparedRunInputs:
+        from craftreport.adapters.storage.results import DurableResults
+        from craftreport.contracts import ReceiptState, StageResult, StageState
+        from tests.snapshot_runtime.test_evidence import fact, reference
+
+        ref = await reference(self.database)
+        results = DurableResults(self.database)
+        assert await results.retain_preparation_fact(ref, fact()) == ref
+        result_ref = await results.write(ALICE, ref.operation_id, {"prepared_digest": "d" * 64})
+        journal = DurableJournal(self.database)
+        stage = StageResult("prepared", StageState.PASSED, "prepared", (ref,))
+        from craftreport.contracts import Receipt
+
+        updated = await journal.record(
+            ref.operation_id,
+            1,
+            ports.ReceiptUpdate(
+                ReceiptState.COMPLETE,
+                result_ref=result_ref,
+                result_availability=Availability.AVAILABLE,
+                stages=(stage,),
+                evidence=(ref,),
+            ),
+        )
+        assert isinstance(updated, Receipt)
+        return PreparedRunInputs(
+            snapshot,
+            binding.definition,
+            binding.template,
+            binding.theme,
+            binding.pack,
+            binding.resolved_parameters,
+            binding.parameter_digest,
+            binding.validation_scope,
+            ref.operation_id,
+            result_ref,
+            "d" * 64,
+        )
+
+
+class MemoryEvidenceReader:
+    def __init__(self) -> None:
+        self.verified: set[str] = set()
+
+    async def inspect(self, refs: tuple[object, ...]) -> tuple[object, ...]:
+        from craftreport.contracts import EvidenceRef, EvidenceStatus, StageState
+
+        typed_refs = tuple(r for r in refs if isinstance(r, EvidenceRef))
+        return tuple(
+            EvidenceStatus(ref, Availability.AVAILABLE, StageState.PASSED)
+            if ref.identity in self.verified
+            else EvidenceStatus(ref, Availability.UNAVAILABLE, StageState.PENDING)
+            for ref in typed_refs
+        )
+
+
+class StubAppCaller:
+    def __init__(self) -> None:
+        from craftreport.runtime.values import CancellationObservation, EffectObservation
+
+        self.observations: dict[str, EffectObservation] = {}
+        self.cancellations: dict[str, CancellationObservation] = {}
+
+    async def start(self, run: object) -> str:
+        return "op-1"
+
+    async def inspect(self, operation_id: str) -> object:
+        return self.observations.get(operation_id, ports.Missing())
+
+    async def cancel(self, operation_id: str) -> object:
+        return self.cancellations.get(operation_id, ports.Missing())
+
+
+def test_verified_observations_advance_applied_while_partial_and_stale_stay_historical(
+    tmp_path: Path,
+) -> None:
+    from craftreport.contracts import EvidenceRef, StageResult, StageState
+    from craftreport.runtime.values import CancellationObservation, EffectObservation, RunPins
+
+    async def exercise() -> None:
+        path = tmp_path / "observations.sqlite3"
+        database = Database(path, ALICE.deployment_scope)
+        resources = provider(database)
+        resources.configure_bindings(bind_codec(), BindingResultCodec())
+        evidence = MemoryEvidenceReader()
+        caller = StubAppCaller()
+        try:
+            await publish(resources, database)
+            spec = replace(binding_spec(), feed_id=FEED.identity)
+            assert isinstance(
+                await bind(resources, BindRequest(spec, 0), "absent"), ports.ResourceEffect
+            )
+            runtime = BindingRuntime(
+                resources.bindings,
+                resources.store.queries,
+                RetainedPreparer(database),
+                evidence,  # type: ignore[arg-type]
+                caller,  # type: ignore[arg-type]
+            )
+            run1 = await runtime.select(ALICE, spec.binding_id)
+            assert isinstance(run1, RunPins)
+            state1 = await resources.bindings.inspect(
+                ALICE, InspectRequest("binding", spec.binding_id)
+            )
+            assert isinstance(state1, BindingState) and state1.selected_run_id == run1.run_id
+            assert state1.applied_run_id is None
+
+            pins1 = (
+                ExpectedVersion(ResourceRef("run", run1.run_id), run1.prepared_digest),
+                ExpectedVersion(ResourceRef("gridcraft_document", spec.target.document_id), "1"),
+            )
+            ref_unverified = EvidenceRef(
+                "ev-unverified",
+                "app_applied",
+                "op-unverified",
+                OperationKey("gridcraft.apply", "1"),
+                pins1,
+                "a" * 64,
+            )
+            obs_unverified = EffectObservation(
+                run1.run_id,
+                spec.target,
+                1,
+                EffectDisposition.APPLIED,
+                (StageResult("applied", StageState.PASSED, "ok", (ref_unverified,)),),
+                (ref_unverified,),
+                True,
+            )
+            after_unverified = await runtime.observe_effect(ALICE, state1, obs_unverified)
+            assert isinstance(after_unverified, BindingState)
+            assert after_unverified.applied_run_id is None
+            assert after_unverified.observations[-1].verified_complete is False
+
+            ref_verified = replace(ref_unverified, identity="ev-verified", operation_id="op-ok")
+            evidence.verified.add("ev-verified")
+            obs_verified = EffectObservation(
+                run1.run_id,
+                spec.target,
+                1,
+                EffectDisposition.APPLIED,
+                (StageResult("applied", StageState.PASSED, "ok", (ref_verified,)),),
+                (ref_verified,),
+                True,
+            )
+            caller.observations["op-ok"] = obs_verified
+            after_verified = await runtime.observe_operation(ALICE, after_unverified, "op-ok")
+            assert isinstance(after_verified, BindingState)
+            assert after_verified.applied_run_id == run1.run_id
+            assert after_verified.applied_snapshot == run1.snapshot
+            assert after_verified.last_effect is EffectDisposition.APPLIED
+            assert after_verified.last_error is None
+            assert after_verified.observations[-1].verified_complete is True
+
+            run2 = await runtime.select(ALICE, spec.binding_id)
+            assert isinstance(run2, RunPins) and run2.run_id != run1.run_id
+            state2 = await resources.bindings.inspect(
+                ALICE, InspectRequest("binding", spec.binding_id)
+            )
+            assert isinstance(state2, BindingState) and state2.selected_run_id == run2.run_id
+            assert state2.applied_run_id == run1.run_id
+
+            pins2 = (
+                ExpectedVersion(ResourceRef("run", run2.run_id), run2.prepared_digest),
+                ExpectedVersion(ResourceRef("gridcraft_document", spec.target.document_id), "2"),
+            )
+            ref_partial = EvidenceRef(
+                "ev-partial",
+                "app_applied",
+                "op-partial",
+                OperationKey("gridcraft.apply", "1"),
+                pins2,
+                "b" * 64,
+            )
+            evidence.verified.add("ev-partial")
+            obs_partial = EffectObservation(
+                run2.run_id,
+                spec.target,
+                1,
+                EffectDisposition.PARTIAL,
+                (StageResult("applied", StageState.FAILED, "edit_conflict", (ref_partial,)),),
+                (ref_partial,),
+                True,
+            )
+            caller.cancellations["op-cancel"] = CancellationObservation(
+                "op-cancel", "uncertain", EffectDisposition.PARTIAL, obs_partial
+            )
+            cancelled = await runtime.cancel_operation(ALICE, state2, "op-cancel")
+            assert isinstance(cancelled, CancellationObservation)
+            after_partial = await resources.bindings.inspect(
+                ALICE, InspectRequest("binding", spec.binding_id)
+            )
+            assert isinstance(after_partial, BindingState)
+            assert after_partial.applied_run_id == run1.run_id
+            assert after_partial.last_effect is EffectDisposition.PARTIAL
+            assert after_partial.last_error == "edit_conflict"
+            assert after_partial.observations[-1].verified_complete is False
+
+            changed_spec = replace(spec, target=replace(spec.target, document_id="doc-2"))
+            assert isinstance(
+                await bind(resources, BindRequest(changed_spec, 1), str(after_partial.revision)),
+                ports.ResourceEffect,
+            )
+            state_gen2 = await resources.bindings.inspect(
+                ALICE, InspectRequest("binding", spec.binding_id)
+            )
+            assert isinstance(state_gen2, BindingState) and state_gen2.generation == 2
+            assert state_gen2.selected_run_id is None
+            assert state_gen2.applied_run_id == run1.run_id
+
+            ref_stale = replace(ref_partial, identity="ev-stale", operation_id="op-stale")
+            evidence.verified.add("ev-stale")
+            obs_stale = EffectObservation(
+                run2.run_id,
+                spec.target,
+                1,
+                EffectDisposition.APPLIED,
+                (StageResult("applied", StageState.PASSED, "ok", (ref_stale,)),),
+                (ref_stale,),
+                True,
+            )
+            conflict = await runtime.observe_effect(ALICE, state_gen2, obs_stale)
+            assert isinstance(conflict, ports.VersionConflict)
+            final_state = await resources.bindings.inspect(
+                ALICE, InspectRequest("binding", spec.binding_id)
+            )
+            assert isinstance(final_state, BindingState)
+            assert final_state.applied_run_id == run1.run_id
+            assert final_state.observations[-1].run_id == run2.run_id
+            assert final_state.observations[-1].verified_complete is False
+        finally:
+            await database.close()
+
+        reopened = Database(path, ALICE.deployment_scope)
+        try:
+            reopened_resources = provider(reopened)
+            reopened_resources.configure_bindings(bind_codec(), BindingResultCodec())
+            reopened_state = await reopened_resources.bindings.inspect(
+                ALICE, InspectRequest("binding", spec.binding_id)
+            )
+            assert reopened_state == final_state
+        finally:
+            await reopened.close()
+
+    asyncio.run(exercise())

@@ -1,12 +1,13 @@
 """Binding operations and pin selection; neither schedules nor starts app effects."""
 
 from collections.abc import Callable
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, fields, replace
 from uuid import uuid4
 
 from craftreport.application import ports
 from craftreport.application.registry import Codec
 from craftreport.contracts import (
+    Availability,
     EffectDisposition,
     OutcomeProposal,
     Principal,
@@ -14,11 +15,18 @@ from craftreport.contracts import (
     StageResult,
     StageState,
 )
-from craftreport.runtime.ports import RunPreparer, RuntimeStore, SnapshotQueries
+from craftreport.runtime.ports import (
+    AppOperationCaller,
+    RunPreparer,
+    RuntimeStore,
+    SnapshotQueries,
+)
 from craftreport.runtime.publication import LatestRequest, LatestSelection
 from craftreport.runtime.values import (
     BindingState,
     BindRequest,
+    CancellationObservation,
+    EffectObservation,
     InspectRequest,
     PreparationIssue,
     PreparedRunInputs,
@@ -100,6 +108,8 @@ class BindingRuntime:
     store: RuntimeStore
     queries: Callable[[Principal], SnapshotQueries]
     preparer: RunPreparer
+    evidence: ports.EvidenceReader | None = None
+    app: AppOperationCaller | None = None
 
     async def select(
         self, principal: Principal, binding_id: str
@@ -151,3 +161,49 @@ class BindingRuntime:
             **values,
         )
         return await self.store.select_run(principal, state, pins)
+
+    async def observe_effect(
+        self,
+        principal: Principal,
+        expected: BindingState,
+        observation: EffectObservation,
+    ) -> BindingState | ports.Missing | ports.VersionConflict | ports.ServiceUnavailable:
+        verified = False
+        if self.evidence is not None and observation.verified_complete and observation.evidence:
+            statuses = await self.evidence.inspect(observation.evidence)
+            verified = len(statuses) == len(observation.evidence) and all(
+                st.reference == ref
+                and st.availability is Availability.AVAILABLE
+                and st.verification is StageState.PASSED
+                for st, ref in zip(statuses, observation.evidence, strict=True)
+            )
+        sanitized = observation if verified else replace(observation, verified_complete=False)
+        return await self.store.observe_effect(principal, expected, sanitized)
+
+    async def observe_operation(
+        self,
+        principal: Principal,
+        expected: BindingState,
+        operation_id: str,
+    ) -> BindingState | ports.Missing | ports.VersionConflict | ports.ServiceUnavailable:
+        if self.app is None:
+            return ports.ServiceUnavailable("app_caller")
+        observed = await self.app.inspect(operation_id)
+        if not isinstance(observed, EffectObservation):
+            return observed
+        return await self.observe_effect(principal, expected, observed)
+
+    async def cancel_operation(
+        self,
+        principal: Principal,
+        expected: BindingState,
+        operation_id: str,
+    ) -> CancellationObservation | ports.Missing | ports.ServiceUnavailable:
+        if self.app is None:
+            return ports.ServiceUnavailable("app_caller")
+        cancelled = await self.app.cancel(operation_id)
+        if isinstance(cancelled, CancellationObservation) and cancelled.observation is not None:
+            await self.observe_effect(
+                principal, expected, replace(cancelled.observation, verified_complete=False)
+            )
+        return cancelled

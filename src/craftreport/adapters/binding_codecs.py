@@ -28,6 +28,7 @@ from craftreport.runtime.values import (
     BindingSpec,
     BindingState,
     BindRequest,
+    EffectObservation,
     InspectRequest,
     RunPins,
 )
@@ -49,7 +50,7 @@ def parameter_digest(value: tuple[tuple[str, Scalar], ...]) -> str:
 
 
 def _members(
-    value: BindingSpec | BindingState | RunPins | BindRequest | InspectRequest,
+    value: BindingSpec | BindingState | RunPins | BindRequest | InspectRequest | EffectObservation,
 ) -> JsonObject:
     return cast(JsonObject, {f.name: getattr(value, f.name) for f in fields(value)})
 
@@ -60,8 +61,22 @@ class SpecWire(
     pass
 
 
+class ObservationWire(model_shape(EffectObservation, {"binding_generation": Count})):
+    pass
+
+
 class StateWire(
-    model_shape(BindingState, {"spec": SpecWire, "generation": Count, "revision": Count})
+    model_shape(
+        BindingState,
+        {
+            "spec": SpecWire,
+            "generation": Count,
+            "revision": Count,
+            "latest_complete_snapshot": SnapshotRefWire | None,
+            "applied_snapshot": SnapshotRefWire | None,
+            "observations": tuple[ObservationWire, ...],
+        },
+    )
 ):
     pass
 
@@ -115,16 +130,40 @@ def _spec(value: SpecWire) -> BindingSpec:
     return result
 
 
+def _observation_object(value: EffectObservation) -> JsonObject:
+    return {**_members(value), "binding_generation": str(value.binding_generation)}
+
+
+def _observation(value: ObservationWire) -> EffectObservation:
+    return construct(
+        EffectObservation,
+        value,
+        {"binding_generation": int(getattr(value, "binding_generation"))},
+    )
+
+
 def _state_object(value: BindingState) -> JsonObject:
     return {
         **_members(value),
         "spec": _spec_object(value.spec),
         "generation": str(value.generation),
         "revision": str(value.revision),
+        "latest_complete_snapshot": (
+            None
+            if value.latest_complete_snapshot is None
+            else reference_object(value.latest_complete_snapshot)
+        ),
+        "applied_snapshot": (
+            None if value.applied_snapshot is None else reference_object(value.applied_snapshot)
+        ),
+        "observations": tuple(_observation_object(item) for item in value.observations),
     }
 
 
 def _state(value: StateWire) -> BindingState:
+    latest = cast(SnapshotRefWire | None, getattr(value, "latest_complete_snapshot"))
+    applied = cast(SnapshotRefWire | None, getattr(value, "applied_snapshot"))
+    observations = cast(tuple[ObservationWire, ...], getattr(value, "observations"))
     return construct(
         BindingState,
         value,
@@ -132,6 +171,9 @@ def _state(value: StateWire) -> BindingState:
             "spec": _spec(cast(SpecWire, getattr(value, "spec"))),
             "generation": int(getattr(value, "generation")),
             "revision": int(getattr(value, "revision")),
+            "latest_complete_snapshot": None if latest is None else reference_value(latest),
+            "applied_snapshot": None if applied is None else reference_value(applied),
+            "observations": tuple(_observation(item) for item in observations),
         },
     )
 

@@ -119,9 +119,10 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   - _Boundary: Explicit integration of BindingRuntime values, BindingStore, SnapshotCodecs, capability registration and DurableHost assembly_
   - _Depends: 4.2_
   - _Requirements: 3.1, 3.2, 3.5, 5.1, 6.2_
-- [ ] 5.2 Accept verified app observations conditionally and retain partial history
+- [x] 5.2 Accept verified app observations conditionally and retain partial history
   - Add injected typed app caller/inspection/cancellation ports and operation/run-linked observed stages; no wire assertion may grant verified completion.
   - Done when exact matching verified observation alone advances applied state, stale generation/target completion loses CAS, and partial/ambiguous effects remain historical without current complete status.
+  - _Completed: Added `EffectObservation`, `CancellationObservation`, and `AppOperationCaller` (`start`, `inspect`, `cancel`) in `runtime/values.py` and `runtime/ports.py`; extended `BindingState` and `binding_codecs.py` with historical `observations`, `applied_run_id`, `applied_snapshot`, `last_effect`, `last_error`, `last_attempt_at`, and `last_completed_at`; implemented conditional CAS and evidence-verified observation recording in `BindingStore.observe_effect` and `BindingRuntime.observe_effect` / `observe_operation` / `cancel_operation` so only verified `app_applied` evidence with exact run/target/generation pins advances `applied_run_id` while partial, ambiguous, and stale completions remain historical (`tests/snapshot_runtime/test_bindings.py`)._
   - _Boundary: BindingRuntime effect observation_
   - _Depends: 5.1_
   - _Requirements: 3.3, 3.4, 3.5, 6.3_

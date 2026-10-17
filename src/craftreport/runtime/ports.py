@@ -15,6 +15,8 @@ if TYPE_CHECKING:
     from craftreport.runtime.values import (
         BindingSpec,
         BindingState,
+        CancellationObservation,
+        EffectObservation,
         InspectRequest,
         PreparationIssue,
         PreparedRunInputs,
@@ -43,8 +45,27 @@ class RuntimeStore(Protocol):
         self, principal: Principal, expected: BindingState, pins: RunPins
     ) -> RunPins | VersionConflict | ServiceUnavailable: ...
 
+    async def observe_effect(
+        self,
+        principal: Principal,
+        expected: BindingState,
+        observation: EffectObservation,
+    ) -> BindingState | Missing | VersionConflict | ServiceUnavailable: ...
+
 
 class RunPreparer(Protocol):
     async def prepare(
         self, binding: BindingSpec, snapshot: SnapshotRef
     ) -> PreparedRunInputs | PreparationIssue | ServiceUnavailable: ...
+
+
+class AppOperationCaller(Protocol):
+    async def start(self, run: RunPins) -> str | ServiceUnavailable: ...
+
+    async def inspect(
+        self, operation_id: str
+    ) -> EffectObservation | Missing | ServiceUnavailable: ...
+
+    async def cancel(
+        self, operation_id: str
+    ) -> CancellationObservation | Missing | ServiceUnavailable: ...

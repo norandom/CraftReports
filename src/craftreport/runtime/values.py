@@ -5,6 +5,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Literal
 
+from craftreport.contracts import EffectDisposition, EvidenceRef, StageResult
 from craftreport.contracts.pins import VersionPin
 from craftreport.contracts.values import require_immutable, require_text
 from craftreport.data.requirements import InputRequirements
@@ -146,21 +147,105 @@ class RunPins:
 
 
 @dataclass(frozen=True, slots=True)
+class EffectObservation:
+    run_id: str
+    target: TargetIdentity
+    binding_generation: int
+    effect: EffectDisposition
+    stages: tuple[StageResult, ...]
+    evidence: tuple[EvidenceRef, ...]
+    verified_complete: bool
+
+    def __post_init__(self) -> None:
+        require_immutable(self)
+        counter(self.binding_generation)
+        if type(self.run_id) is not str:
+            raise ValueError("Run identity requires text")
+        require_text(self.run_id, "run identity")
+        if (
+            type(self.target) is not TargetIdentity
+            or type(self.effect) is not EffectDisposition
+            or type(self.verified_complete) is not bool
+            or type(self.stages) is not tuple
+            or any(type(s) is not StageResult for s in self.stages)
+            or type(self.evidence) is not tuple
+            or any(type(e) is not EvidenceRef for e in self.evidence)
+        ):
+            raise ValueError("Invalid effect observation")
+
+
+@dataclass(frozen=True, slots=True)
+class CancellationObservation:
+    operation_id: str
+    state: Literal["cancelled", "already_terminal", "uncertain"]
+    effect: EffectDisposition
+    observation: EffectObservation | None = None
+
+    def __post_init__(self) -> None:
+        require_immutable(self)
+        if type(self.operation_id) is not str:
+            raise ValueError("Operation identity requires text")
+        require_text(self.operation_id, "operation identity")
+        if (
+            self.state not in ("cancelled", "already_terminal", "uncertain")
+            or type(self.effect) is not EffectDisposition
+            or (self.observation is not None and type(self.observation) is not EffectObservation)
+        ):
+            raise ValueError("Invalid cancellation observation")
+
+
+@dataclass(frozen=True, slots=True)
 class BindingState:
     spec: BindingSpec
     generation: int
     revision: int
-    intent: Literal["stopped"] = "stopped"
+    intent: Literal["stopped", "running", "paused"] = "stopped"
     selected_run_id: str | None = None
+    applied_run_id: str | None = None
+    pause_pending: bool = False
+    recovery_required: bool = False
+    pending_operation_id: str | None = None
+    last_effect: EffectDisposition | None = None
+    last_error: str | None = None
+    last_attempt_at: str | None = None
+    last_completed_at: str | None = None
+    latest_complete_snapshot: SnapshotRef | None = None
+    applied_snapshot: SnapshotRef | None = None
+    observations: tuple[EffectObservation, ...] = ()
 
     def __post_init__(self) -> None:
         require_immutable(self)
         counter(self.generation)
         counter(self.revision)
-        if type(self.spec) is not BindingSpec or self.intent != "stopped":
+        if (
+            type(self.spec) is not BindingSpec
+            or self.intent not in ("stopped", "running", "paused")
+            or type(self.pause_pending) is not bool
+            or type(self.recovery_required) is not bool
+            or (self.last_effect is not None and type(self.last_effect) is not EffectDisposition)
+            or (
+                self.latest_complete_snapshot is not None
+                and type(self.latest_complete_snapshot) is not SnapshotRef
+            )
+            or (
+                self.applied_snapshot is not None and type(self.applied_snapshot) is not SnapshotRef
+            )
+            or type(self.observations) is not tuple
+            or any(type(obs) is not EffectObservation for obs in self.observations)
+        ):
             raise ValueError("Invalid binding state")
-        if self.selected_run_id is not None:
-            require_text(self.selected_run_id, "selected run")
+        for label, value in (
+            ("selected run", self.selected_run_id),
+            ("applied run", self.applied_run_id),
+            ("pending operation", self.pending_operation_id),
+            ("last error", self.last_error),
+            ("last attempt", self.last_attempt_at),
+            ("last completed", self.last_completed_at),
+        ):
+            if value is not None:
+                if type(value) is not str:
+                    raise ValueError(f"Invalid {label}")
+                require_text(value, label)
 
 
 @dataclass(frozen=True, slots=True)

@@ -30,7 +30,13 @@ from craftreport.contracts import (
     StageState,
 )
 from craftreport.data.requirements import check_completeness
-from craftreport.runtime.values import BindingState, BindRequest, InspectRequest, RunPins
+from craftreport.runtime.values import (
+    BindingState,
+    BindRequest,
+    EffectObservation,
+    InspectRequest,
+    RunPins,
+)
 
 _KEY = OperationKey("runtime.bind", "1")
 
@@ -41,7 +47,16 @@ def transition(before: BindingState | None, request: BindRequest) -> BindingStat
     return (
         before
         if before.spec == request.spec
-        else BindingState(request.spec, before.generation + 1, before.revision + 1)
+        else BindingState(
+            request.spec,
+            before.generation + 1,
+            before.revision + 1,
+            intent=before.intent,
+            applied_run_id=before.applied_run_id,
+            applied_snapshot=before.applied_snapshot,
+            last_completed_at=before.last_completed_at,
+            observations=before.observations,
+        )
     )
 
 
@@ -112,6 +127,31 @@ def validate_fact(
     return after
 
 
+def _verify_binding_runs(connection: Connection, value: BindingState) -> None:
+    if value.selected_run_id is not None:
+        selected = (
+            connection.execute(select(runs).where(runs.c.run_id == value.selected_run_id))
+            .mappings()
+            .one()
+        )
+        if (selected["binding_id"], selected["binding_generation"]) != (
+            value.spec.binding_id,
+            value.generation,
+        ):
+            raise ValueError("Selected run differs")
+    if value.applied_run_id is not None:
+        applied = (
+            connection.execute(select(runs).where(runs.c.run_id == value.applied_run_id))
+            .mappings()
+            .one()
+        )
+        if (
+            applied["binding_id"] != value.spec.binding_id
+            or applied["binding_generation"] > value.generation
+        ):
+            raise ValueError("Applied run differs")
+
+
 class BindingStore:
     def __init__(
         self,
@@ -176,17 +216,7 @@ class BindingStore:
                 row["revision"],
             ):
                 raise ValueError("Binding columns differ")
-            if value.selected_run_id is not None:
-                selected = (
-                    connection.execute(select(runs).where(runs.c.run_id == value.selected_run_id))
-                    .mappings()
-                    .one()
-                )
-                if (selected["binding_id"], selected["binding_generation"]) != (
-                    value.spec.binding_id,
-                    value.generation,
-                ):
-                    raise ValueError("Selected run differs")
+            _verify_binding_runs(connection, value)
             token = str(value.revision)
         elif isinstance(value, RunPins):
             if (
@@ -451,3 +481,107 @@ class BindingStore:
         if self._owned(connection, principal, InspectRequest("run", pins.run_id)) != pins:
             raise ValueError("Run readback differs")
         return pins
+
+    async def observe_effect(
+        self,
+        principal: Principal,
+        expected: BindingState,
+        observation: EffectObservation,
+    ) -> BindingState | ports.Missing | ports.VersionConflict | ports.ServiceUnavailable:
+        try:
+            return await self.database.transaction(
+                lambda c: self._observe(c, principal, expected, observation)
+            )
+        except STORAGE_FAILURES:
+            return ports.ServiceUnavailable("effect_observation")
+
+    def _observe(
+        self,
+        connection: Connection,
+        principal: Principal,
+        expected: BindingState,
+        observation: EffectObservation,
+    ) -> BindingState | ports.Missing | ports.VersionConflict:
+        current = self._owned(
+            connection, principal, InspectRequest("binding", expected.spec.binding_id)
+        )
+        run = self._owned(connection, principal, InspectRequest("run", observation.run_id))
+        if isinstance(current, ports.Missing) or isinstance(run, ports.Missing):
+            return ports.Missing()
+        if not isinstance(current, BindingState) or not isinstance(run, RunPins):
+            raise ValueError("Invalid binding or run state")
+        if run.binding_id != current.spec.binding_id:
+            raise ValueError("Observed run does not belong to binding")
+        verified = (
+            observation.verified_complete
+            and observation.effect in (EffectDisposition.APPLIED, EffectDisposition.NONE)
+            and bool(observation.stages)
+            and bool(observation.evidence)
+            and all(
+                s.state is StageState.PASSED
+                and bool(s.evidence)
+                and set(s.evidence) <= set(observation.evidence)
+                for s in observation.stages
+            )
+            and len({r.operation_id for r in observation.evidence}) == 1
+            and all(
+                ResourceRef("run", run.run_id) in {p.resource for p in r.resource_versions}
+                and observation.target.document_id
+                in {p.resource.identity for p in r.resource_versions}
+                for r in observation.evidence
+            )
+        )
+        cas_matches = (
+            current == expected
+            and observation.binding_generation == current.generation
+            and observation.run_id == current.selected_run_id
+            and observation.target == current.spec.target
+            and run.binding_generation == current.generation
+            and run.target == current.spec.target
+        )
+        retained = (
+            observation
+            if (verified and cas_matches)
+            else replace(observation, verified_complete=False)
+        )
+        owner = (
+            connection.execute(
+                select(bindings).where(bindings.c.binding_id == current.spec.binding_id)
+            )
+            .mappings()
+            .one()
+        )
+        if not cas_matches:
+            after = replace(
+                current,
+                revision=current.revision + 1,
+                observations=(*current.observations, retained),
+            )
+            self._write(connection, after, principal.subject, owner["operation_id"])
+            res = ResourceRef("binding", current.spec.binding_id)
+            return ports.VersionConflict(
+                (ExpectedVersion(res, str(expected.revision)),),
+                (ExpectedVersion(res, str(after.revision)),),
+            )
+        after = replace(
+            current,
+            revision=current.revision + 1,
+            applied_run_id=run.run_id if verified else current.applied_run_id,
+            applied_snapshot=run.snapshot if verified else current.applied_snapshot,
+            last_effect=observation.effect,
+            last_error=None
+            if verified
+            else (
+                observation.stages[-1].reason_code
+                if observation.stages
+                else observation.effect.value
+            ),
+            observations=(*current.observations, retained),
+        )
+        self._write(connection, after, principal.subject, owner["operation_id"])
+        if (
+            self._owned(connection, principal, InspectRequest("binding", current.spec.binding_id))
+            != after
+        ):
+            raise ValueError("Observed binding readback differs")
+        return after
