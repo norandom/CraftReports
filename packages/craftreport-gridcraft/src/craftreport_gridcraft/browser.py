@@ -6,7 +6,7 @@ import asyncio
 import os
 from hashlib import sha256
 from pathlib import Path
-from typing import cast
+from typing import Literal, cast
 
 from playwright.async_api import Page
 
@@ -20,11 +20,12 @@ from craftreport.policies.values import (
     CheckStatus,
 )
 from craftreport.runtime.values import RunPins, TargetIdentity
-from craftreport_gridcraft.interactions import key, read_cell
+from craftreport_gridcraft.interactions import clipboard_encoding, key, read_cell, type_cell
 from craftreport_gridcraft.values import (
     AppIssue,
     AppSettings,
     BrowserTarget,
+    Cell,
     MappingPlan,
     SavedCandidate,
     TargetObservation,
@@ -59,6 +60,107 @@ addEventListener('message', e => {
 """
 
 
+def _marker_addrs(plan: MappingPlan) -> tuple[str, str]:
+    return ("K1", "K2") if any(c.address == "K1" for c in plan.cells) else ("J1", "J2")
+
+
+def _expected_cell_text(address: str, value: str | int | None) -> str:
+    if value is None:
+        return ""
+    raw = f"{value}.00" if type(value) is int else str(value)
+    return clipboard_encoding(raw, merged=address == "A3")
+
+
+async def _verify_identity(
+    page: Page,
+    plan: MappingPlan,
+    marker: str,
+    run_id: str,
+    stage: Literal["bootstrap", "observe", "mutate"],
+    effect: Literal["none", "partial", "unknown"] = "none",
+) -> str | AppIssue:
+    m_addr, r_addr = _marker_addrs(plan)
+    try:
+        _, val_m = await read_cell(page, m_addr)
+        _, val_r = await read_cell(page, r_addr)
+        _, val_out = await read_cell(page, "M1")
+    except Exception:
+        return AppIssue("unavailable", ("cells",), stage=stage, effect=effect)
+    if val_m != marker:
+        return AppIssue("conflict", ("document_marker",), stage=stage, effect=effect)
+    if val_r != run_id:
+        return AppIssue("conflict", ("run_id",), stage=stage, effect=effect)
+    if val_out != "OUTSIDE-UNCHANGED":
+        return AppIssue("conflict", ("outside",), stage=stage, effect=effect)
+    return sha256(f"M1={val_out}".encode()).hexdigest()
+
+
+async def _read_cells(
+    page: Page,
+    cells: tuple[Cell, ...],
+    stage: Literal["observe", "mutate"],
+    effect: Literal["none", "partial", "unknown"] = "none",
+) -> tuple[dict[str, str], str] | AppIssue:
+    try:
+        vals = {c.address: (await read_cell(page, c.address))[1] for c in cells}
+    except Exception:
+        return AppIssue("unavailable", (stage,), stage=stage, effect=effect)
+    fp = sha256(":".join(f"{c.address}={vals[c.address]}" for c in cells).encode()).hexdigest()
+    return vals, fp
+
+
+def _build_observation(
+    target: BrowserTarget,
+    run: RunPins,
+    plan: MappingPlan,
+    revision: int,
+    before_fp: str,
+    after_fp: str,
+    outside_fp: str,
+    op_name: str = "gridcraft.observe",
+) -> TargetObservation:
+    source_scope = plan.quality.findings[0].scope
+    scope = CheckScope(
+        content_digest=run.prepared_digest,
+        resource_versions=source_scope.resource_versions,
+        target=ExpectedVersion(
+            ResourceRef("app_document", target.identity.document_id),
+            str(revision),
+        ),
+        artifact_digest=None,
+        validation_scope_digest=run.validation_scope,
+    )
+    ev_ref = EvidenceRef(
+        identity=f"evidence-obs-{target.document_marker}-{revision}",
+        scope="app-observation",
+        operation_id=f"obs-{target.document_marker}-{revision}",
+        operation=OperationKey(op_name, "1"),
+        resource_versions=scope.resource_versions,
+        content_digest=after_fp,
+    )
+    findings = (
+        CheckObservation(
+            CheckId.LAYOUT_FIT,
+            scope,
+            CheckStatus.PASSED,
+            (ev_ref,),
+            CheckOrigin.CRAFTREPORT,
+            "layout_fit_verified",
+        ),
+        CheckObservation(
+            CheckId.TARGET_CONSISTENCY,
+            scope,
+            CheckStatus.PASSED,
+            (ev_ref,),
+            CheckOrigin.CRAFTREPORT,
+            "target_consistency_verified",
+        ),
+    )
+    return TargetObservation(
+        target, run, revision, before_fp, after_fp, outside_fp, findings, (ev_ref,)
+    )
+
+
 async def bootstrap_page(page: Page, data: bytes, origin: str) -> None:
     """Grant clipboard permissions and post gridcraft:open message to released app iframe."""
     await page.context.grant_permissions(["clipboard-read", "clipboard-write"], origin=origin)
@@ -71,10 +173,14 @@ async def bootstrap_page(page: Page, data: bytes, origin: str) -> None:
 
 
 class BrowserDriver:
-    """Driver managing isolated browser page lifecycle, bootstrap, observation and save."""
+    """Driver managing isolated browser lifecycle, bootstrap, observation, mutation and save."""
 
     def __init__(self, settings: AppSettings) -> None:
         self._settings = settings
+        self._lanes: dict[str, asyncio.Lock] = {}
+
+    def _lane(self, document_id: str) -> asyncio.Lock:
+        return self._lanes.setdefault(document_id, asyncio.Lock())
 
     async def open_report(
         self,
@@ -88,45 +194,30 @@ class BrowserDriver:
             return AppIssue("untested", ("profile",), stage="bootstrap")
         if self._settings.origin != plan.layout.target.origin:
             return AppIssue("conflict", ("origin",), stage="bootstrap")
-
         data = bootstrap_data if bootstrap_data is not None else bootstrap(plan, marker)
         if isinstance(data, AppIssue):
             return data
 
-        await bootstrap_page(page, data, self._settings.origin)
-
-        try:
-            _, val_j1 = await read_cell(page, "J1")
-            if val_j1 != marker:
-                return AppIssue("conflict", ("document_marker",), stage="bootstrap")
-
-            _, val_j2 = await read_cell(page, "J2")
-            if val_j2 != plan.layout.run.run_id:
-                return AppIssue("conflict", ("run_id",), stage="bootstrap")
-
-            _, val_m1 = await read_cell(page, "M1")
-            if val_m1 != "OUTSIDE-UNCHANGED":
-                return AppIssue("conflict", ("outside",), stage="bootstrap")
-        except Exception:
-            return AppIssue("unavailable", ("cells",), stage="bootstrap")
+        async with self._lane(marker):
+            await bootstrap_page(page, data, self._settings.origin)
+            checked = await _verify_identity(
+                page, plan, marker, plan.layout.run.run_id, "bootstrap"
+            )
+            if isinstance(checked, AppIssue):
+                return checked
 
         return BrowserTarget(
-            identity=TargetIdentity(
-                adapter_id="gridcraft",
-                mode="browser",
-                session_id=self._settings.context_id,
-                document_id=marker,
-            ),
-            deployment_id=self._settings.deployment_id,
-            context_id=self._settings.context_id,
-            page_id="page-1",
-            navigation_generation=1,
-            origin=self._settings.origin,
-            archive_digest=self._settings.archive_digest,
-            javascript_digest=self._settings.javascript_digest,
-            wasm_digest=self._settings.wasm_digest,
-            profile_pin=self._settings.profile_pin,
-            document_marker=marker,
+            TargetIdentity("gridcraft", "browser", self._settings.context_id, marker),
+            self._settings.deployment_id,
+            self._settings.context_id,
+            "page-1",
+            1,
+            self._settings.origin,
+            self._settings.archive_digest,
+            self._settings.javascript_digest,
+            self._settings.wasm_digest,
+            self._settings.profile_pin,
+            marker,
         )
 
     async def observe(
@@ -143,77 +234,97 @@ class BrowserDriver:
         except ValueError:
             return AppIssue("conflict", ("target",), stage="observe")
 
+        async with self._lane(target.identity.document_id):
+            outside_fp = await _verify_identity(
+                page, plan, target.document_marker, run.run_id, "observe"
+            )
+            if isinstance(outside_fp, AppIssue):
+                return outside_fp
+            read_res = await _read_cells(page, plan.cells, "observe")
+            if isinstance(read_res, AppIssue):
+                return read_res
+            _, fp = read_res
+
+        return _build_observation(target, run, plan, revision, fp, fp, outside_fp)
+
+    async def _dispatch_and_verify(
+        self, page: Page, plan: MappingPlan, current_vals: dict[str, str], marker: str, run_id: str
+    ) -> tuple[str, str] | AppIssue:
+        dispatched = False
         try:
-            _, val_j1 = await read_cell(page, "J1")
-            if val_j1 != target.document_marker:
-                return AppIssue("conflict", ("document_marker",), stage="observe")
-
-            _, val_j2 = await read_cell(page, "J2")
-            if val_j2 != run.run_id:
-                return AppIssue("conflict", ("run_id",), stage="observe")
-
-            _, val_m1 = await read_cell(page, "M1")
-            if val_m1 != "OUTSIDE-UNCHANGED":
-                return AppIssue("conflict", ("outside",), stage="observe")
-
-            cell_entries: list[str] = []
             for cell in plan.cells:
-                _, val = await read_cell(page, cell.address)
-                cell_entries.append(f"{cell.address}={val}")
+                expected = _expected_cell_text(cell.address, cell.value)
+                if current_vals.get(cell.address) != expected and cell.value is not None:
+                    dispatched = True
+                    await type_cell(page, cell.address, cell.value)
         except Exception:
-            return AppIssue("unavailable", ("observe",), stage="observe")
+            eff_err: Literal["none", "unknown"] = "unknown" if dispatched else "none"
+            return AppIssue("unavailable", ("mutate",), stage="mutate", effect=eff_err)
 
-        before_fp = sha256(":".join(cell_entries).encode()).hexdigest()
-        after_fp = before_fp
-        outside_fp = sha256(f"M1={val_m1}".encode()).hexdigest()
+        eff: Literal["none", "partial"] = "partial" if dispatched else "none"
+        outside_fp = await _verify_identity(page, plan, marker, run_id, "mutate", eff)
+        if isinstance(outside_fp, AppIssue):
+            return outside_fp
+        post = await _read_cells(page, plan.cells, "mutate", "unknown" if dispatched else "none")
+        if isinstance(post, AppIssue):
+            return post
+        vals, after_fp = post
+        for cell in plan.cells:
+            expected = _expected_cell_text(cell.address, cell.value)
+            if vals[cell.address] not in (expected, str(cell.value or "")):
+                return AppIssue("conflict", ("cells", cell.address), stage="mutate", effect=eff)
+        return after_fp, outside_fp
 
-        source_scope = plan.quality.findings[0].scope
-        scope = CheckScope(
-            content_digest=run.prepared_digest,
-            resource_versions=source_scope.resource_versions,
-            target=ExpectedVersion(
-                ResourceRef("app_document", target.identity.document_id),
-                str(revision),
-            ),
-            artifact_digest=None,
-            validation_scope_digest=run.validation_scope,
-        )
-        ev_ref = EvidenceRef(
-            identity=f"evidence-obs-{target.document_marker}-{revision}",
-            scope="app-observation",
-            operation_id=f"obs-{target.document_marker}-{revision}",
-            operation=OperationKey("gridcraft.observe", "1"),
-            resource_versions=scope.resource_versions,
-            content_digest=after_fp,
-        )
-        findings = (
-            CheckObservation(
-                CheckId.LAYOUT_FIT,
-                scope,
-                CheckStatus.PASSED,
-                (ev_ref,),
-                CheckOrigin.CRAFTREPORT,
-                "layout_fit_verified",
-            ),
-            CheckObservation(
-                CheckId.TARGET_CONSISTENCY,
-                scope,
-                CheckStatus.PASSED,
-                (ev_ref,),
-                CheckOrigin.CRAFTREPORT,
-                "target_consistency_verified",
-            ),
-        )
+    async def apply(
+        self,
+        plan: MappingPlan,
+        run: RunPins,
+        before: TargetObservation,
+        page: Page,
+        before_plan: MappingPlan | None = None,
+    ) -> TargetObservation | AppIssue:
+        """Apply pinned content through one guarded document lane with before/after checks."""
+        try:
+            matched(before.target, run)
+            matched(plan.layout.target, run)
+        except ValueError:
+            return AppIssue("conflict", ("target",), stage="mutate", effect="none")
+        if plan.layout.target != before.target or plan.layout.run != run:
+            return AppIssue("conflict", ("pins",), stage="mutate", effect="none")
 
-        return TargetObservation(
-            target=target,
-            run=run,
-            revision=revision,
-            before_fingerprint=before_fp,
-            after_fingerprint=after_fp,
-            outside_fingerprint=outside_fp,
-            findings=findings,
-            evidence=(ev_ref,),
+        async with self._lane(before.target.identity.document_id):
+            outside_fp = await _verify_identity(
+                page, plan, before.target.document_marker, before.run.run_id, "mutate"
+            )
+            if isinstance(outside_fp, AppIssue):
+                return outside_fp
+            if outside_fp != before.outside_fingerprint:
+                return AppIssue("conflict", ("outside",), stage="mutate", effect="none")
+
+            check_cells = before_plan.cells if before_plan is not None else plan.cells
+            pre = await _read_cells(page, check_cells, "mutate")
+            if isinstance(pre, AppIssue):
+                return pre
+            current_vals, pre_fp = pre
+            if pre_fp != before.after_fingerprint:
+                return AppIssue("conflict", ("before_fingerprint",), stage="mutate", effect="none")
+
+            res = await self._dispatch_and_verify(
+                page, plan, current_vals, before.target.document_marker, run.run_id
+            )
+            if isinstance(res, AppIssue):
+                return res
+            after_fp, after_out = res
+
+        return _build_observation(
+            before.target,
+            run,
+            plan,
+            before.revision + 1,
+            before.after_fingerprint,
+            after_fp,
+            after_out,
+            "gridcraft.apply",
         )
 
     async def capture_inspection_save(
@@ -225,41 +336,43 @@ class BrowserDriver:
         name: str,
     ) -> tuple[SavedCandidate, bytes] | AppIssue:
         """Arm the message lane, dispatch Ctrl+s, fsync the candidate, and return SavedCandidate."""
-        lane_state = await page.evaluate("() => window.saveLane")
-        if (
-            not isinstance(lane_state, dict)
-            or cast(dict[str, object], lane_state).get("failed") is True
-        ):
-            return AppIssue("conflict", ("save_lane",), stage="capture")
+        async with self._lane(target.identity.document_id):
+            lane_state = await page.evaluate("() => window.saveLane")
+            if (
+                not isinstance(lane_state, dict)
+                or cast(dict[str, object], lane_state).get("failed") is True
+            ):
+                return AppIssue("conflict", ("save_lane",), stage="capture")
 
-        await page.evaluate(
-            "() => { window.saveLane = { armed: true, count: 0, failed: false, candidate: null }; }"
-        )
-        await key(page, "Control+s")
+            await page.evaluate(
+                "() => { window.saveLane = "
+                "{ armed: true, count: 0, failed: false, candidate: null }; }"
+            )
+            await key(page, "Control+s")
 
-        try:
-            async with asyncio.timeout(10.0):
-                while True:
-                    cand = await page.evaluate("() => window.saveLane.candidate")
-                    failed = await page.evaluate("() => window.saveLane.failed")
-                    if failed:
-                        return AppIssue("conflict", ("save_lane",), stage="capture")
-                    if cand is not None:
-                        break
-                    await asyncio.sleep(0.05)
-        except TimeoutError:
-            return AppIssue("unavailable", ("save_timeout",), stage="capture")
+            try:
+                async with asyncio.timeout(10.0):
+                    while True:
+                        cand = await page.evaluate("() => window.saveLane.candidate")
+                        failed = await page.evaluate("() => window.saveLane.failed")
+                        if failed:
+                            return AppIssue("conflict", ("save_lane",), stage="capture")
+                        if cand is not None:
+                            break
+                        await asyncio.sleep(0.05)
+            except TimeoutError:
+                return AppIssue("unavailable", ("save_timeout",), stage="capture")
 
-        raw: list[int] = cast(
-            list[int], await page.evaluate("() => window.saveLane.candidate.bytes")
-        )
-        data = bytes(raw)
+            raw: list[int] = cast(
+                list[int], await page.evaluate("() => window.saveLane.candidate.bytes")
+            )
+            data = bytes(raw)
 
-        path = directory / f"{name}.xlsx"
-        with path.open("xb") as stream:
-            stream.write(data)
-            stream.flush()
-            os.fsync(stream.fileno())
+            path = directory / f"{name}.xlsx"
+            with path.open("xb") as stream:
+                stream.write(data)
+                stream.flush()
+                os.fsync(stream.fileno())
 
         digest = sha256(data).hexdigest()
         ev_ref = EvidenceRef(
@@ -268,10 +381,7 @@ class BrowserDriver:
             operation_id=f"save-{name}",
             operation=OperationKey("gridcraft.save", "1"),
             resource_versions=(
-                ExpectedVersion(
-                    ResourceRef("app_document", target.identity.document_id),
-                    "1",
-                ),
+                ExpectedVersion(ResourceRef("app_document", target.identity.document_id), "1"),
             ),
             content_digest=digest,
         )

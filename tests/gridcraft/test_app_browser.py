@@ -166,11 +166,11 @@ def test_inspect_workbook_bytes_rejects_mismatched_marker_or_sentinel() -> None:
     data = valid_fixture_bytes("marker-A", "run-1")
 
     # Mismatched marker
-    with pytest.raises(ValueError, match="Marker mismatch in J1"):
+    with pytest.raises(ValueError, match="Marker mismatch"):
         inspect_workbook_bytes(data, "marker-WRONG", "run-1")
 
     # Mismatched run
-    with pytest.raises(ValueError, match="Run mismatch in J2"):
+    with pytest.raises(ValueError, match="Run mismatch"):
         inspect_workbook_bytes(data, "marker-A", "run-WRONG")
 
 
@@ -184,6 +184,11 @@ class FakePage:
         self.frames = [self]
         self.permissions: list[tuple[list[str], str]] = []
         self.evaluations: list[str] = []
+        self._last_click: tuple[int, int] = (0, 0)
+        self._current_address: str = "A1"
+        self._last_clipboard: str = ""
+        self.typed_edits: list[tuple[str, str]] = []
+        self.fail_on_edit_index: int | None = None
 
     async def grant_permissions(self, perms: list[str], origin: str) -> None:
         self.permissions.append((perms, origin))
@@ -207,21 +212,32 @@ class FakePage:
         return None
 
     async def click(self, x: int, y: int) -> None:
-        pass
+        self._last_click = (x, y)
 
     async def press(self, chord: str) -> None:
         pass
 
     async def insert_text(self, text: str) -> None:
-        self._current_address = text
-        self._last_clipboard = text
+        if self._last_click == (60, 179):
+            self._current_address = text
+            self._last_clipboard = text
+        elif self._last_click == (300, 179):
+            if (
+                self.fail_on_edit_index is not None
+                and len(self.typed_edits) >= self.fail_on_edit_index
+            ):
+                raise RuntimeError("Simulated mid-update browser failure")
+            clean = text[1:] if text.startswith("'") else text
+            if clean.isdigit():
+                clean = f"{clean}.00"
+            self.cells[self._current_address] = clean
+            self.typed_edits.append((self._current_address, text))
 
     def locator(self, selector: str) -> FakePage:
         return self
 
     async def focus(self) -> None:
-        addr = getattr(self, "_current_address", "A1")
-        self._last_clipboard = self.cells.get(addr, "")
+        self._last_clipboard = self.cells.get(self._current_address, "")
 
 
 def test_receiver_script_contains_required_events() -> None:
@@ -316,7 +332,7 @@ async def test_browser_driver_observe_success_and_conflicts(
         "B5": "Value",
         "C5": "Literal",
         "A6": "Alpha",
-        "B6": "10",
+        "B6": "10.00",
         "C6": "=1+1",
     }
     page_success = FakePage(cell_data)
@@ -363,3 +379,124 @@ async def test_browser_driver_capture_inspection_save(
     saved_file = tmp_path / "test2.xlsx"
     assert saved_file.is_file()
     assert saved_file.read_bytes() == data
+
+
+@pytest.mark.anyio
+async def test_browser_driver_apply_two_sequential_runs_and_preserve_outside(
+    plan: MappingPlan, settings: AppSettings, browser_target: BrowserTarget, run: RunPins
+) -> None:
+    driver = BrowserDriver(settings)
+    cell_data = {
+        "J1": browser_target.document_marker,
+        "J2": run.run_id,
+        "M1": "OUTSIDE-UNCHANGED",
+        "A5": "Category",
+        "B5": "Value",
+        "C5": "Literal",
+        "A6": "Alpha",
+        "B6": "10.00",
+        "C6": "=1+1",
+    }
+    page = FakePage(cell_data)
+    obs1 = await driver.observe(browser_target, run, plan, cast(Any, page))
+    assert isinstance(obs1, TargetObservation)
+
+    # Run 2 updates A6, B6, C6 and J2
+    run2 = replace(run, run_id="run-2")
+    cells2 = (
+        Cell("J2", "run-2", cast(Any, "source")),
+        Cell("A5", "Category", cast(Any, "row_label")),
+        Cell("B5", "Value", cast(Any, "output")),
+        Cell("C5", "Literal", cast(Any, "note")),
+        Cell("A6", "Alpha-2", cast(Any, "row_label")),
+        Cell("B6", 42, cast(Any, "output")),
+        Cell("C6", "=2+2", cast(Any, "note")),
+    )
+    plan2 = MappingPlan(plan.prepared, plan.quality, OwnedLayout(browser_target, run2), cells2)
+    obs2 = await driver.apply(plan2, run2, obs1, cast(Any, page), before_plan=plan)
+    assert isinstance(obs2, TargetObservation)
+    assert obs2.revision == 2
+    assert obs2.before_fingerprint == obs1.after_fingerprint
+    assert obs2.after_fingerprint != obs1.after_fingerprint
+    assert obs2.outside_fingerprint == obs1.outside_fingerprint
+    assert page.cells["M1"] == "OUTSIDE-UNCHANGED"
+    assert page.cells["A6"] == "Alpha-2"
+    assert page.cells["B6"] == "42.00"
+    assert page.cells["C6"] == "=2+2"
+    # Strings were prefixed with ' when typed into formula bar
+    assert ("C6", "'=2+2") in page.typed_edits
+
+    # Run 3 updates again on the same document
+    run3 = replace(run, run_id="run-3")
+    cells3 = (
+        Cell("J2", "run-3", cast(Any, "source")),
+        Cell("A5", "Category", cast(Any, "row_label")),
+        Cell("B5", "Value", cast(Any, "output")),
+        Cell("C5", "Literal", cast(Any, "note")),
+        Cell("A6", "Alpha-3", cast(Any, "row_label")),
+        Cell("B6", 99, cast(Any, "output")),
+        Cell("C6", "=3+3", cast(Any, "note")),
+    )
+    plan3 = MappingPlan(plan.prepared, plan.quality, OwnedLayout(browser_target, run3), cells3)
+    obs3 = await driver.apply(plan3, run3, obs2, cast(Any, page), before_plan=plan2)
+    assert isinstance(obs3, TargetObservation)
+    assert obs3.revision == 3
+    assert obs3.before_fingerprint == obs2.after_fingerprint
+    assert page.cells["A6"] == "Alpha-3"
+    assert page.cells["B6"] == "99.00"
+    assert page.cells["M1"] == "OUTSIDE-UNCHANGED"
+
+
+@pytest.mark.anyio
+async def test_browser_driver_apply_conflicts_and_partial_effects(
+    plan: MappingPlan, settings: AppSettings, browser_target: BrowserTarget, run: RunPins
+) -> None:
+    driver = BrowserDriver(settings)
+    cell_data = {
+        "J1": browser_target.document_marker,
+        "J2": run.run_id,
+        "M1": "OUTSIDE-UNCHANGED",
+        "A5": "Category",
+        "B5": "Value",
+        "C5": "Literal",
+        "A6": "Alpha",
+        "B6": "10.00",
+        "C6": "=1+1",
+    }
+    page = FakePage(cell_data)
+    obs1 = await driver.observe(browser_target, run, plan, cast(Any, page))
+    assert isinstance(obs1, TargetObservation)
+
+    run2 = replace(run, run_id="run-2")
+    cells2 = (
+        Cell("J2", "run-2", cast(Any, "source")),
+        Cell("A5", "Category", cast(Any, "row_label")),
+        Cell("B5", "Value", cast(Any, "output")),
+        Cell("C5", "Literal", cast(Any, "note")),
+        Cell("A6", "Alpha-2", cast(Any, "row_label")),
+        Cell("B6", 25, cast(Any, "output")),
+        Cell("C6", "=2+2", cast(Any, "note")),
+    )
+    plan2 = MappingPlan(plan.prepared, plan.quality, OwnedLayout(browser_target, run2), cells2)
+
+    # 1. Deliberate external edit to owned cell before apply -> conflict with effect='none'
+    page.cells["B6"] = "999.00"
+    conflict_issue = await driver.apply(plan2, run2, obs1, cast(Any, page), before_plan=plan)
+    assert isinstance(conflict_issue, AppIssue)
+    assert conflict_issue.code == "conflict"
+    assert conflict_issue.location == ("before_fingerprint",)
+    assert conflict_issue.stage == "mutate"
+    assert conflict_issue.effect == "none"
+    # User edit was NOT overwritten
+    assert page.cells["B6"] == "999.00"
+    assert len(page.typed_edits) == 0
+
+    # Restore B6 and test mid-update exception after first edit dispatched -> effect='unknown'
+    page.cells["B6"] = "10.00"
+    page.fail_on_edit_index = 1
+    mid_issue = await driver.apply(plan2, run2, obs1, cast(Any, page), before_plan=plan)
+    assert isinstance(mid_issue, AppIssue)
+    assert mid_issue.code == "unavailable"
+    assert mid_issue.stage == "mutate"
+    assert mid_issue.effect == "unknown"
+    assert len(page.typed_edits) == 1

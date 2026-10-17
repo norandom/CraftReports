@@ -53,10 +53,12 @@ def _verify_chart(chart: ET.Element) -> tuple[list[str | None], list[str | None]
 
 
 def _verify_sheet_cells(sheet: Any, marker: str, run: str) -> None:
-    if getattr(sheet["J1"], "value", None) != marker:
-        raise ValueError(f"Marker mismatch in J1: {sheet['J1'].value} != {marker}")
-    if getattr(sheet["J2"], "value", None) != run:
-        raise ValueError(f"Run mismatch in J2: {sheet['J2'].value} != {run}")
+    actual_marker = getattr(sheet["K1"], "value", None) or getattr(sheet["J1"], "value", None)
+    if actual_marker != marker:
+        raise ValueError(f"Marker mismatch: {actual_marker} != {marker}")
+    actual_run = getattr(sheet["K2"], "value", None) or getattr(sheet["J2"], "value", None)
+    if actual_run != run:
+        raise ValueError(f"Run mismatch: {actual_run} != {run}")
     if getattr(sheet["M1"], "value", None) != "OUTSIDE-UNCHANGED":
         raise ValueError(f"Outside sentinel modified: {sheet['M1'].value}")
     if getattr(sheet["C6"], "data_type", None) != "s":

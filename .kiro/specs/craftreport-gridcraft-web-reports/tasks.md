@@ -63,7 +63,7 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Depends: 6_
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 2.3, 2.4, 2.6, 2.7, 5.1, 6.4, 6.5_
 
-- [ ] 8. Apply pinned content through one guarded real document lane
+- [x] 8. Apply pinned content through one guarded real document lane
   - Implement before-signature/UI checks, actual bounded keyboard/formula-bar edits to owned addresses and after UI/chart/app-byte comparison in the same document. Serialize apply/verify/save through one lane; do not alter chart structure or outside regions.
   - Recheck real target/owned/outside identities around effects, record intent before dispatch and immutable observed facts after. Pre-dispatch failures have no effect; after-dispatch timeout/identity/conflict failures remain partial/unknown, never a rollback over user edits.
   - Done when two pinned snapshots change the same document/table/chart with exact types/styles/markers, outside sentinel cell/object remains unchanged, deliberate external edits conflict and a partial update never grants verified-complete/app-applied status.
@@ -140,6 +140,14 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Requirements: 6.2, 6.3, 6.4, 6.5, 6.6_
 
 ## Implementation Notes
+
+- Task 8: verified by `tests/gridcraft/test_app_browser.py` (10 tests passing),
+  `test_app_installed.py` (2 tests passing), and full fast check suite (2,055
+  passed, 0 pyright/ruff/import/quality errors). Implements guarded real-document
+  mutation lane (`BrowserDriver.apply`):
+  - `interactions.py`: updated name-box click coordinate to `(60, 179)` and `A3:H3` merged-selection verification, added `clipboard_encoding`, and ensured string edits in `type_cell` prefix `'` to prevent formula/URL coercion.
+  - `browser.py`: added per-document `asyncio.Lock` serialization lane (`_lane`) across `open_report`, `observe`, `apply`, and `capture_inspection_save`; implemented `BrowserDriver.apply` performing pre-dispatch target/run/marker/outside/before-fingerprint checks (returning `effect="none"` on mismatch without overwriting user edits), dispatching bounded formula-bar edits only to changed owned addresses, and verifying post-mutation identity, outside sentinel, and cell values (returning `effect="partial"` or `"unknown"` on post-dispatch failure and advancing revision on full match).
+  Capability source size remains well within limits: gridcraft 1,337/1,500 LLOC, all modules < 300 LLOC.
 
 - Task 7: verified by `tests/gridcraft/test_app_browser.py` (8 tests passing),
   `test_app_installed.py` (2 tests passing), and full fast check suite (2,053

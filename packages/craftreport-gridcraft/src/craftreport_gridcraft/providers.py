@@ -88,6 +88,23 @@ class AppResourceReader(ResourceReader):
         )
 
 
+async def _check_pins(
+    resources: ResourceReader,
+    all_pins: tuple[ExpectedVersion, ...],
+    app_pins: tuple[ExpectedVersion, ...],
+) -> GuardCurrent | VersionConflict | ServiceUnavailable:
+    for pin in app_pins:
+        current = await resources.read(pin.resource)
+        if isinstance(current, ServiceUnavailable):
+            return current
+        if isinstance(current, Missing):
+            if pin.version != "absent":
+                return VersionConflict(all_pins, (ExpectedVersion(pin.resource, "missing"),))
+        elif pin.version != current.version.version:
+            return VersionConflict(all_pins, (current.version,))
+    return GuardCurrent()
+
+
 class AppGuardLease(GuardLease):
     """Outer app version lease wrapping delegated upstream lease."""
 
@@ -111,23 +128,7 @@ class AppGuardLease(GuardLease):
         check = await self._upstream_lease.assert_current()
         if not isinstance(check, GuardCurrent):
             return check
-        for pin in self._app_pins:
-            current = await self._resources.read(pin.resource)
-            if isinstance(current, ServiceUnavailable):
-                return current
-            if isinstance(current, Missing):
-                if pin.version != "absent":
-                    return VersionConflict(
-                        self.authoritative_versions,
-                        (ExpectedVersion(pin.resource, "missing"),),
-                    )
-            else:
-                if pin.version != current.version.version:
-                    return VersionConflict(
-                        self.authoritative_versions,
-                        (current.version,),
-                    )
-        return GuardCurrent()
+        return await _check_pins(self._resources, self.authoritative_versions, self._app_pins)
 
 
 class AppExecutionGuard(ExecutionGuard):
@@ -145,10 +146,7 @@ class AppExecutionGuard(ExecutionGuard):
         self._locks: dict[tuple[str, str], asyncio.Lock] = {}
 
     def _get_lock(self, resource: ResourceRef) -> asyncio.Lock:
-        key = (resource.kind, resource.identity)
-        if key not in self._locks:
-            self._locks[key] = asyncio.Lock()
-        return self._locks[key]
+        return self._locks.setdefault((resource.kind, resource.identity), asyncio.Lock())
 
     async def _acquire_app_locks(self, app_pins: tuple[ExpectedVersion, ...]) -> list[asyncio.Lock]:
         acquired: list[asyncio.Lock] = []
@@ -164,29 +162,6 @@ class AppExecutionGuard(ExecutionGuard):
             raise GuardAcquisitionError(ServiceUnavailable("guard_timeout")) from err
         return acquired
 
-    async def _validate_app_preconditions(
-        self,
-        all_preconditions: tuple[ExpectedVersion, ...],
-        app_pins: tuple[ExpectedVersion, ...],
-    ) -> None:
-        for pin in app_pins:
-            current = await self._resources.read(pin.resource)
-            if isinstance(current, ServiceUnavailable):
-                raise GuardAcquisitionError(current)
-            if isinstance(current, Missing):
-                if pin.version != "absent":
-                    raise GuardAcquisitionError(
-                        VersionConflict(
-                            all_preconditions,
-                            (ExpectedVersion(pin.resource, "missing"),),
-                        )
-                    )
-            else:
-                if pin.version != current.version.version:
-                    raise GuardAcquisitionError(
-                        VersionConflict(all_preconditions, (current.version,))
-                    )
-
     @asynccontextmanager
     async def acquire(
         self, preconditions: tuple[ExpectedVersion, ...]
@@ -199,7 +174,9 @@ class AppExecutionGuard(ExecutionGuard):
 
         acquired = await self._acquire_app_locks(app_pins)
         try:
-            await self._validate_app_preconditions(preconditions, app_pins)
+            check = await _check_pins(self._resources, preconditions, app_pins)
+            if not isinstance(check, GuardCurrent):
+                raise GuardAcquisitionError(check)
             async with self._upstream.acquire(upstream_pins) as upstream_lease:
                 yield AppGuardLease(app_pins, upstream_lease, self._resources)
         finally:
