@@ -14,6 +14,9 @@ from craftreport.reporting.prepared import PreparedReport
 from craftreport.runtime.values import RunPins
 from craftreport.themes.values import SemanticRole
 from craftreport_gridcraft.app_values import (
+    AppSettings as AppSettings,
+)
+from craftreport_gridcraft.app_values import (
     BrowserTarget as BrowserTarget,
 )
 from craftreport_gridcraft.app_values import (
@@ -168,15 +171,36 @@ class MappingPlan:
 class AppIssue:
     code: Literal["unsupported", "untested", "limit", "conflict", "unavailable"]
     location: tuple[str | int, ...]
-    stage: Literal["admit", "bootstrap"] = "admit"
-    effect: Literal["none"] = "none"
+    stage: Literal[
+        "admit",
+        "bootstrap",
+        "observe",
+        "mutate",
+        "capture",
+        "stage",
+        "inspect",
+        "reopen",
+        "publish",
+    ] = "admit"
+    effect: Literal["none", "partial", "unknown"] = "none"
 
     def __post_init__(self) -> None:
         require_immutable(self)
         if (
             self.code not in ("unsupported", "untested", "limit", "conflict", "unavailable")
-            or self.stage not in ("admit", "bootstrap")
-            or self.effect != "none"
+            or self.stage
+            not in (
+                "admit",
+                "bootstrap",
+                "observe",
+                "mutate",
+                "capture",
+                "stage",
+                "inspect",
+                "reopen",
+                "publish",
+            )
+            or self.effect not in ("none", "partial", "unknown")
         ):
             raise ValueError("Invalid app issue")
         if type(self.location) is not tuple or any(

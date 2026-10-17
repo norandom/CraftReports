@@ -55,7 +55,7 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Depends: 5_
   - _Requirements: 1.3, 2.7, 5.1, 5.4, 5.5, 5.6, 5.7, 6.1_
 
-- [ ] 7. Implement the released browser session and same-document observations
+- [x] 7. Implement the released browser session and same-document observations
   - Promote only the task3-proved narrow route into the app package: exact context/page/frame/navigation/build/profile/marker identity, one bootstrap, selected-reference/nonce reads, chart/reference/style observation and bounded official message capture. Never import/copy fixture state or create a generic automation framework.
   - Add read-only bounded workbook-byte inspection for actual app inspection saves, comparing source types/values/chart/styles plus supported outside signatures; no openpyxl resave. Record native dirty/saved side effects separately from host persistence/user export.
   - Done when actual released-browser observations bind one document/run, wrong page/marker/build/unrecognized geometry or multiple/late messages fail closed, and scratch bytes independently match observed content. Unknown outside structure conflicts before mutation.
@@ -140,6 +140,15 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Requirements: 6.2, 6.3, 6.4, 6.5, 6.6_
 
 ## Implementation Notes
+
+- Task 7: verified by `tests/gridcraft/test_app_browser.py` (8 tests passing),
+  `test_app_installed.py` (2 tests passing), and full fast check suite (2,053
+  passed, 0 pyright/ruff/import/quality errors). Implements browser driver
+  observation and scratch workbook inspection:
+  - `interactions.py`: narrow Playwright primitives (`click`, `key`, `frame`, `copy_text` via random clipboard nonce readback, `read_cell` verifying selected reference via name box and value via canvas focus, `type_cell`).
+  - `artifacts.py`: bounded read-only inspection (`inspect_workbook_bytes`, `verify_scratch_artifact`): enforces <= 4 MiB, <= 256 ZIP members, <= 32 MiB uncompressed, no XML DOCTYPE/ENTITY injection, chart XML formulas/categories/values/gap check, SAFE outside drawing check, and read-only openpyxl check for literal formula type "s", font bold, number format, without ever resaving.
+  - `browser.py`: `BrowserDriver` managing official parent shell `message` listener (`saveLane` for `gridcraft:save`, plus `gridcraft:ready` and `gridcraft:failed`), `bootstrap_page`, `open_report` checking profile/origin/marker/run/outside sentinel, `observe` extracting cells, computing before/after/outside SHA-256 fingerprints, and building `LAYOUT_FIT` / `TARGET_CONSISTENCY` observations with `CheckScope` and `EvidenceRef`, and `capture_inspection_save` managing armed save candidate extraction and scratch fsync.
+  Capability source size remains well within limits: gridcraft 1,324/1,500 LLOC, all modules < 300 LLOC.
 
 - Task 6: verified by `tests/gridcraft/test_app_providers.py` (6 tests passing),
   `test_app_installed.py` (2 tests passing), and full fast check suite (2,045

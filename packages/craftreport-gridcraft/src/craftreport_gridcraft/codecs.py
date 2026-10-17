@@ -38,8 +38,18 @@ _LIMITS = OperationLimits(max_input_bytes=65536, max_output_bytes=262144)
 class IssueWire(StrictWireModel):
     code: Literal["unsupported", "untested", "limit", "conflict", "unavailable"]
     location: tuple[str | int, ...]
-    stage: Literal["admit", "bootstrap"]
-    effect: Literal["none"]
+    stage: Literal[
+        "admit",
+        "bootstrap",
+        "observe",
+        "mutate",
+        "capture",
+        "stage",
+        "inspect",
+        "reopen",
+        "publish",
+    ]
+    effect: Literal["none", "partial", "unknown"]
 
 
 def issue_codec() -> PydanticCodec[AppIssue, IssueWire]:

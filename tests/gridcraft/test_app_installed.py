@@ -34,8 +34,11 @@ PACKAGE = APP / "src/craftreport_gridcraft"
 FILES = {
     "__init__.py",
     "app_values.py",
+    "artifacts.py",
+    "browser.py",
     "codecs.py",
     "facts.py",
+    "interactions.py",
     "providers.py",
     "values.py",
     "workbook.py",
