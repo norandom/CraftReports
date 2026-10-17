@@ -518,3 +518,219 @@ def test_verified_observations_advance_applied_while_partial_and_stale_stay_hist
             await reopened.close()
 
     asyncio.run(exercise())
+
+
+def test_scheduler_lifecycle_controls_pause_during_prep_and_10s_cadence(
+    tmp_path: Path,
+) -> None:
+    from craftreport.adapters.binding_codecs import control_codec
+    from craftreport.composition.snapshot_host import snapshot_factory
+    from craftreport.contracts import EvidenceRef, StageResult, StageState
+    from craftreport.runtime.scheduler import BindingScheduler
+    from craftreport.runtime.values import (
+        CancellationObservation,
+        ControlRequest,
+        EffectObservation,
+        RunPins,
+    )
+
+    manifest = snapshot_factory().describe()
+    assert any(op.key.name == "runtime.control" for op in manifest.operations)
+    ctrl_req = ControlRequest("bind-1", "start", 1)
+    assert control_codec().decode(control_codec().encode(ctrl_req)) == ctrl_req
+
+    async def exercise() -> None:
+        path = tmp_path / "scheduler.sqlite3"
+        database = Database(path, ALICE.deployment_scope)
+        resources = provider(database)
+        resources.configure_bindings(bind_codec(), BindingResultCodec())
+        evidence = MemoryEvidenceReader()
+        prep_entered = asyncio.Event()
+        prep_release = asyncio.Event()
+        prep_gate = False
+
+        class GatedPreparer(RetainedPreparer):
+            async def prepare(
+                self, binding: BindingSpec, snapshot: SnapshotRef
+            ) -> PreparedRunInputs:
+                if prep_gate:
+                    prep_entered.set()
+                    await prep_release.wait()
+                return await super().prepare(binding, snapshot)
+
+        started_runs: list[RunPins] = []
+
+        class RecordingCaller(StubAppCaller):
+            async def start(self, run: object) -> str:
+                assert isinstance(run, RunPins)
+                started_runs.append(run)
+                op_id = f"op-{len(started_runs)}"
+                pins = (
+                    ExpectedVersion(ResourceRef("run", run.run_id), run.prepared_digest),
+                    ExpectedVersion(
+                        ResourceRef("gridcraft_document", run.target.document_id),
+                        str(len(started_runs)),
+                    ),
+                )
+                ev_id = f"ev-{len(started_runs)}"
+                ref = EvidenceRef(
+                    ev_id,
+                    "app_applied",
+                    op_id,
+                    OperationKey("gridcraft.apply", "1"),
+                    pins,
+                    "c" * 64,
+                )
+                evidence.verified.add(ev_id)
+                self.observations[op_id] = EffectObservation(
+                    run.run_id,
+                    run.target,
+                    run.binding_generation,
+                    EffectDisposition.APPLIED,
+                    (StageResult("applied", StageState.PASSED, "ok", (ref,)),),
+                    (ref,),
+                    True,
+                )
+                return op_id
+
+        app_caller = RecordingCaller()
+        sleeps: list[float] = []
+
+        async def record_sleep(delay: float) -> None:
+            sleeps.append(delay)
+            await asyncio.sleep(0.01)
+
+        try:
+            await publish(resources, database)
+            spec = replace(binding_spec(), feed_id=FEED.identity)
+            assert isinstance(
+                await bind(resources, BindRequest(spec, 0), "absent"), ports.ResourceEffect
+            )
+            runtime = BindingRuntime(
+                resources.bindings,
+                resources.store.queries,
+                GatedPreparer(database),
+                evidence,  # type: ignore[arg-type]
+                app_caller,  # type: ignore[arg-type]
+            )
+            scheduler = BindingScheduler(runtime, interval_seconds=10.0, sleep=record_sleep)
+
+            # 1. Start and run one 10s cadence tick
+            started_state = await scheduler.control(
+                ALICE, ControlRequest(spec.binding_id, "start", 1)
+            )
+            assert isinstance(started_state, BindingState) and started_state.intent == "running"
+            for _ in range(50):
+                if sleeps:
+                    break
+                await asyncio.sleep(0.01)
+            assert sleeps and 9.0 <= sleeps[0] <= 10.0
+            assert len(started_runs) == 1
+            after_first = await resources.bindings.inspect(
+                ALICE, InspectRequest("binding", spec.binding_id)
+            )
+            assert isinstance(after_first, BindingState)
+            assert after_first.applied_run_id == started_runs[0].run_id
+            assert after_first.applied_snapshot == started_runs[0].snapshot
+            assert after_first.last_attempt_at is not None
+            assert after_first.last_completed_at is not None
+
+            # 2. Pause while preparation awaits prevents target start
+            paused = await scheduler.control(ALICE, ControlRequest(spec.binding_id, "pause", 1))
+            assert isinstance(paused, BindingState) and paused.intent == "paused"
+            await publish(resources, database, 2, "1")
+            resumed = await scheduler.control(ALICE, ControlRequest(spec.binding_id, "resume", 1))
+            assert isinstance(resumed, BindingState) and resumed.intent == "running"
+            scheduler.cancel_loop(scheduler.fence_for(spec.binding_id, ALICE))
+            prep_gate = True
+            step_task = asyncio.create_task(scheduler.step(ALICE, spec.binding_id))
+            await prep_entered.wait()
+            pause_in_prep = await scheduler.control(
+                ALICE, ControlRequest(spec.binding_id, "pause", 1)
+            )
+            assert isinstance(pause_in_prep, BindingState)
+            assert pause_in_prep.intent == "paused"
+            assert pause_in_prep.pause_pending is True
+            prep_release.set()
+            await step_task
+            assert len(started_runs) == 1  # No new target start after pause during prep!
+
+            # 3. Publish v3 while paused, then resume -> coalesces and selects highest complete (v3)
+            prep_gate = False
+            await publish(resources, database, 3, "2")
+            await scheduler.control(ALICE, ControlRequest(spec.binding_id, "resume", 1))
+            scheduler.cancel_loop(scheduler.fence_for(spec.binding_id, ALICE))
+            await scheduler.step(ALICE, spec.binding_id)
+            assert len(started_runs) == 2
+            assert started_runs[1].snapshot.producer_version == 3
+
+            # 4. Stop increments generation, clears selected_run_id, cancels pending work
+            app_caller.cancellations["op-pending"] = CancellationObservation(
+                "op-pending", "cancelled", EffectDisposition.NONE
+            )
+            current = await resources.bindings.inspect(
+                ALICE, InspectRequest("binding", spec.binding_id)
+            )
+            assert isinstance(current, BindingState)
+            with_pending = await resources.bindings.save_binding(
+                ALICE,
+                current,
+                replace(current, revision=current.revision + 1, pending_operation_id="op-pending"),
+            )
+            assert isinstance(with_pending, BindingState)
+            stopped = await scheduler.control(ALICE, ControlRequest(spec.binding_id, "stop", 1))
+            assert isinstance(stopped, BindingState)
+            assert stopped.intent == "stopped"
+            assert stopped.generation == 2
+            assert stopped.selected_run_id is None
+            assert stopped.pending_operation_id is None
+            await scheduler.aclose()
+        finally:
+            await database.close()
+
+    asyncio.run(exercise())
+
+
+@pytest.mark.integration
+def test_real_10_second_cadence_smoke(tmp_path: Path) -> None:
+    import time
+
+    from craftreport.runtime.scheduler import BindingScheduler
+    from craftreport.runtime.values import ControlRequest
+
+    async def exercise() -> None:
+        path = tmp_path / "cadence-smoke.sqlite3"
+        database = Database(path, ALICE.deployment_scope)
+        resources = provider(database)
+        resources.configure_bindings(bind_codec(), BindingResultCodec())
+        try:
+            await publish(resources, database)
+            spec = replace(binding_spec(), feed_id=FEED.identity)
+            assert isinstance(
+                await bind(resources, BindRequest(spec, 0), "absent"), ports.ResourceEffect
+            )
+            runtime = BindingRuntime(
+                resources.bindings,
+                resources.store.queries,
+                RetainedPreparer(database),
+            )
+            scheduler = BindingScheduler(runtime, interval_seconds=10.0)
+            t0 = time.monotonic()
+            started = await scheduler.control(ALICE, ControlRequest(spec.binding_id, "start", 1))
+            assert isinstance(started, BindingState) and started.intent == "running"
+            await asyncio.sleep(0.1)
+            await publish(resources, database, 2, "1")
+            await asyncio.sleep(10.2)
+            elapsed = time.monotonic() - t0
+            state = await resources.bindings.inspect(
+                ALICE, InspectRequest("binding", spec.binding_id)
+            )
+            assert isinstance(state, BindingState)
+            assert elapsed >= 10.0
+            assert state.latest_complete_snapshot is not None
+            assert state.latest_complete_snapshot.producer_version == 2
+            await scheduler.aclose()
+        finally:
+            await database.close()
+
+    asyncio.run(exercise())

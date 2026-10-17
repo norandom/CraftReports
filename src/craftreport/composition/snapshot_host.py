@@ -12,7 +12,12 @@ from typing import TYPE_CHECKING
 from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.version import Version
 
-from craftreport.adapters.binding_codecs import BindingResultCodec, bind_codec, inspect_codec
+from craftreport.adapters.binding_codecs import (
+    BindingResultCodec,
+    bind_codec,
+    control_codec,
+    inspect_codec,
+)
 from craftreport.adapters.snapshot_wire import (
     finalize_snapshot,
     latest_request_codec,
@@ -65,6 +70,7 @@ from craftreport.runtime.capability import (
 )
 from craftreport.runtime.ports import SnapshotQueries
 from craftreport.runtime.publication import PublicationOperations
+from craftreport.runtime.scheduler import BindingScheduler
 from craftreport.runtime.values import TargetIdentity
 
 if TYPE_CHECKING:
@@ -76,6 +82,7 @@ def snapshot_operation_bindings(
     *,
     owner_policy: Callable[[Principal], bool],
     target_policy: Callable[[Principal, TargetIdentity], bool] = lambda _p, _t: False,
+    scheduler: BindingScheduler | None = None,
 ) -> tuple[BoundOperation, ...]:
     """Explicit owner policy grants inspection of that owner's retained feed history."""
     if not callable(owner_policy):
@@ -93,8 +100,29 @@ def snapshot_operation_bindings(
         resources.store.codec,
         lambda: datetime.now(UTC),
     )
-    resources.configure_bindings(bind_codec(), BindingResultCodec())
-    bindings = BindingOperations(resources.bindings, bind_codec(), owner_policy, target_policy)
+    try:
+        resources.configure_bindings(bind_codec(), BindingResultCodec())
+    except ValueError:
+        pass
+    if scheduler is None:
+        from craftreport.runtime.bindings import BindingRuntime
+        from craftreport.runtime.values import BindingSpec, PreparationIssue
+
+        class _UnconfiguredPreparer:
+            async def prepare(self, binding: BindingSpec, snapshot: object) -> PreparationIssue:
+                return PreparationIssue("preparation_unavailable")
+
+        scheduler = BindingScheduler(
+            BindingRuntime(
+                resources.bindings,
+                queries,
+                _UnconfiguredPreparer(),  # type: ignore[arg-type]
+                DurableEvidence(resources.database, resources.verify_binding),
+            )
+        )
+    bindings = BindingOperations(
+        resources.bindings, bind_codec(), owner_policy, target_policy, scheduler
+    )
     return (
         *publication_operations(handlers, _publication_codecs()),
         *binding_operations(bindings, _binding_codecs()),
@@ -102,7 +130,7 @@ def snapshot_operation_bindings(
 
 
 def _binding_codecs() -> BindingCodecs:
-    return BindingCodecs(bind_codec(), inspect_codec(), BindingResultCodec())
+    return BindingCodecs(bind_codec(), inspect_codec(), BindingResultCodec(), control_codec())
 
 
 def _publication_codecs() -> PublicationCodecs:
@@ -176,6 +204,7 @@ def configure_snapshot(
     *,
     owner_policy: Callable[[Principal], bool],
     target_policy: Callable[[Principal, TargetIdentity], bool] = lambda _p, _t: False,
+    scheduler: BindingScheduler | None = None,
 ) -> ConfiguredCapability:
     def adapt(loaded: object) -> SnapshotFactory:
         if loaded is not snapshot_factory:
@@ -187,7 +216,10 @@ def configure_snapshot(
         "snapshot",
         adapt,
         snapshot_operation_bindings(
-            resources, owner_policy=owner_policy, target_policy=target_policy
+            resources,
+            owner_policy=owner_policy,
+            target_policy=target_policy,
+            scheduler=scheduler,
         ),
         SNAPSHOT_SETTINGS,
         {},

@@ -38,6 +38,7 @@ def test_real_host_catalog(tmp_path: Path, assets: dict[str, bytes]) -> None:
                 "snapshot.read",
                 "snapshot.latest",
                 "runtime.bind",
+                "runtime.control",
                 "runtime.inspect",
             }
 

@@ -260,6 +260,21 @@ class BindRequest:
 
 
 @dataclass(frozen=True, slots=True)
+class ControlRequest:
+    binding_id: str
+    action: Literal["start", "pause", "resume", "stop"]
+    expected_generation: int
+
+    def __post_init__(self) -> None:
+        counter(self.expected_generation)
+        if type(self.binding_id) is not str:
+            raise ValueError("Binding identity requires text")
+        require_text(self.binding_id, "binding identity")
+        if self.action not in ("start", "pause", "resume", "stop"):
+            raise ValueError("Invalid control action")
+
+
+@dataclass(frozen=True, slots=True)
 class InspectRequest:
     kind: Literal["binding", "run"]
     identity: str

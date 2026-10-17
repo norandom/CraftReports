@@ -126,12 +126,13 @@ Canonical checks: focused `uv.exe run --frozen python -m pytest tests/snapshot_r
   - _Boundary: BindingRuntime effect observation_
   - _Depends: 5.1_
   - _Requirements: 3.3, 3.4, 3.5, 6.3_
-- [ ] 5.3 Implement single-binding scheduling and public start/pause/resume/stop
+- [x] 5.3 Implement single-binding scheduling and public start/pause/resume/stop
   - Use one asyncio owner with monotonic 10-second reference opportunities and at most one in-flight preparation/update; select highest complete, obtain new prepared pins for that snapshot through injected RunPreparer, recheck generation plus lifecycle revision/running intent before run commit/start, coalesce arrivals and preserve run pins. A pause while preparation awaits prevents target start.
   - Implement the local lifecycle start fence separately from SQL transactions/kernel leases. Serialize final recheck/run commit plus the actual bounded facade start/operation-ID handoff with pause/stop; release all selection transactions/leases before nested invoke, exclude mutable binding resources from app-start admission, and release the fence before inspection/polling. Record pending pause behind an earlier start; failures/lost acknowledgement retain truthful admission uncertainty without replay.
   - Expose pause pending immediately, preserve accepted publications, stop until explicit start, request cancellation and retain distinct lifecycle/effect/last-error/attempt/completion/version facts.
   - Own runtime.control codec/OperationBinding registration and capability/host updates in the existing reviewed files; controls use the shared facade and existing interfaces/application remain unchanged.
   - Done when ordinary REST/MCP discovery and invocation expose control with retained intent readback, deterministic tests cover every transition and one bounded real 10-second smoke observes selection without claiming apply-latency guarantees or visible app completion.
+  - _Completed: Added `ControlRequest` in `runtime/values.py` and `control_codec` in `adapters/binding_codecs.py`; implemented `BindingScheduler` in `runtime/scheduler.py` with monotonic 10s cadence, single in-flight slot, coalescing to highest complete snapshot, per-binding asyncio start fence separate from SQL transactions and kernel leases, and `start`/`pause`/`resume`/`stop` transitions (`pause_pending` during active preparation/update, generation increment and cancellation on `stop`, `aclose()` recording unknown for in-flight work); registered `runtime.control` in `runtime/capability.py` and wired into `composition/snapshot_host.py`; verified with deterministic transition tests and a bounded 10s cadence smoke test (`tests/snapshot_runtime/test_bindings.py`)._
   - _Boundary: Explicit integration of BindingRuntime scheduler/control, SnapshotCodecs, capability registration and DurableHost assembly_
   - _Depends: 5.2_
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 6.1, 6.3_

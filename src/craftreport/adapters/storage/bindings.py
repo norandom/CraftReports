@@ -30,6 +30,7 @@ from craftreport.contracts import (
     StageState,
 )
 from craftreport.data.requirements import check_completeness
+from craftreport.data.values import SnapshotRef
 from craftreport.runtime.values import (
     BindingState,
     BindRequest,
@@ -401,18 +402,78 @@ class BindingStore:
             ):
                 raise ValueError("Retained preparation evidence unavailable")
 
+    async def save_binding(
+        self,
+        principal: Principal,
+        expected: BindingState,
+        candidate: BindingState,
+    ) -> BindingState | ports.Missing | ports.VersionConflict | ports.ServiceUnavailable:
+        try:
+            return await self.database.transaction(
+                lambda c: self._save(c, principal, expected, candidate)
+            )
+        except STORAGE_FAILURES:
+            return ports.ServiceUnavailable("binding_save")
+
+    def _save(
+        self,
+        connection: Connection,
+        principal: Principal,
+        expected: BindingState,
+        candidate: BindingState,
+    ) -> BindingState | ports.Missing | ports.VersionConflict:
+        current = self._owned(
+            connection, principal, InspectRequest("binding", expected.spec.binding_id)
+        )
+        if isinstance(current, ports.Missing):
+            return current
+        if not isinstance(current, BindingState) or candidate.spec != current.spec:
+            raise ValueError("Invalid binding update")
+        res = ResourceRef("binding", current.spec.binding_id)
+        if current != expected:
+            return ports.VersionConflict(
+                (ExpectedVersion(res, str(expected.revision)),),
+                (ExpectedVersion(res, str(current.revision)),),
+            )
+        owner = (
+            connection.execute(
+                select(bindings).where(bindings.c.binding_id == current.spec.binding_id)
+            )
+            .mappings()
+            .one()
+        )
+        self._write(connection, candidate, principal.subject, owner["operation_id"])
+        if (
+            self._owned(connection, principal, InspectRequest("binding", current.spec.binding_id))
+            != candidate
+        ):
+            raise ValueError("Saved binding readback differs")
+        return candidate
+
     async def select_run(
-        self, principal: Principal, expected: BindingState, pins: RunPins
+        self,
+        principal: Principal,
+        expected: BindingState,
+        pins: RunPins,
+        *,
+        attempt_at: str | None = None,
+        latest_complete: SnapshotRef | None = None,
     ) -> RunPins | ports.VersionConflict | ports.ServiceUnavailable:
         try:
             return await self.database.transaction(
-                lambda c: self._select(c, principal, expected, pins)
+                lambda c: self._select(c, principal, expected, pins, attempt_at, latest_complete)
             )
         except STORAGE_FAILURES:
             return ports.ServiceUnavailable("run_selection")
 
     def _select(
-        self, connection: Connection, principal: Principal, expected: BindingState, pins: RunPins
+        self,
+        connection: Connection,
+        principal: Principal,
+        expected: BindingState,
+        pins: RunPins,
+        attempt_at: str | None = None,
+        latest_complete: SnapshotRef | None = None,
     ) -> RunPins | ports.VersionConflict:
         current = self._owned(
             connection, principal, InspectRequest("binding", expected.spec.binding_id)
@@ -474,7 +535,13 @@ class BindingStore:
         )
         self._write(
             connection,
-            replace(current, revision=current.revision + 1, selected_run_id=pins.run_id),
+            replace(
+                current,
+                revision=current.revision + 1,
+                selected_run_id=pins.run_id,
+                last_attempt_at=attempt_at or current.last_attempt_at,
+                latest_complete_snapshot=latest_complete or current.latest_complete_snapshot,
+            ),
             principal.subject,
             owner["operation_id"],
         )
@@ -487,10 +554,12 @@ class BindingStore:
         principal: Principal,
         expected: BindingState,
         observation: EffectObservation,
+        *,
+        completed_at: str | None = None,
     ) -> BindingState | ports.Missing | ports.VersionConflict | ports.ServiceUnavailable:
         try:
             return await self.database.transaction(
-                lambda c: self._observe(c, principal, expected, observation)
+                lambda c: self._observe(c, principal, expected, observation, completed_at)
             )
         except STORAGE_FAILURES:
             return ports.ServiceUnavailable("effect_observation")
@@ -501,6 +570,7 @@ class BindingStore:
         principal: Principal,
         expected: BindingState,
         observation: EffectObservation,
+        completed_at: str | None = None,
     ) -> BindingState | ports.Missing | ports.VersionConflict:
         current = self._owned(
             connection, principal, InspectRequest("binding", expected.spec.binding_id)
@@ -568,6 +638,8 @@ class BindingStore:
             revision=current.revision + 1,
             applied_run_id=run.run_id if verified else current.applied_run_id,
             applied_snapshot=run.snapshot if verified else current.applied_snapshot,
+            pause_pending=False,
+            pending_operation_id=None,
             last_effect=observation.effect,
             last_error=None
             if verified
@@ -575,6 +647,9 @@ class BindingStore:
                 observation.stages[-1].reason_code
                 if observation.stages
                 else observation.effect.value
+            ),
+            last_completed_at=(
+                completed_at or current.last_completed_at if verified else current.last_completed_at
             ),
             observations=(*current.observations, retained),
         )

@@ -30,6 +30,7 @@ def test_snapshot_factory_describes_real_publication() -> None:
         "snapshot.read",
         "snapshot.latest",
         "runtime.bind",
+        "runtime.control",
         "runtime.inspect",
     }
 

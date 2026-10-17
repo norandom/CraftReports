@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass, fields, replace
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from craftreport.application import ports
@@ -26,6 +27,7 @@ from craftreport.runtime.values import (
     BindingState,
     BindRequest,
     CancellationObservation,
+    ControlRequest,
     EffectObservation,
     InspectRequest,
     PreparationIssue,
@@ -34,6 +36,9 @@ from craftreport.runtime.values import (
     TargetIdentity,
 )
 
+if TYPE_CHECKING:
+    from craftreport.runtime.scheduler import BindingScheduler
+
 
 @dataclass(frozen=True, slots=True)
 class BindingOperations:
@@ -41,6 +46,7 @@ class BindingOperations:
     request_codec: Codec[BindRequest]
     owner_policy: Callable[[Principal], bool]
     target_policy: Callable[[Principal, TargetIdentity], bool]
+    scheduler: "BindingScheduler | None" = None
 
     async def bind(
         self, request: BindRequest, context: ports.CommandContext
@@ -84,6 +90,31 @@ class BindingOperations:
             ),
             effect.evidence,
         )
+
+    async def control(
+        self, request: "ControlRequest", context: ports.CommandContext
+    ) -> OutcomeProposal[
+        BindingState | ports.Missing | ports.VersionConflict | ports.ServiceUnavailable
+    ]:
+        if not self.owner_policy(context.principal) or self.scheduler is None:
+            return OutcomeProposal(
+                ports.ServiceUnavailable("binding_access"), EffectDisposition.NONE, (), ()
+            )
+        before = await self.store.inspect(
+            context.principal, InspectRequest("binding", request.binding_id)
+        )
+        if isinstance(before, BindingState) and not self.target_policy(
+            context.principal, before.spec.target
+        ):
+            return OutcomeProposal(
+                ports.ServiceUnavailable("binding_access"), EffectDisposition.NONE, (), ()
+            )
+        result = await self.scheduler.control(context.principal, request)
+        if isinstance(result, (ports.Missing, ports.VersionConflict)):
+            return OutcomeProposal(result, EffectDisposition.NONE, (), ())
+        if isinstance(result, ports.ServiceUnavailable):
+            return OutcomeProposal(result, EffectDisposition.UNKNOWN, (), ())
+        return OutcomeProposal(result, EffectDisposition.APPLIED, (), ())
 
     async def inspect(
         self, request: InspectRequest, context: ports.ReadContext
@@ -160,14 +191,11 @@ class BindingRuntime:
             target=state.spec.target,
             **values,
         )
-        return await self.store.select_run(principal, state, pins)
+        return await self.store.select_run(
+            principal, state, pins, latest_complete=selection.highest_complete
+        )
 
-    async def observe_effect(
-        self,
-        principal: Principal,
-        expected: BindingState,
-        observation: EffectObservation,
-    ) -> BindingState | ports.Missing | ports.VersionConflict | ports.ServiceUnavailable:
+    async def verify_observation(self, observation: EffectObservation) -> EffectObservation:
         verified = False
         if self.evidence is not None and observation.verified_complete and observation.evidence:
             statuses = await self.evidence.inspect(observation.evidence)
@@ -177,7 +205,15 @@ class BindingRuntime:
                 and st.verification is StageState.PASSED
                 for st, ref in zip(statuses, observation.evidence, strict=True)
             )
-        sanitized = observation if verified else replace(observation, verified_complete=False)
+        return observation if verified else replace(observation, verified_complete=False)
+
+    async def observe_effect(
+        self,
+        principal: Principal,
+        expected: BindingState,
+        observation: EffectObservation,
+    ) -> BindingState | ports.Missing | ports.VersionConflict | ports.ServiceUnavailable:
+        sanitized = await self.verify_observation(observation)
         return await self.store.observe_effect(principal, expected, sanitized)
 
     async def observe_operation(

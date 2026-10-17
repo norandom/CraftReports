@@ -28,7 +28,13 @@ from craftreport.runtime.publication import (
     PublicationOperations,
     PublicationResult,
 )
-from craftreport.runtime.values import BindingState, BindRequest, InspectRequest, RunPins
+from craftreport.runtime.values import (
+    BindingState,
+    BindRequest,
+    ControlRequest,
+    InspectRequest,
+    RunPins,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -36,10 +42,11 @@ class BindingCodecs:
     request: Codec[BindRequest]
     inspect: Codec[InspectRequest]
     result: Codec[BindingState | RunPins | Missing | VersionConflict | ServiceUnavailable]
+    control: Codec[ControlRequest] | None = None
 
 
 def binding_descriptors(codecs: BindingCodecs) -> tuple[OperationDescriptor, ...]:
-    return (
+    items = [
         OperationDescriptor(
             OperationKey("runtime.bind", "1"),
             OperationKind.COMMAND,
@@ -64,14 +71,31 @@ def binding_descriptors(codecs: BindingCodecs) -> tuple[OperationDescriptor, ...
             ),
             resources=("binding", "run"),
         ),
-    )
+    ]
+    if codecs.control is not None:
+        items.append(
+            OperationDescriptor(
+                OperationKey("runtime.control", "1"),
+                OperationKind.COMMAND,
+                codecs.control.schema(),
+                codecs.result.schema(),
+                True,
+                True,
+                ("binding",),
+                (),
+                ("journal", "guard", "resources", "effects", "evidence", "results"),
+                OperationLimits(),
+                EvidencePolicy(()),
+            )
+        )
+    return tuple(items)
 
 
 def binding_operations(
     handlers: BindingOperations, codecs: BindingCodecs
 ) -> tuple[BoundOperation, ...]:
     descriptors = binding_descriptors(codecs)
-    return (
+    bound = [
         OperationBinding(
             descriptors[0],
             codecs.request,
@@ -89,7 +113,18 @@ def binding_operations(
             QueryBehavior(handlers.inspect),
             lambda v: (ResourceRef(v.kind, v.identity),),
         ).bind(),
-    )
+    ]
+    if codecs.control is not None:
+        bound.append(
+            OperationBinding(
+                descriptors[2],
+                codecs.control,
+                codecs.result,
+                CommandBehavior(handlers.control),
+                lambda v: (ResourceRef("binding", v.binding_id),),
+            ).bind()
+        )
+    return tuple(bound)
 
 
 @dataclass(frozen=True, slots=True)

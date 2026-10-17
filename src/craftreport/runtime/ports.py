@@ -41,8 +41,21 @@ class RuntimeStore(Protocol):
         self, principal: Principal, request: InspectRequest
     ) -> BindingState | RunPins | Missing | ServiceUnavailable: ...
 
+    async def save_binding(
+        self,
+        principal: Principal,
+        expected: BindingState,
+        candidate: BindingState,
+    ) -> BindingState | Missing | VersionConflict | ServiceUnavailable: ...
+
     async def select_run(
-        self, principal: Principal, expected: BindingState, pins: RunPins
+        self,
+        principal: Principal,
+        expected: BindingState,
+        pins: RunPins,
+        *,
+        attempt_at: str | None = None,
+        latest_complete: SnapshotRef | None = None,
     ) -> RunPins | VersionConflict | ServiceUnavailable: ...
 
     async def observe_effect(
@@ -50,6 +63,8 @@ class RuntimeStore(Protocol):
         principal: Principal,
         expected: BindingState,
         observation: EffectObservation,
+        *,
+        completed_at: str | None = None,
     ) -> BindingState | Missing | VersionConflict | ServiceUnavailable: ...
 
 

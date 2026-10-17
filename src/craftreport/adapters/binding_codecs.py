@@ -28,6 +28,7 @@ from craftreport.runtime.values import (
     BindingSpec,
     BindingState,
     BindRequest,
+    ControlRequest,
     EffectObservation,
     InspectRequest,
     RunPins,
@@ -50,7 +51,15 @@ def parameter_digest(value: tuple[tuple[str, Scalar], ...]) -> str:
 
 
 def _members(
-    value: BindingSpec | BindingState | RunPins | BindRequest | InspectRequest | EffectObservation,
+    value: (
+        BindingSpec
+        | BindingState
+        | RunPins
+        | BindRequest
+        | ControlRequest
+        | InspectRequest
+        | EffectObservation
+    ),
 ) -> JsonObject:
     return cast(JsonObject, {f.name: getattr(value, f.name) for f in fields(value)})
 
@@ -95,6 +104,10 @@ class RunWire(
 
 
 class BindWire(model_shape(BindRequest, {"spec": SpecWire, "expected_generation": Count})):
+    pass
+
+
+class ControlWire(model_shape(ControlRequest, {"expected_generation": Count})):
     pass
 
 
@@ -217,6 +230,17 @@ def bind_codec() -> PydanticCodec[BindRequest, BindWire]:
                 **{"spec": _spec_object(v.spec), "expected_generation": str(v.expected_generation)}
             ).model_dump(mode="json"),
         ),
+        json_mode=True,
+    ).for_input()
+
+
+def control_codec() -> PydanticCodec[ControlRequest, ControlWire]:
+    return PydanticCodec(
+        ControlWire,
+        lambda v: construct(
+            ControlRequest, v, {"expected_generation": int(getattr(v, "expected_generation"))}
+        ),
+        lambda v: {**_members(v), "expected_generation": str(v.expected_generation)},
         json_mode=True,
     ).for_input()
 
