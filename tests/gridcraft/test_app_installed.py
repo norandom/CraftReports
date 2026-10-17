@@ -36,6 +36,7 @@ FILES = {
     "app_values.py",
     "codecs.py",
     "facts.py",
+    "providers.py",
     "values.py",
     "workbook.py",
     "py.typed",

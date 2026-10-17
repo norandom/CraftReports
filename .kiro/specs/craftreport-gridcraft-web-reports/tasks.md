@@ -47,7 +47,7 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Depends: 4_
   - _Requirements: 5.1, 5.4, 5.5, 5.6, 5.7, 6.4_
 
-- [ ] 6. Compose exact app resources, evidence and guards with real upstream providers
+- [x] 6. Compose exact app resources, evidence and guards with real upstream providers
   - Wait for accepted snapshot-runtime3.1–3.4/4.2 real provider/host tasks. Route only app document/artifact kinds and evidence namespace; delegate upstream resources/effects/health without altering their authority. Preserve the sole kernel journal/results/handoffs.
   - Implement complete-set outer sorted locks then delegated non-app locks, reverse release/cancellation and actual-current checks. Every invocation enters the composed provider, never mixed raw guards; local stored versions are observations, not a fence on external users. Unknown app generic changes fail closed.
   - Done when real mixed-resource reverse requests, cancellation/stale CAS and principal isolation pass; every completion/stage/reconciliation evidence ref has the exact full declared completion pin set. Missing/altered upstream pins must make the kernel reject completion, while correct full-set evidence passes.
@@ -140,6 +140,17 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Requirements: 6.2, 6.3, 6.4, 6.5, 6.6_
 
 ## Implementation Notes
+
+- Task 6: verified by `tests/gridcraft/test_app_providers.py` (6 tests passing),
+  `test_app_installed.py` (2 tests passing), and full fast check suite (2,045
+  passed, 0 pyright/ruff/import/quality errors). Implements composed app providers
+  in `providers.py`:
+  - `AppResourceReader`: routes `gridcraft_document` (to `AppFacts.read_current_index` + `read_observation`) and `gridcraft_artifact` (returns `Missing()` until staging task), delegates upstream.
+  - `AppExecutionGuard` and `AppGuardLease`: outer sorted locks by `(kind, identity)` to prevent deadlocks on concurrent reverse-order requests, upstream delegation, and reverse-order release; `assert_current` checks upstream then app version pointers.
+  - `AppEvidenceReader`: routes app evidence namespace (`gridcraft`, `browser_observation`, etc.) to verified local facts with digest matching, and delegates upstream preserving exact input order.
+  - `AppResourceEffects`: fails closed on generic app changes (`GuardLost()`), delegates upstream.
+  - `compose_app_providers`: factory assembling `AppProviders`.
+  Capability source size remains well within limits: gridcraft 1,074/1,500 LLOC, all modules < 300 LLOC.
 
 - Task 5: verified by `tests/gridcraft/test_facts.py` (8 tests passing),
   `test_app_installed.py` (2 tests passing), and full fast check suite (2,039
