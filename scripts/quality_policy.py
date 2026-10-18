@@ -23,6 +23,11 @@ CAPABILITY_LIMITS = {
         "snapshot-runtime",
         ".kiro/specs/craftreport-snapshot-runtime/storage-budget-calibration-amendment.md",
     ),
+    "gridcraft": (
+        2000,
+        "gridcraft-web-reports",
+        ".kiro/specs/craftreport-gridcraft-web-reports/gridcraft-budget-calibration-amendment.md",
+    ),
 }
 
 

@@ -33,6 +33,52 @@ from craftreport_gridcraft.app_values import (
     text,
 )
 
+
+@dataclass(frozen=True, slots=True)
+class DiscoverRequest:
+    def __post_init__(self) -> None:
+        require_immutable(self)
+
+
+@dataclass(frozen=True, slots=True)
+class OpenReportRequest:
+    run: RunPins
+    target: BrowserTarget
+
+    def __post_init__(self) -> None:
+        require_immutable(self)
+        matched(self.target, self.run)
+
+
+@dataclass(frozen=True, slots=True)
+class ApplyRequest:
+    run: RunPins
+    expected_version: int
+
+    def __post_init__(self) -> None:
+        require_immutable(self)
+        count(self.expected_version, 2**63 - 1)
+
+
+@dataclass(frozen=True, slots=True)
+class VerifyRequest:
+    run: RunPins
+    expected_version: int
+
+    def __post_init__(self) -> None:
+        require_immutable(self)
+        count(self.expected_version, 2**63 - 1)
+
+
+@dataclass(frozen=True, slots=True)
+class AppInspectRequest:
+    document_id: str
+
+    def __post_init__(self) -> None:
+        require_immutable(self)
+        text(self.document_id)
+
+
 DECLARATION = json.dumps(
     {
         "release": "0.7.0",
@@ -100,22 +146,6 @@ class OwnedLayout:
         return Profile(self.target.profile_pin)
 
     @property
-    def deployment_id(self) -> str:
-        return self.target.deployment_id
-
-    @property
-    def context_id(self) -> str:
-        return self.target.context_id
-
-    @property
-    def page_id(self) -> str:
-        return self.target.page_id
-
-    @property
-    def navigation_generation(self) -> int:
-        return self.target.navigation_generation
-
-    @property
     def document_marker(self) -> str:
         return self.target.document_marker
 
@@ -146,9 +176,14 @@ class OwnedLayout:
     def __post_init__(self) -> None:
         require_immutable(self)
         matched(self.target, self.run)
-        for value in (self.deployment_id, self.context_id, self.page_id, self.document_marker):
+        for value in (
+            self.target.deployment_id,
+            self.target.context_id,
+            self.target.page_id,
+            self.document_marker,
+        ):
             require_text(value, "layout identity")
-        require_positive(self.navigation_generation, "navigation generation")
+        require_positive(self.target.navigation_generation, "navigation generation")
         VersionPin("prepared", "1", self.prepared_digest)
 
 

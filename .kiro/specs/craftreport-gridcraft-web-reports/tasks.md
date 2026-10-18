@@ -71,7 +71,7 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Depends: 7_
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 3.9, 5.1, 5.4, 5.5_
 
-- [ ] 9. Register guarded app operations and consume real preparation/runtime pins
+- [x] 9. Register guarded app operations and consume real preparation/runtime pins
   - Apply the reviewed upstream preparation-scope amendment: independently verify original receipt/result/prepared-stage facts and exact whole source pins, derive preparation_scope, retain the same preselected policy, and keep historical preparation refs out of current app completion evidence.
   - Wait for accepted report-model8/10 and snapshot-runtime5.1–5.4 real operations/lifecycle/recovery tasks. Register discovery/open/apply/verify/inspect with existing strict codecs, limits, resource guards, retry semantics and retained results; export remains explicitly unavailable until its implementation.
   - Inject real RunPreparer calling public reports.prepare and exact retained readback; map only reviewed PreparedRunInputs. AppOperationCaller invokes public app operations and converts canonical receipts plus trusted full-pin evidence into exact EffectObservation/cancellation, without advancing bindings itself or nesting a held resource lease.
@@ -140,6 +140,16 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Requirements: 6.2, 6.3, 6.4, 6.5, 6.6_
 
 ## Implementation Notes
+
+- Task 9: verified by `tests/gridcraft/test_app_operations.py` (7 tests passing),
+  `test_app_installed.py` (2 tests passing), and full engineering check suite
+  (0 pyright/ruff/quality errors). Implements guarded app operations and runtime pins:
+  - `values.py`: added request DTOs (`DiscoverRequest`, `OpenReportRequest`, `ApplyRequest`, `VerifyRequest`, `AppInspectRequest`) following GoF Command/Query separation while keeping module LLOC under 300 (287 LLOC).
+  - `codecs.py`: unified versioned run codecs via `_versioned_run_codec` factory pattern; added codecs for open report, inspect, discover, recovery, and preparation payloads.
+  - `operations.py`: implemented `AppOperations` with operations for discover, open_report, apply, verify, and inspect (export explicitly marked unavailable with descriptor explanation); declarative table descriptor factory and diagnostic policy.
+  - `integration.py`: implemented `AppRunPreparer` consuming typed `InvocationEnvelope` and mapping `PreparedRunInputs` with strict result verification, `GridCraftOperationCaller`, and `configure_gridcraft` registration.
+  - `capability.py`: implemented `GridCraftFactory` wiring providers, operations, and preparer into application facade.
+  - Capability source size remains well within the approved 2,000 LLOC limit (1,716 LLOC total, all modules <= 300 LLOC, all functions <= 50 LLOC).
 
 - Task 8: verified by `tests/gridcraft/test_app_browser.py` (10 tests passing),
   `test_app_installed.py` (2 tests passing), and full fast check suite (2,055

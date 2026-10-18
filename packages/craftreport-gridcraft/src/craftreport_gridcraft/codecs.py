@@ -7,14 +7,26 @@ from typing import Literal, cast
 
 from pydantic import TypeAdapter
 
-from craftreport.adapters.binding_codecs import BindingResultCodec, RunWire, parameter_digest
-from craftreport.adapters.report_codecs import prepared_identifier, validation_scope_identifier
+from craftreport.adapters.binding_codecs import (
+    BindingResultCodec,
+    RunWire,
+)
+from craftreport.adapters.binding_codecs import (
+    parameter_digest as parameter_digest,
+)
+from craftreport.adapters.report_codecs import (
+    prepared_identifier,
+)
+from craftreport.adapters.report_codecs import (
+    validation_scope_identifier as validation_scope_identifier,
+)
 from craftreport.adapters.validation import PydanticCodec, StrictWireModel, construct, model_shape
 from craftreport.contracts import OperationLimits
 from craftreport.contracts.values import JsonObject, freeze_object
+from craftreport.data.values import SnapshotRef
 from craftreport.policies.values import QualityEvaluation
 from craftreport.reporting.prepared import PreparedReport
-from craftreport.runtime.values import RunPins
+from craftreport.runtime.values import BindingSpec, RunPins
 from craftreport_gridcraft.app_values import (
     AppSettings,
     ArtifactRef,
@@ -25,11 +37,17 @@ from craftreport_gridcraft.app_values import (
 from craftreport_gridcraft.values import (
     DECLARATION,
     PROFILE,
+    AppInspectRequest,
     AppIntentFact,
     AppIssue,
+    ApplyRequest,
     AppObservationFact,
     CurrentObservationPointer,
+    DiscoverRequest,
+    OpenReportRequest,
     OwnedLayout,
+    TargetRecovery,
+    VerifyRequest,
 )
 
 _LIMITS = OperationLimits(max_input_bytes=65536, max_output_bytes=262144)
@@ -282,5 +300,160 @@ def support_descriptor() -> JsonObject:
             **resource,
             "profile_pin": cast(JsonObject, asdict(PROFILE.pin)),
             "declaration": cast(JsonObject, json.loads(DECLARATION)),
+        }
+    )
+
+
+class EmptyWire(StrictWireModel):
+    pass
+
+
+class OpenReportWire(model_shape(OpenReportRequest, {"run": RunWire, "target": TargetWire})):
+    pass
+
+
+class ApplyWire(model_shape(ApplyRequest, {"run": RunWire})):
+    pass
+
+
+class VerifyWire(model_shape(VerifyRequest, {"run": RunWire})):
+    pass
+
+
+class InspectWire(model_shape(AppInspectRequest, {})):
+    pass
+
+
+class RecoveryWire(
+    model_shape(
+        TargetRecovery,
+        {
+            "current_pointer": PointerWire | None,
+            "orphaned_intents": list[IntentWire],
+            "latest_observation": ObservationFactWire | None,
+        },
+    )
+):
+    pass
+
+
+def open_report_codec() -> PydanticCodec[OpenReportRequest, OpenReportWire]:
+    return PydanticCodec(
+        OpenReportWire,
+        lambda v: construct(
+            OpenReportRequest,
+            v,
+            {
+                "run": _run(v),
+                "target": construct(BrowserTarget, cast(TargetWire, getattr(v, "target")), {}),
+            },
+        ),
+        lambda v: {
+            "run": BindingResultCodec().encode(v.run),
+            "target": cast(JsonObject, asdict(v.target)),
+        },
+        json_mode=True,
+        limits=_LIMITS,
+    )
+
+
+def _versioned_run_codec[T: (ApplyRequest, VerifyRequest), W: StrictWireModel](
+    wire_cls: type[W], req_cls: type[T]
+) -> PydanticCodec[T, W]:
+    return PydanticCodec(
+        wire_cls,
+        lambda v: construct(req_cls, v, {"run": _run(v)}),
+        lambda v: {
+            "run": BindingResultCodec().encode(v.run),
+            "expected_version": v.expected_version,
+        },
+        json_mode=True,
+        limits=_LIMITS,
+    )
+
+
+def apply_codec() -> PydanticCodec[ApplyRequest, ApplyWire]:
+    return _versioned_run_codec(ApplyWire, ApplyRequest)
+
+
+def verify_codec() -> PydanticCodec[VerifyRequest, VerifyWire]:
+    return _versioned_run_codec(VerifyWire, VerifyRequest)
+
+
+def inspect_request_codec() -> PydanticCodec[AppInspectRequest, InspectWire]:
+    return PydanticCodec(
+        InspectWire,
+        lambda v: construct(AppInspectRequest, v, {}),
+        lambda v: cast(JsonObject, asdict(v)),
+        json_mode=True,
+        limits=_LIMITS,
+    )
+
+
+def discover_request_codec() -> PydanticCodec[DiscoverRequest, EmptyWire]:
+    return PydanticCodec(
+        EmptyWire,
+        lambda _v: DiscoverRequest(),
+        lambda _v: {},
+        json_mode=True,
+        limits=_LIMITS,
+    )
+
+
+def _recovery(value: RecoveryWire) -> TargetRecovery:
+    ptr_wire = cast(PointerWire | None, getattr(value, "current_pointer", None))
+    ptr = (
+        construct(CurrentObservationPointer, ptr_wire, {"run": _run(ptr_wire)})
+        if ptr_wire
+        else None
+    )
+    intents = tuple(
+        construct(AppIntentFact, i, {"run": _run(i)})
+        for i in cast(list[IntentWire], getattr(value, "orphaned_intents", []))
+    )
+    obs_wire = cast(ObservationFactWire | None, getattr(value, "latest_observation", None))
+    obs = _observation_fact(obs_wire) if obs_wire else None
+    return construct(
+        TargetRecovery,
+        value,
+        {
+            "current_pointer": ptr,
+            "orphaned_intents": intents,
+            "latest_observation": obs,
+        },
+    )
+
+
+def _recovery_object(value: TargetRecovery) -> JsonObject:
+    return {
+        "document_id": value.document_id,
+        "status": value.status,
+        "current_pointer": (
+            _pointer_object(value.current_pointer) if value.current_pointer else None
+        ),
+        "orphaned_intents": [_intent_object(i) for i in value.orphaned_intents],
+        "latest_observation": (
+            _observation_fact_object(value.latest_observation) if value.latest_observation else None
+        ),
+        "recovery_required": value.recovery_required,
+    }
+
+
+def recovery_codec() -> PydanticCodec[TargetRecovery, RecoveryWire]:
+    return PydanticCodec(
+        RecoveryWire,
+        _recovery,
+        _recovery_object,
+        json_mode=True,
+        limits=_LIMITS,
+    )
+
+
+def prepare_payload(binding: BindingSpec, snapshot: SnapshotRef) -> JsonObject:
+    return freeze_object(
+        {
+            "schema_version": "1",
+            "binding": cast(JsonObject, asdict(binding)),
+            "snapshot": cast(JsonObject, asdict(snapshot)),
         }
     )

@@ -149,7 +149,7 @@ GRIDCRAFT_KERNEL = {
         "AccessPolicy",
     },
     "service_values": SNAPSHOT_READ_RESULTS
-    | {"ResourceSnapshot", "ResourceEffect", "GuardCurrent", "GuardLost"},
+    | {"ResourceSnapshot", "ResourceEffect", "GuardCurrent", "GuardLost", "DiagnosticPolicy"},
     "capabilities": {"CapabilityInstance", "CapabilityFactory"},
 }
 GRIDCRAFT_CODECS = {
@@ -199,6 +199,7 @@ def gridcraft_forbidden(target: str, module: str) -> bool:
         target,
         {
             "craftreport.runtime.ports",
+            "craftreport.reporting.ports",
             "craftreport.reporting.operations",
             "craftreport.policies.evaluate",
         },
