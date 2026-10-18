@@ -80,7 +80,7 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Depends: 8_
   - _Requirements: 1.5, 2.6, 2.7, 3.9, 5.1, 5.3, 5.4, 5.7, 6.1_
 
-- [ ] 10. Deliver visible shared lifecycle controls and truthful freshness
+- [x] 10. Deliver visible shared lifecycle controls and truthful freshness
   - Add the packaged native labelled control panel using existing public invocation/inspection endpoints, explicit authentication boundary, accessible focus/status and read-only state polling. No embedded credentials, private data transcript or alternate scheduler.
   - Click actual start/pause/resume/stop controls in the isolated browser. Show interval/attempt/completion and accepted/complete/selected/applied facts distinctly, pause immediately blocks new starts including pending preparation, paused publications retain visible content, resume selects highest complete, stop blocks until explicit start.
   - Done when real installed runtime/app observations prove all transitions, 10-second opportunity setting remains distinct from apply latency, stale threshold identifies its measure, and partial/ambiguous/failed outcomes remain visible with pause/error. A deliberately disconnected control must fail its critical test before restoring and proving the correct wiring.
@@ -140,6 +140,14 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Requirements: 6.2, 6.3, 6.4, 6.5, 6.6_
 
 ## Implementation Notes
+
+- Task 10: verified by `tests/gridcraft/test_app_control_panel.py` (7 tests passing),
+  `test_app_installed.py` (2 tests passing), and full engineering check suite
+  (0 pyright/ruff/quality errors). Implements visible shared lifecycle controls and truthful freshness:
+  - `report.html`: packaged accessible companion control panel with native labelled buttons (`#control-start`, `#control-pause`, `#control-resume`, `#control-stop`), ARIA live status region (`role="status"`, `aria-live="polite"`), and distinct presentation for configured 10s refresh interval, observed apply latency, pending work, absent timestamps rendered as "unknown", accepted/applied versions, intent state, outcome status, and freshness status with triggering measures.
+  - `report.js`: GoF Command (`LifecycleCommand`, `StartCommand`, `PauseCommand`, `ResumeCommand`, `StopCommand`, `CommandFactory`), Strategy (`FreshnessStrategy`), Observer (`ReportStore`, `ReportView`), and Gateway (`RuntimeApiClient`) patterns with pluggable wiring (`ControlWiring`) supporting testing of deliberately disconnected controls.
+  - Headless Chromium Playwright journeys verify initial state, start, pause-pending with in-flight mutation, publications during pause, latest-complete resume, stop, truthful threshold evaluation, and fail/restore verification for deliberately disconnected wiring.
+  - Capability source size remains well within the approved 2,000 LLOC limit (1,721 LLOC total, all modules <= 300 LLOC, all functions <= 50 LLOC).
 
 - Task 9: verified by `tests/gridcraft/test_app_operations.py` (7 tests passing),
   `test_app_installed.py` (2 tests passing), and full engineering check suite

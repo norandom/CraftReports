@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GridCraft Report Lifecycle Controls</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --warning: #d97706;
+      --warning-hover: #b45309;
+      --success: #16a34a;
+      --success-hover: #15803d;
+      --danger: #dc2626;
+      --danger-hover: #b91c1c;
+      --focus-ring: #93c5fd;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 1.5rem;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .panel-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    h1 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      font-size: 1.5rem;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      font-size: 0.875rem;
+    }
+    .controls-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    button.btn {
+      padding: 0.5rem 1.25rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #fff;
+      transition: background-color 0.15s ease-in-out;
+    }
+    button.btn:focus-visible {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 2px;
+    }
+    button.btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    #control-start { background: var(--primary); }
+    #control-start:not(:disabled):hover { background: var(--primary-hover); }
+    #control-pause { background: var(--warning); }
+    #control-pause:not(:disabled):hover { background: var(--warning-hover); }
+    #control-resume { background: var(--success); }
+    #control-resume:not(:disabled):hover { background: var(--success-hover); }
+    #control-stop { background: var(--danger); }
+    #control-stop:not(:disabled):hover { background: var(--danger-hover); }
+
+    .status-region {
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+      background: #f1f5f9;
+      border-left: 4px solid #64748b;
+      font-size: 0.95rem;
+    }
+    .status-region[data-intent="running"] {
+      border-left-color: var(--primary);
+      background: #eff6ff;
+    }
+    .status-region[data-intent="paused"] {
+      border-left-color: var(--warning);
+      background: #fffbeb;
+    }
+    .status-region[data-intent="stopped"] {
+      border-left-color: var(--danger);
+      background: #fef2f2;
+    }
+
+    .facts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+    .fact-card {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      background: #fff;
+    }
+    .fact-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+    .fact-value {
+      font-size: 0.95rem;
+      font-weight: 500;
+      word-break: break-all;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .badge-fresh { background: #dcfce7; color: #166534; }
+    .badge-stale { background: #fee2e2; color: #991b1b; }
+    .badge-unknown { background: #f1f5f9; color: #475569; }
+  </style>
+</head>
+<body>
+  <div id="report-app" class="panel-container"
+       data-api-url=""
+       data-binding-id="binding-1"
+       data-interval-seconds="10"
+       data-stale-threshold-seconds="30">
+    <h1>GridCraft Live Report Controls</h1>
+    <div class="subtitle">Shared lifecycle operations and truthful freshness view</div>
+
+    <!-- Control Buttons -->
+    <div class="controls-toolbar" role="toolbar" aria-label="Report lifecycle controls">
+      <button id="control-start" class="btn" type="button">Start</button>
+      <button id="control-pause" class="btn" type="button" disabled>Pause</button>
+      <button id="control-resume" class="btn" type="button" disabled>Resume</button>
+      <button id="control-stop" class="btn" type="button" disabled>Stop</button>
+    </div>
+
+    <!-- Accessible Status Region -->
+    <div id="status-region" role="status" aria-live="polite" class="status-region" data-intent="stopped">
+      Lifecycle: stopped. Ready to start.
+    </div>
+
+    <!-- Distinct Facts Display -->
+    <div class="facts-grid">
+      <div class="fact-card">
+        <div class="fact-label">Configured Refresh Interval</div>
+        <div class="fact-value" id="refresh-interval">10s (configured cadence)</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-label">Observed Apply Latency</div>
+        <div class="fact-value" id="apply-latency">unknown</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-label">Pending Work</div>
+        <div class="fact-value" id="pending-work">none</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-label">Last Attempt Time</div>
+        <div class="fact-value" id="last-attempt-at">unknown</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-label">Last Completed Time</div>
+        <div class="fact-value" id="last-completed-at">unknown</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-label">Latest Accepted Version</div>
+        <div class="fact-value" id="latest-accepted-version">unknown</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-label">Latest Complete Accepted Version</div>
+        <div class="fact-value" id="latest-complete-accepted-version">unknown</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-label">Selected Run ID</div>
+        <div class="fact-value" id="selected-run-id">none</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-label">Last Complete Applied Version</div>
+        <div class="fact-value" id="applied-version">unknown</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-label">Last Complete Applied Time</div>
+        <div class="fact-value" id="applied-at">unknown</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-label">Intent State</div>
+        <div class="fact-value" id="intent-state">stopped</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-label">Freshness Status</div>
+        <div class="fact-value" id="freshness-status">
+          <span class="badge badge-unknown">unknown</span>
+        </div>
+      </div>
+      <div class="fact-card" style="grid-column: span 2;">
+        <div class="fact-label">Freshness Triggering Measure</div>
+        <div class="fact-value" id="freshness-measure">no_timestamp_recorded</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-label">Outcome Status</div>
+        <div class="fact-value" id="outcome-status">none</div>
+      </div>
+      <div class="fact-card">
+        <div class="fact-label">Last Error</div>
+        <div class="fact-value" id="last-error">none</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="report.js"></script>
+</body>
+</html>
