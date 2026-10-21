@@ -204,6 +204,29 @@ class SavedCandidate:
 
 
 @dataclass(frozen=True, slots=True)
+class StagedArtifact:
+    staged_id: str
+    candidate: SavedCandidate
+    staging_path: str
+    bytes_digest: str
+    size: int
+    stage_fact: EvidenceRef
+
+    def __post_init__(self) -> None:
+        require_immutable(self)
+        text(self.staged_id)
+        text(self.staging_path)
+        digest(self.bytes_digest)
+        count(self.size, 4194304)
+        if type(self.candidate) is not SavedCandidate or self.candidate.purpose != "export":
+            raise ValueError("Only exported candidates can identify staged artifacts")
+        if self.bytes_digest != self.candidate.bytes_digest or self.size != self.candidate.size:
+            raise ValueError("Staged artifact must match candidate digest and size")
+        if type(self.stage_fact) is not EvidenceRef or self.stage_fact.scope != "artifact-stage":
+            raise ValueError("Invalid staged artifact evidence")
+
+
+@dataclass(frozen=True, slots=True)
 class ArtifactRef:
     artifact_id: str
     destination_id: str

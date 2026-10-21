@@ -76,7 +76,7 @@ async def _verify_identity(
     plan: MappingPlan,
     marker: str,
     run_id: str,
-    stage: Literal["bootstrap", "observe", "mutate"],
+    stage: Literal["bootstrap", "observe", "mutate", "capture", "reopen"],
     effect: Literal["none", "partial", "unknown"] = "none",
 ) -> str | AppIssue:
     m_addr, r_addr = _marker_addrs(plan)
@@ -98,7 +98,7 @@ async def _verify_identity(
 async def _read_cells(
     page: Page,
     cells: tuple[Cell, ...],
-    stage: Literal["observe", "mutate"],
+    stage: Literal["observe", "mutate", "reopen"],
     effect: Literal["none", "partial", "unknown"] = "none",
 ) -> tuple[dict[str, str], str] | AppIssue:
     try:
@@ -327,6 +327,39 @@ class BrowserDriver:
             "gridcraft.apply",
         )
 
+    async def _extract_candidate(self, page: Page) -> bytes | AppIssue:
+        lane_state = await page.evaluate("() => window.saveLane")
+        if (
+            not isinstance(lane_state, dict)
+            or cast(dict[str, object], lane_state).get("failed") is True
+        ):
+            return AppIssue("conflict", ("save_lane",), stage="capture")
+        await page.evaluate(
+            "() => { window.saveLane = { armed: true, count: 0, failed: false, candidate: null }; }"
+        )
+        await key(page, "Control+s")
+        try:
+            async with asyncio.timeout(10.0):
+                while True:
+                    cand = await page.evaluate("() => window.saveLane.candidate")
+                    if await page.evaluate("() => window.saveLane.failed"):
+                        return AppIssue("conflict", ("save_lane",), stage="capture")
+                    if cand is not None:
+                        break
+                    await asyncio.sleep(0.05)
+        except TimeoutError:
+            return AppIssue("unavailable", ("save_timeout",), stage="capture")
+        final_lane = await page.evaluate("() => window.saveLane")
+        if (
+            isinstance(final_lane, dict)
+            and cast(dict[str, object], final_lane).get("count", 1) != 1
+        ):
+            return AppIssue("conflict", ("save_lane",), stage="capture")
+        raw: list[int] = cast(
+            list[int], await page.evaluate("() => window.saveLane.candidate.bytes")
+        )
+        return bytes(raw)
+
     async def capture_inspection_save(
         self,
         page: Page,
@@ -337,37 +370,10 @@ class BrowserDriver:
     ) -> tuple[SavedCandidate, bytes] | AppIssue:
         """Arm the message lane, dispatch Ctrl+s, fsync the candidate, and return SavedCandidate."""
         async with self._lane(target.identity.document_id):
-            lane_state = await page.evaluate("() => window.saveLane")
-            if (
-                not isinstance(lane_state, dict)
-                or cast(dict[str, object], lane_state).get("failed") is True
-            ):
-                return AppIssue("conflict", ("save_lane",), stage="capture")
-
-            await page.evaluate(
-                "() => { window.saveLane = "
-                "{ armed: true, count: 0, failed: false, candidate: null }; }"
-            )
-            await key(page, "Control+s")
-
-            try:
-                async with asyncio.timeout(10.0):
-                    while True:
-                        cand = await page.evaluate("() => window.saveLane.candidate")
-                        failed = await page.evaluate("() => window.saveLane.failed")
-                        if failed:
-                            return AppIssue("conflict", ("save_lane",), stage="capture")
-                        if cand is not None:
-                            break
-                        await asyncio.sleep(0.05)
-            except TimeoutError:
-                return AppIssue("unavailable", ("save_timeout",), stage="capture")
-
-            raw: list[int] = cast(
-                list[int], await page.evaluate("() => window.saveLane.candidate.bytes")
-            )
-            data = bytes(raw)
-
+            res = await self._extract_candidate(page)
+            if isinstance(res, AppIssue):
+                return res
+            data = res
             path = directory / f"{name}.xlsx"
             with path.open("xb") as stream:
                 stream.write(data)
@@ -394,3 +400,73 @@ class BrowserDriver:
             capture_fact=ev_ref,
         )
         return candidate, data
+
+    async def capture_export_save(
+        self,
+        page: Page,
+        target: BrowserTarget,
+        run: RunPins,
+        plan: MappingPlan,
+        name: str = "export",
+    ) -> tuple[SavedCandidate, bytes] | AppIssue:
+        """Hold document lane, precheck live run, capture candidate, and release lane."""
+        try:
+            matched(target, run)
+            matched(plan.layout.target, run)
+        except ValueError:
+            return AppIssue("conflict", ("target",), stage="capture")
+
+        async with self._lane(target.identity.document_id):
+            checked = await _verify_identity(
+                page, plan, target.document_marker, run.run_id, "capture"
+            )
+            if isinstance(checked, AppIssue):
+                return checked
+            res = await self._extract_candidate(page)
+            if isinstance(res, AppIssue):
+                return res
+            data = res
+
+        digest = sha256(data).hexdigest()
+        ev_ref = EvidenceRef(
+            identity=f"evidence-export-{name}",
+            scope="app-save",
+            operation_id=f"export-{name}",
+            operation=OperationKey("gridcraft.save", "1"),
+            resource_versions=(
+                ExpectedVersion(ResourceRef("app_document", target.identity.document_id), "1"),
+            ),
+            content_digest=digest,
+        )
+        candidate = SavedCandidate(
+            target=target,
+            run=run,
+            purpose="export",
+            bytes_digest=digest,
+            size=len(data),
+            capture_fact=ev_ref,
+        )
+        return candidate, data
+
+    async def reopen(
+        self,
+        page: Page,
+        data: bytes,
+        plan: MappingPlan,
+        marker: str,
+        run_id: str,
+    ) -> tuple[str, str] | AppIssue:
+        """Open exact bytes in verifier page and assert marker, run, cells, sentinel."""
+        await bootstrap_page(page, data, self._settings.origin)
+        outside_fp = await _verify_identity(page, plan, marker, run_id, "reopen")
+        if isinstance(outside_fp, AppIssue):
+            return outside_fp
+        read_res = await _read_cells(page, plan.cells, "reopen")
+        if isinstance(read_res, AppIssue):
+            return read_res
+        vals, after_fp = read_res
+        for cell in plan.cells:
+            expected = _expected_cell_text(cell.address, cell.value)
+            if vals.get(cell.address) not in (expected, str(cell.value or "")):
+                return AppIssue("conflict", ("cells", cell.address), stage="reopen")
+        return after_fp, outside_fp

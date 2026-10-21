@@ -88,7 +88,7 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Depends: 9_
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 6.1, 6.5_
 
-- [ ] 11. Stage pinned actual app saves and independently reopen exact bytes
+- [x] 11. Stage pinned actual app saves and independently reopen exact bytes
   - Implement export save capture under the same document lane with exact current complete run precheck; a newer publication may be accepted but cannot mix into captured content. Freeze private operation-owned bytes, release live lane after capture and inspect/reopen those exact staged bytes in another GridCraft context.
   - Enforce byte/ZIP/XML/resource bounds and no external/macro/executable links before parsing. Compare actual values/types/chart references/series/styles/run/designation, preserve original bytes and distinguish capture, scratch persistence, inspection and reopen stages.
   - Done when export-during-publication preserves one pinned run through fresh actual app reopen, wrong-run/multiple-message/corrupt/unavailable/reopen failures withhold verified export, and no requested destination has been changed during staging.
@@ -140,6 +140,14 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Requirements: 6.2, 6.3, 6.4, 6.5, 6.6_
 
 ## Implementation Notes
+
+- Task 11: verified by `tests/gridcraft/test_app_staged_artifact.py` (7 tests passing),
+  full test suite (133 tests passing), and full engineering check suite
+  (0 pyright/ruff/quality/import/breadth errors). Implements staging pinned actual app saves and independently reopening exact bytes:
+  - `app_values.py`: added `StagedArtifact` immutable value object with strict verification (`purpose == "export"`, byte size/digest agreement, evidence ref validation) and re-exported through `values.py`.
+  - `browser.py`: implemented `BrowserDriver.capture_export_save` capturing bytes under document lane with live document marker/run precheck and immediate lane release; implemented `BrowserDriver.reopen` validating exact bytes in a fresh verifier page context against marker, run ID, and outside sentinels.
+  - `artifacts.py`: implemented `stage_artifact` with atomic exclusive file creation (`xb`), flush, fsync, and readback digest validation; implemented `inspect_staged_artifact` enforcing OpenXML ZIP boundaries (<=4 MiB, <=256 members, <=32 MiB uncompressed, no encryption/macros, no external links in `.rels`, no XML entity injection) and cell/sentinel validation; implemented `reopen_staged_artifact` linking verifier observations to `CheckId.ARTIFACT_REOPEN`.
+  - Capability source size remains well within the approved 2,000 LLOC limit (1,879 LLOC total, all modules <= 300 LLOC, all functions <= 50 LLOC).
 
 - Task 10: verified by `tests/gridcraft/test_app_control_panel.py` (7 tests passing),
   `test_app_installed.py` (2 tests passing), and full engineering check suite

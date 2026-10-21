@@ -23,6 +23,9 @@ from craftreport_gridcraft.app_values import (
     SavedCandidate as SavedCandidate,
 )
 from craftreport_gridcraft.app_values import (
+    StagedArtifact as StagedArtifact,
+)
+from craftreport_gridcraft.app_values import (
     TargetObservation as TargetObservation,
 )
 from craftreport_gridcraft.app_values import (

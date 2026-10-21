@@ -5,6 +5,7 @@ from craftreport_gridcraft.app_values import (
     ArtifactRef,
     BrowserTarget,
     SavedCandidate,
+    StagedArtifact,
     TargetObservation,
 )
 from craftreport_gridcraft.codecs import support_descriptor
@@ -19,6 +20,7 @@ __all__ = [
     "BrowserTarget",
     "TargetObservation",
     "SavedCandidate",
+    "StagedArtifact",
     "ArtifactRef",
     "support_descriptor",
 ]
