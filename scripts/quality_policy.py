@@ -24,9 +24,9 @@ CAPABILITY_LIMITS = {
         ".kiro/specs/craftreport-snapshot-runtime/storage-budget-calibration-amendment.md",
     ),
     "gridcraft": (
-        2000,
+        2600,
         "gridcraft-web-reports",
-        ".kiro/specs/craftreport-gridcraft-web-reports/gridcraft-budget-calibration-amendment.md",
+        ".kiro/specs/craftreport-gridcraft-web-reports/first-release-budget-proposal.md",
     ),
 }
 
@@ -143,7 +143,7 @@ def validate_limit_approval(
         fields.get("approved") is not True
         or scope.get("approved") is not True
         or not identity_matches
-        or (owner == "adapters" and fields.get("owner") != "project-owner")
+        or (owner in {"adapters", "gridcraft"} and fields.get("owner") != "project-owner")
         or scope.get("budget_amendment_reference") != reference
         or fields.get("approval_reference") != reference
     ):

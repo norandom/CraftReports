@@ -96,14 +96,23 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Depends: 10_
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 5.1, 5.4, 6.4, 6.5_
 
+- [x] 12.0 Enforce the approved first-release GridCraft 2,600-LLOC budget calibration
+  - Update `quality.toml`, `scripts/quality_policy.py`, `.kiro/specs/craftreport-gridcraft-web-reports/spec.json`, and engineering budget gate tests to enforce the owner-approved `first-release-budget-proposal.md` (`first-release-budget-approval.md`) calibrating only `gridcraft` production capability aggregate LLOC from `2,000` to `2,600`.
+  - Keep all global defaults (`50` function LLOC, `300` module LLOC, `1,500` capability LLOC, McCabe `10`) and all other capability calibrations (`1,800` `adapters`, `2,000` `snapshot-storage`, `3,400` `browser-verification`) unchanged.
+  - Done when `gridcraft` passes at `2,600` LLOC and fails at `2,601` LLOC, removing the override restores the `1,500` default, invalid owner/scope/reference metadata fails policy validation, and `scripts/check.py --fast` passes.
+  - _Boundary: Development-gates GridCraft budget calibration integration_
+  - _Depends: 11; first-release-budget-approval.md_
+  - _Requirements: 4.1, 5.1, 5.2, 5.4, 6.5_
+
 - [ ] 12. Publish only policy-permitted verified draft or final validated bytes
+  - Apply the owner-approved export-resource-evidence-amendment.md and first-release-budget-proposal.md: three exact app resource kinds, configured destination identity, destination-scoped publication slot versus immutable artifact identity, canonical retained stage/publication facts, complete observed completion pins and real composed evidence readback. Preserve the approved 2,600 aggregate and all local limits; no generic upstream resource interception or new journal.
   - Activate gridcraft.export through explicit integration of its strict request/result codecs, existing OperationBinding, exact document/run/artifact/destination resource declarations and descriptor limits/evidence policy. Admit only the authorized pinned current complete run, matching retained prepared/result pins and destination expected version/overwrite policy; use the existing shared kernel guards/retries/stage/result semantics. Transition descriptor availability from unavailable to supported only after tasks11–12's actual route and publication checks pass.
   - Use existing quality evaluate with trusted matching observations; render and verify DRAFT+summary for permitted draft. For validated requests, privately verify provisional eligibility, apply scoped designation, then capture/stage/inspect/reopen and re-evaluate against final target/artifact pins. External methodology/compliance claims cannot grant internal checks.
   - After final applicable checks, reassert destination guard/authorization/expected digest and exclusive-create or explicitly permitted atomic replace of the exact verified staged bytes; fsync/read back destination digest and retain final publication facts. Prepublication failure or conflict leaves existing/absent destination unchanged.
   - Done when blocked validated requests expose no published validated artifact, marked drafts preserve their findings, final published bytes equal final verified digest and continuing live input never changes the artifact. Postpublication lost acknowledgment/readback failure remains ambiguous/failed persistence with its possible real write, never absent-success or blind retry.
   - Installed ordinary REST/MCP discovery and invocation must expose this same export operation and exact descriptor transition; inspect retained preparation/capture/staging/inspection/reopen/policy/publication stages and structured failure readback. Wrong pins/destination authorization/version reject before the effect, retries return the original operation without repeating save/publication, and failed stages cannot acquire a verified-export receipt.
   - _Boundary: AppOperations, ArtifactVerification and policy publication integration_
-  - _Depends: 11_
+  - _Depends: 11, 12.0_
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 5.1, 5.2, 5.3, 5.4, 5.5, 5.7, 6.1_
 
 - [ ] 13. Reconcile real interruptions and restore only authorized exact targets
@@ -140,6 +149,32 @@ Canonical validation: focused `uv.exe run --frozen python -m pytest tests/gridcr
   - _Requirements: 6.2, 6.3, 6.4, 6.5, 6.6_
 
 ## Implementation Notes
+
+- Task 12 revalidation, 2026-10-25: acceptance reopened after independent
+  `/root/review_current_export12` review. Existing implementation is preserved.
+  Review: `artifacts/state-review-2026-10-25/export12-review.md`.
+  Required repairs cover policy blockers and final designation, independent
+  verifier identity, retained publication/stage evidence, destination races and
+  guard revalidation, ambiguous write failures, and complete current run pins.
+  Direct-handler tests with fake pages do not establish installed REST/MCP or
+  released-browser acceptance. Task 13 remains dependent on accepted task 12.
+  Bounded safety repairs now withhold incomplete export, preserve exact run and
+  evidence identities, reject a shared/nonblank verifier, and retain required
+  policy checks. Publisher regressions cover explicit overwrite authority,
+  competing creation, missing/changed expected files, and uncertain writes.
+  Reusing base workbook inspection keeps the capability at 1,999/2,000 LLOC.
+  Focused repair suite: 60 passed; this does not close task 12. Final evidence is
+  under `artifacts/task12-repair-2026-10-25/`. The independently reviewed
+  `export-resource-evidence-amendment.md` was owner-approved on 2026-10-25;
+  the new resource boundary is authorized for implementation, not yet verified.
+  Subsequent contract/provider implementation measures 2,185/2,000 LLOC;
+  the quality gate fails only that aggregate. Source expansion is stopped.
+  Combined focused checks pass 84 tests, but independent subset review rejects
+  dependency authentication: a failed foreign-principal/wrong-run observation
+  can be accepted through the digest-only existing app evidence reader.
+  Report and reproduction: `artifacts/task12approved-2026-10-25/contract-review.md`.
+  No task acceptance, commit or push follows from those passing tests.
+- Task 12.0: owner approved `first-release-budget-proposal.md` (`first-release-budget-approval.md`) on 2026-10-28, calibrating only the `gridcraft` production capability aggregate limit from 2,000 to 2,600 LLOC while retaining all global and local limits unchanged; verified by `tests/engineering/test_gridcraft_budget.py` and `scripts/check_quality.py`, and approved by independent `kiro-review`.
 
 - Task 11: verified by `tests/gridcraft/test_app_staged_artifact.py` (7 tests passing),
   full test suite (133 tests passing), and full engineering check suite
